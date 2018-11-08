@@ -94,16 +94,16 @@ def seq_show(imgseq, scale=0.3):
     cv2.waitKey(0)
 
 
-def put_arrow(img, dir, centerx=150, centery=96):
+def put_arrow(img, dir, center_x=150, center_y=96):
     # print type(img), img.dtype, img.shape
     img = img.copy()
-    cv2.line(img, (centery - 30, centerx),
-             (centery + 30, centerx), (0, 255, 0), 2)
-    cv2.line(img, (centery, centerx - 30),
-             (centery, centerx + 30), (0, 255, 0), 2)
+    cv2.line(img, (center_y - 30, center_x),
+             (center_y + 30, center_x), (0, 255, 0), 2)
+    cv2.line(img, (center_y, center_x - 30),
+             (center_y, center_x + 30), (0, 255, 0), 2)
 
-    cv2.arrowedLine(img, (centery, centerx), (int(
-        centery + 40 * dir[1]), int(centerx - 40 * dir[0])), (0, 0, 255), 4)
+    cv2.arrowedLine(img, (center_y, center_x), (int(
+        center_y + 40 * dir[1]), int(center_x - 40 * dir[0])), (0, 0, 255), 4)
 
     return img
 
