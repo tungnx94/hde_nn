@@ -1,62 +1,70 @@
 import torch
+import sys
+import random
+
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 import numpy as np
-from os.path import join
-import random
-from math import pi
 
+from math import pi
+from os.path import join
+from torch.utils.data import DataLoader
+
+from workflow import WorkFlow
 from utils import loadPretrain2, loadPretrain, seq_show_with_arrow
+from MobileReg import MobileReg
+
 from labelData import LabelDataset
 from unlabelData import UnlabelDataset
 from folderLabelData import FolderLabelDataset
 from folderUnlabelData import FolderUnlabelDataset
 from dukeSeqLabelData import DukeSeqLabelDataset
-from MobileReg import MobileReg
 
-import sys
 sys.path.append('../WorkFlow')
-from workflow import WorkFlow
 
-exp_prefix = 'vis_1_3_'
+
+exp_prefix = 'vis_1_3_' # ?
 Batch = 128
-UnlabelBatch = 24 #32
-Lr = 0.0005
-Trainstep = 20000
-Lamb = 0.1
-Thresh = 0.005
+UnlabelBatch = 24  # 32
+Lr = 0.0005 # learning rate
+Trainstep = 20000 # epoch
+Lamb = 0.1 # ? 
+Thresh = 0.005 # threshold ?
 TestBatch = 50
 
-Snapshot = 5000 # do a snapshot every Snapshot steps
-TestIter = 10 # do a testing every TestIter steps
-ShowIter = 1 # print to screen
+Snapshot = 5000  # do a snapshot every Snapshot steps
+TestIter = 10  # do a testing every TestIter steps
+ShowIter = 1  # print to screen
 
-mean=[0.485, 0.456, 0.406]
-std=[0.229, 0.224, 0.225]
+mean = [0.485, 0.456, 0.406]
+std = [0.229, 0.224, 0.225]
 
-trainlabelfile = '/datadrive/person/DukeMTMC/trainval_duke.txt' # hardcode in labelData
+trainlabelfile = '/datadrive/person/DukeMTMC/trainval_duke.txt'  # hardcode in labelData
 testlabelfile = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
 unlabelfile = 'duke_unlabeldata.pkl'
 saveModelName = 'facing'
 
 pre_mobile_model = 'pretrained_models/mobilenet_v1_0.50_224.pth'
 LoadPreMobile = False
+
 pre_model = 'models/1_2_facing_20000.pkl'
 LoadPreTrain = True
-TestType = 2 # 0:not test, 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
+TestType = 2  # 0:not test, 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
 
-LogParamList= ['Batch', 'UnlabelBatch', 'Lr', 'Trainstep', 'Lamb', 'Thresh'] # these params will be log into the file
+LogParamList = ['Batch', 'UnlabelBatch', 'Lr', 'Trainstep',
+                'Lamb', 'Thresh']  # these params will be log into the file
+
 
 class MyWF(WorkFlow.WorkFlow):
-    def __init__(self, workingDir, prefix = "", suffix = ""):
+
+    def __init__(self, workingDir, prefix="", suffix=""):
         super(MyWF, self).__init__(workingDir, prefix, suffix)
 
         # === Custom member variables. ===
         logstr = ''
-        for param in LogParamList: # record useful params in logfile 
-            logstr += param + ': '+ str(globals()[param]) + ', '
-        self.logger.info(logstr) 
+        for param in LogParamList:  # record useful params in logfile
+            logstr += param + ': ' + str(globals()[param]) + ', '
+        self.logger.info(logstr)
 
         self.countEpoch = 0
         self.unlabelEpoch = 0
@@ -65,20 +73,27 @@ class MyWF(WorkFlow.WorkFlow):
         global TestBatch
 
         # Dataloader for the training and testing
-        labeldataset = LabelDataset(balence=True,mean=mean,std=std)
-        unlabeldataset = UnlabelDataset(batch=UnlabelBatch, balence=True,mean=mean,std=std)
-        self.train_loader = DataLoader(labeldataset, batch_size=Batch, shuffle=True, num_workers=6)
-        self.train_unlabel_loader = DataLoader(unlabeldataset, batch_size=1, shuffle=True, num_workers=4)
+        labeldataset = LabelDataset(balence=True, mean=mean, std=std)
+        unlabeldataset = UnlabelDataset(
+            batch=UnlabelBatch, balence=True, mean=mean, std=std)
+        self.train_loader = DataLoader(
+            labeldataset, batch_size=Batch, shuffle=True, num_workers=6)
+        self.train_unlabel_loader = DataLoader(
+            unlabeldataset, batch_size=1, shuffle=True, num_workers=4)
 
-        if TestType==1 or TestType==0:
-            testdataset = DukeSeqLabelDataset(labelfile = testlabelfile, batch = UnlabelBatch, data_aug=True, mean=mean,std=std)
+        if TestType == 1 or TestType == 0:
+            testdataset = DukeSeqLabelDataset(
+                labelfile=testlabelfile, batch=UnlabelBatch, data_aug=True, mean=mean, std=std)
             TestBatch = 1
-        elif TestType==2:
-            testdataset = FolderLabelDataset(imgdir='/home/wenshan/headingdata/val_drone', data_aug=False,mean=mean,std=std)
-        elif TestType==3:
-            testdataset = FolderUnlabelDataset(imgdir='/datadrive/exp_bags/20180811_gascola', data_aug=False, include_all=True, mean=mean,std=std)
+        elif TestType == 2:
+            testdataset = FolderLabelDataset(
+                imgdir='/home/wenshan/headingdata/val_drone', data_aug=False, mean=mean, std=std)
+        elif TestType == 3:
+            testdataset = FolderUnlabelDataset(
+                imgdir='/datadrive/exp_bags/20180811_gascola', data_aug=False, include_all=True, mean=mean, std=std)
             TestBatch = 1
-        self.test_loader = torch.utils.data.DataLoader(testdataset, batch_size=TestBatch, shuffle=True, num_workers=1)
+        self.test_loader = torch.utils.data.DataLoader(
+            testdataset, batch_size=TestBatch, shuffle=True, num_workers=1)
 
         self.train_data_iter = iter(self.train_loader)
         self.train_unlabeld_iter = iter(self.train_unlabel_loader)
@@ -92,21 +107,25 @@ class MyWF(WorkFlow.WorkFlow):
         self.optimizer = optim.Adam(self.model.parameters(), lr=Lr)
         self.criterion = nn.MSELoss()
 
-        self.AV['loss'].avgWidth = 100 # there's a default plotter for 'loss'
-        self.add_accumulated_value('label_loss', 100) # second param is the number of average data
-        self.add_accumulated_value('unlabel_loss', 100) 
+        self.AV['loss'].avgWidth = 100  # there's a default plotter for 'loss'
+        # second param is the number of average data
+        self.add_accumulated_value('label_loss', 100)
+        self.add_accumulated_value('unlabel_loss', 100)
         self.add_accumulated_value('test_loss', 10)
         self.add_accumulated_value('test_label', 10)
-        self.add_accumulated_value('test_unlabel' ,10)
+        self.add_accumulated_value('test_unlabel', 10)
 
-        self.AVP.append(WorkFlow.VisdomLinePlotter("total_loss", self.AV, ['loss', 'test_loss'], [True, True])) 
-        self.AVP.append(WorkFlow.VisdomLinePlotter("label_loss", self.AV, ['label_loss', 'test_label'], [True, True]))
-        self.AVP.append(WorkFlow.VisdomLinePlotter("unlabel_loss", self.AV, ['unlabel_loss', 'test_unlabel'], [True, True]))
+        self.AVP.append(WorkFlow.VisdomLinePlotter(
+            "total_loss", self.AV, ['loss', 'test_loss'], [True, True]))
+        self.AVP.append(WorkFlow.VisdomLinePlotter(
+            "label_loss", self.AV, ['label_loss', 'test_label'], [True, True]))
+        self.AVP.append(WorkFlow.VisdomLinePlotter("unlabel_loss", self.AV, [
+                        'unlabel_loss', 'test_unlabel'], [True, True]))
 
     def initialize(self, device):
+        """ Initilize WF with device """
         super(MyWF, self).initialize()
 
-        # === Custom code. ===
         self.logger.info("Initialized.")
         self.device = device
         self.model.to(device)
@@ -114,23 +133,27 @@ class MyWF(WorkFlow.WorkFlow):
     def unlabel_loss(self, output_unlabel):
         loss_unlabel = torch.Tensor([0]).to(self.device)
         unlabel_batch = output_unlabel.size()[0]
-        for ind1 in range(unlabel_batch-5): # try to make every sample contribute
+        for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
             # randomly pick two other samples
-            ind2 = random.randint(ind1+2, unlabel_batch-1) # big distance
-            ind3 = random.randint(ind1+1, ind2-1) # small distance
+            ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
+            ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
 
             # target1 = Variable(x_encode[ind2,:].data, requires_grad=False).cuda()
             # target2 = Variable(x_encode[ind3,:].data, requires_grad=False).cuda()
-            # diff_big = criterion(x_encode[ind1,:], target1) #(output_unlabel[ind1]-output_unlabel[ind2])*(output_unlabel[ind1]-output_unlabel[ind2])
-            diff_big = (output_unlabel[ind1]-output_unlabel[ind2])*(output_unlabel[ind1]-output_unlabel[ind2])
-            diff_big = diff_big.sum()/2.0
-            # diff_small = criterion(x_encode[ind1,:], target2) #(output_unlabel[ind1]-output_unlabel[ind3])*(output_unlabel[ind1]-output_unlabel[ind3])
-            diff_small = (output_unlabel[ind1]-output_unlabel[ind3])*(output_unlabel[ind1]-output_unlabel[ind3])
-            diff_small = diff_small.sum()/2.0
+            # diff_big = criterion(x_encode[ind1,:], target1)
+            # #(output_unlabel[ind1]-output_unlabel[ind2])*(output_unlabel[ind1]-output_unlabel[ind2])
+            diff_big = (output_unlabel[
+                        ind1] - output_unlabel[ind2]) * (output_unlabel[ind1] - output_unlabel[ind2])
+            diff_big = diff_big.sum() / 2.0
+            # diff_small = criterion(x_encode[ind1,:], target2)
+            # #(output_unlabel[ind1]-output_unlabel[ind3])*(output_unlabel[ind1]-output_unlabel[ind3])
+            diff_small = (output_unlabel[
+                          ind1] - output_unlabel[ind3]) * (output_unlabel[ind1] - output_unlabel[ind3])
+            diff_small = diff_small.sum() / 2.0
             # import ipdb; ipdb.set_trace()
-            loss_unlabel = loss_unlabel + (diff_small-Thresh-diff_big).clamp(0)
+            loss_unlabel = loss_unlabel + \
+                (diff_small - Thresh - diff_big).clamp(0)
         return loss_unlabel
-
 
     def forward_unlabel(self, sample):
 
@@ -140,7 +163,6 @@ class MyWF(WorkFlow.WorkFlow):
         loss_unlabel = self.unlabel_loss(output)
 
         return loss_unlabel
-
 
     def forward_label(self, sample):
 
@@ -166,9 +188,11 @@ class MyWF(WorkFlow.WorkFlow):
             output_np = output.detach().cpu().numpy()
             labels_np = labels.cpu().numpy()
             angle_error = self.angle_loss(output_np, labels_np)
-            cls_accuracy = float(self.accuracy_cls(output_np, labels_np))/labels_np.shape[0]
+            cls_accuracy = float(self.accuracy_cls(
+                output_np, labels_np)) / labels_np.shape[0]
             print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label.item(), angle_error, cls_accuracy)
-            seq_show_with_arrow(inputImgs.cpu().numpy(),output.detach().cpu().numpy(), scale=0.8, mean=mean, std=std)
+            seq_show_with_arrow(inputImgs.cpu().numpy(), output.detach(
+            ).cpu().numpy(), scale=0.8, mean=mean, std=std)
         return loss_label
 
     def test_unlabel(self, val_sample, visualize):
@@ -178,7 +202,8 @@ class MyWF(WorkFlow.WorkFlow):
 
         if visualize:
             print loss_unlabel.item()
-            seq_show_with_arrow(inputValue.cpu().numpy(),output.detach().cpu().numpy(), scale=0.8, mean=mean, std=std)
+            seq_show_with_arrow(inputValue.cpu().numpy(), output.detach(
+            ).cpu().numpy(), scale=0.8, mean=mean, std=std)
         return loss_unlabel
 
     def test_label_unlabel(self, val_sample, visualize):
@@ -195,21 +220,22 @@ class MyWF(WorkFlow.WorkFlow):
             output_np = output.detach().cpu().numpy()
             labels_np = labels.cpu().numpy()
             angle_error = self.angle_loss(output_np, labels_np)
-            cls_accuracy = float(self.accuracy_cls(output_np, labels_np))/labels_np.shape[0]
-            print '(loss %.4f, label-loss %.4f, unlabel-loss %.4f) angle diff %.4f, accuracy %.4f' % (loss.item(), 
-                loss_label.item(), loss_unlabel.item(), angle_error, cls_accuracy)
-            seq_show_with_arrow(inputImgs.cpu().numpy(),output_np, scale=0.8, mean=mean, std=std)
-        return loss, loss_label, loss_unlabel 
-
+            cls_accuracy = float(self.accuracy_cls(
+                output_np, labels_np)) / labels_np.shape[0]
+            print '(loss %.4f, label-loss %.4f, unlabel-loss %.4f) angle diff %.4f, accuracy %.4f' % (loss.item(),
+                                                                                                      loss_label.item(), loss_unlabel.item(), angle_error, cls_accuracy)
+            seq_show_with_arrow(inputImgs.cpu().numpy(),
+                                output_np, scale=0.8, mean=mean, std=std)
+        return loss, loss_label, loss_unlabel
 
     def angle_diff(self, outputs, labels):
-        output_angle = np.arctan2(outputs[:,0], outputs[:,1])
-        label_angle = np.arctan2(labels[:,0], labels[:,1])
+        output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
+        label_angle = np.arctan2(labels[:, 0], labels[:, 1])
         diff_angle = output_angle - label_angle
-        mask = diff_angle<-pi
-        diff_angle[mask] = diff_angle[mask]+2*pi
-        mask = diff_angle>pi
-        diff_angle[mask] = diff_angle[mask]-2*pi
+        mask = diff_angle < -pi
+        diff_angle[mask] = diff_angle[mask] + 2 * pi
+        mask = diff_angle > pi
+        diff_angle[mask] = diff_angle[mask] - 2 * pi
 
         # debug
         print output_angle
@@ -217,13 +243,12 @@ class MyWF(WorkFlow.WorkFlow):
         print diff_angle
         return diff_angle
 
-
     def accuracy_cls(self, outputs, labels):
         '''
         outputs and labels is in numpy array type
         '''
         diff_angle = self.angle_diff(outputs, labels)
-        acc_angle = diff_angle < 0.3927 # 22.5 * pi / 180
+        acc_angle = diff_angle < 0.3927  # 22.5 * pi / 180
         return np.sum(acc_angle)
 
     def angle_loss(self, outputs, labels):
@@ -268,13 +293,14 @@ class MyWF(WorkFlow.WorkFlow):
 
         if self.countTrain % ShowIter == 0:
             losslogstr = self.get_log_str()
-            self.logger.info("%s #%d - (%d %d) %s lr: %.6f" % (exp_prefix[:-1], 
-                self.countTrain, self.countEpoch, self.unlabelEpoch, losslogstr, Lr))
+            self.logger.info("%s #%d - (%d %d) %s lr: %.6f" % (exp_prefix[:-1],
+                                                               self.countTrain, self.countEpoch, self.unlabelEpoch, losslogstr, Lr))
 
-        if ( self.countTrain % Snapshot == 0 ):
+        if (self.countTrain % Snapshot == 0):
             self.write_accumulated_values()
             self.draw_accumulated_values()
-            self.save_model(self.model, saveModelName+'_'+str(self.countTrain))
+            self.save_model(self.model, saveModelName +
+                            '_' + str(self.countTrain))
 
     def test(self, visualize=False):
         super(MyWF, self).test()
@@ -287,64 +313,64 @@ class MyWF(WorkFlow.WorkFlow):
             self.test_data_iter = iter(self.test_loader)
             sample = self.test_data_iter.next()
 
-        if TestType==1 or TestType==0: # labeled sequence
-            loss, loss_label, loss_unlabel = self.test_label_unlabel(sample, visualize)
-        elif TestType==2: # labeled folder
+        if TestType == 1 or TestType == 0:  # labeled sequence
+            loss, loss_label, loss_unlabel = self.test_label_unlabel(
+                sample, visualize)
+        elif TestType == 2:  # labeled folder
             loss_label = self.test_label(sample, visualize)
-        elif TestType==3:
+        elif TestType == 3:
             loss_unlabel = self.test_unlabel(sample, visualize)
 
-        if TestType==0:
+        if TestType == 0:
             self.AV['test_loss'].push_back(loss.item(), self.countTrain)
             self.AV['test_label'].push_back(loss_label.item(), self.countTrain)
-            self.AV['test_unlabel'].push_back(loss_unlabel.item(), self.countTrain)
+            self.AV['test_unlabel'].push_back(
+                loss_unlabel.item(), self.countTrain)
 
     def finalize(self):
         super(MyWF, self).finalize()
         self.print_delimeter('finalize ...')
         self.write_accumulated_values()
         self.draw_accumulated_values()
-        self.save_model(self.model, saveModelName+'_'+str(self.countTrain))
-
+        self.save_model(self.model, saveModelName + '_' + str(self.countTrain))
 
     def load_model(self, model, modelname):
         preTrainDict = torch.load(modelname)
         model_dict = model.state_dict()
-        preTrainDict = {k:v for k,v in preTrainDict.items() if k in model_dict}
+        preTrainDict = {k: v for k, v in preTrainDict.items()
+                        if k in model_dict}
         for item in preTrainDict:
-            print('  Load pretrained layer: ',item )
+            print('  Load pretrained layer: ', item)
         model_dict.update(preTrainDict)
         model.load_state_dict(model_dict)
-        return model    
+        return model
 
     def save_model(self, model, modelname):
         modelname = self.prefix + modelname + self.suffix + '.pkl'
-        torch.save(model.state_dict(), self.modeldir+'/'+modelname)
+        torch.save(model.state_dict(), self.modeldir + '/' + modelname)
 
-if __name__ == "__main__":
 
+def main():
+    """ Train and validate new model """
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 
     try:
         # Instantiate an object for MyWF.
-        wf = MyWF("./", prefix = exp_prefix)
+        wf = MyWF("./", prefix=exp_prefix)
 
         # Initialization.
         wf.initialize(device)
 
         while True:
-            
-
-            if TestType>0:
+            if TestType > 0:
                 wf.test(True)
             else:
                 wf.train()
-
                 if wf.countTrain % TestIter == 0:
                     wf.test()
 
-            if (wf.countTrain>=Trainstep):
+            if (wf.countTrain >= Trainstep):
                 break
 
         wf.finalize()
@@ -352,6 +378,7 @@ if __name__ == "__main__":
     except WorkFlow.SigIntException as e:
         wf.finalize()
     except WorkFlow.WFException as e:
-        print( e.describe() )
+        print(e.describe())
 
-
+if __name__ == "__main__":
+    main()

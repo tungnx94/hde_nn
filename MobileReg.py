@@ -6,12 +6,13 @@ import math
 from torch.autograd import Variable
 from mobilenet import mobilenet_v1_050
 
+
 class MobileReg(nn.Module):
 
-    def __init__(self, hidnum=256, regnum=2): # input size should be 112
-        super(MobileReg,self).__init__()
+    def __init__(self, hidnum=256, regnum=2):  # input size should be 112
+        super(MobileReg, self).__init__()
         self.feature = mobilenet_v1_050()
-        self.conv7 = nn.Conv2d(hidnum, hidnum, 3) # conv to 1 by 1
+        self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  # conv to 1 by 1
         self.reg = nn.Linear(hidnum, regnum)
         self._initialize_weights()
 
@@ -24,7 +25,6 @@ class MobileReg(nn.Module):
         x = self.reg(x.view(x.size()[0], -1))
 
         return x
-
 
     def _initialize_weights(self):
         for m in self.modules():
@@ -45,18 +45,18 @@ class MobileReg(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-    def load_pretrained_pth(self, fname): # load mobilenet-from-tf - amigo
+    def load_pretrained_pth(self, fname):  # load mobilenet-from-tf - amigo
         params = torch.load(fname)
         self.feature.load_from_npz(params)
 
-if __name__ == '__main__':
-    
-    inputVar = Variable(torch.rand((10,3,192,192)))
+
+def main():
+    inputVar = Variable(torch.rand((10, 3, 192, 192)))
     net = MobileReg()
     net.load_pretrained_pth('pretrained_models/mobilenet_v1_0.50_224.pth')
     outputVar = net(inputVar)
     print outputVar
-    # hiddens = [3,16,32,32,64,64,128,256] 
+    # hiddens = [3,16,32,32,64,64,128,256]
     # kernels = [4,4,4,4,4,4,3]
     # paddings = [1,1,1,1,1,1,0]
     # strides = [2,2,2,2,2,2,1]
@@ -78,8 +78,8 @@ if __name__ == '__main__':
     # #     print par.size()
     # print len(paramlist)
     # stateEncoder.cuda()
-    # imgdataset = FacingDroneUnlabelDataset(imgdir=join(datasetdir,'dirimg'), 
-    #                                    batch = unlabel_batch, data_aug=True, extend=False)    
+    # imgdataset = FacingDroneUnlabelDataset(imgdir=join(datasetdir,'dirimg'),
+    #                                    batch = unlabel_batch, data_aug=True, extend=False)
     # dataloader = DataLoader(imgdataset, batch_size=1, shuffle=True, num_workers=1)
 
     # criterion = nn.MSELoss()
@@ -117,9 +117,12 @@ if __name__ == '__main__':
     #     if ind>=1000:
     #         break
 
-
     # import matplotlib.pyplot as plt
     # plt.plot(lossplot)
     # plt.plot(encodesumplot)
     # plt.grid()
     # plt.show()
+
+
+if __name__ == '__main__':
+    main()

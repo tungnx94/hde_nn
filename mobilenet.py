@@ -19,18 +19,18 @@ DepthSepConv = namedtuple('DepthSepConv', ['kernel', 'stride', 'depth'])
 
 # _CONV_DEFS specifies the MobileNet body
 _CONV_DEFS = [
-    Conv(kernel=[3, 3], stride=2, depth=32), # 2
+    Conv(kernel=[3, 3], stride=2, depth=32),  # 2
     DepthSepConv(kernel=[3, 3], stride=1, depth=64),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=128), # 4
+    DepthSepConv(kernel=[3, 3], stride=2, depth=128),  # 4
     DepthSepConv(kernel=[3, 3], stride=1, depth=128),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=256), # 8
+    DepthSepConv(kernel=[3, 3], stride=2, depth=256),  # 8
     DepthSepConv(kernel=[3, 3], stride=1, depth=256),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512), # 16
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),  # 16
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512), # 32
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),  # 32
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512), # 64 
-    DepthSepConv(kernel=[3, 3], stride=1, depth=512)#,
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),  # 64
+    DepthSepConv(kernel=[3, 3], stride=1, depth=512)  # ,
     # DepthSepConv(kernel=[3, 3], stride=2, depth=1024),
     # DepthSepConv(kernel=[3, 3], stride=1, depth=1024)
 ]
@@ -93,14 +93,15 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
 
     def conv_bn(in_channels, out_channels, kernel_size=3, stride=1):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride, 1, bias=False),
+            nn.Conv2d(in_channels, out_channels,
+                      kernel_size, stride, 1, bias=False),
             nn.BatchNorm2d(out_channels, eps=0.001),
             nn.ReLU6(inplace=True)
         )
 
     def conv_dw(in_channels, kernel_size=3, stride=1, dilation=1):
         return nn.Sequential(
-            nn.Conv2d(in_channels, in_channels, kernel_size, stride, 1,\
+            nn.Conv2d(in_channels, in_channels, kernel_size, stride, 1,
                       groups=in_channels, dilation=dilation, bias=False),
             nn.BatchNorm2d(in_channels, eps=0.001),
             nn.ReLU6(inplace=True)
@@ -108,7 +109,8 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
 
     def conv_pw(in_channels, out_channels, kernel_size=1, stride=1, dilation=1):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride, 0, bias=False),
+            nn.Conv2d(in_channels, out_channels,
+                      kernel_size, stride, 0, bias=False),
             nn.BatchNorm2d(out_channels, eps=0.001),
             nn.ReLU6(inplace=True),
         )
@@ -149,7 +151,8 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
 
         elif isinstance(conv_def, DepthSepConv):
             end_points[end_point_base] = nn.Sequential(OrderedDict([
-                ('depthwise', conv_dw(in_channels, conv_def.kernel, stride=layer_stride, dilation=layer_rate)),
+                ('depthwise', conv_dw(in_channels, conv_def.kernel,
+                                      stride=layer_stride, dilation=layer_rate)),
                 ('pointwise', conv_pw(in_channels, out_channels, 1, stride=1))]))
 
             if end_point_base + '_pointwise' == final_endpoint:
@@ -157,9 +160,10 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
 
         else:
             raise ValueError('Unknown convolution type %s for layer %d'
-                                                % (conv_def.ltype, i))
+                             % (conv_def.ltype, i))
         in_channels = out_channels
     raise ValueError('Unknown final endpoint %s' % final_endpoint)
+
 
 class MobileNet_v1(nn.Module):
 
@@ -228,15 +232,16 @@ class MobileNet_v1(nn.Module):
         model_dict = self.state_dict()
         # print 'preTrainDict:',preTrainDict.keys()
         # print 'modelDict:',model_dict.keys()
-        preTrainDict = {k:v for k,v in params.items() if k in model_dict}
+        preTrainDict = {k: v for k, v in params.items() if k in model_dict}
         for item in preTrainDict:
-            print '  Load pretrained layer: ',item
+            print '  Load pretrained layer: ', item
         model_dict.update(preTrainDict)
         # for item in model_dict:
         #   print '  Model layer: ',item
         self.load_state_dict(model_dict)
 
-def mobilenet_v1_075(pretrained = False, **kwargs):
+
+def mobilenet_v1_075(pretrained=False, **kwargs):
     """Constructs a MobileNet_v1_075 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -244,7 +249,8 @@ def mobilenet_v1_075(pretrained = False, **kwargs):
     model = MobileNet_v1(depth_multiplier=0.75, **kwargs)
     return model
 
-def mobilenet_v1_050(pretrained = False, **kwargs):
+
+def mobilenet_v1_050(pretrained=False, **kwargs):
     """Constructs a MobileNet_v1_075 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -252,7 +258,8 @@ def mobilenet_v1_050(pretrained = False, **kwargs):
     model = MobileNet_v1(depth_multiplier=0.50, **kwargs)
     return model
 
-def mobilenet_v1_025(pretrained = False, **kwargs):
+
+def mobilenet_v1_025(pretrained=False, **kwargs):
     """Constructs a MobileNet_v1_075 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -278,4 +285,3 @@ def _reduced_kernel_size_for_small_input(input_tensor, kernel_size):
     kernel_size_out = [min(shape[2], kernel_size[0]),
                        min(shape[3], kernel_size[1])]
     return kernel_size_out
-

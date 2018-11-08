@@ -13,13 +13,14 @@ import matplotlib.pyplot as plt
 
 import pickle
 
+
 class FolderUnlabelDataset(Dataset):
 
     def __init__(self, imgdir='/datadrive/person/dirimg/',
-                        imgsize = 192, batch = 32, 
-                        data_aug=False, extend=False,
-                        mean=[0,0,0],std=[1,1,1], 
-                        include_all=False, datafile=''):
+                 imgsize=192, batch=32,
+                 data_aug=False, extend=False,
+                 mean=[0, 0, 0], std=[1, 1, 1],
+                 include_all=False, datafile=''):
 
         self.imgsize = imgsize
         self.imgnamelist = []
@@ -38,12 +39,12 @@ class FolderUnlabelDataset(Dataset):
             return
 
         # self.folderlist = ['4','7','11','17','23','30','32','33','37','38','49','50','52']
-        self.folderlist = [] # not include data from droneData
+        self.folderlist = []  # not include data from droneData
         if extend:
-            for k in range(101,1040):
+            for k in range(101, 1040):
                 self.folderlist.append(str(k))
 
-        if include_all: # include all the folders in one directory -- for duke
+        if include_all:  # include all the folders in one directory -- for duke
             self.folderlist = listdir(imgdir)
 
         for f_ind, foldername in enumerate(self.folderlist):
@@ -59,10 +60,10 @@ class FolderUnlabelDataset(Dataset):
             # missimg = 0
             lastind = -1
             for filename in imglist:
-                if filename.split('.')[-1]!='jpg': # only process jpg file
+                if filename.split('.')[-1] != 'jpg':  # only process jpg file
                     continue
 
-                if include_all: # for duke dataset
+                if include_all:  # for duke dataset
                     filepathname = join(folderpath, filename)
                     sequencelist.append(filepathname)
                     continue
@@ -77,15 +78,15 @@ class FolderUnlabelDataset(Dataset):
                 # filename = self.fileprefix+foldername+'_'+str(imgind)+'.jpg'
                 filepathname = join(folderpath, filename)
 
-                if lastind<0 or fileind==lastind+1:
-                # if isfile(filepathname):
+                if lastind < 0 or fileind == lastind + 1:
+                    # if isfile(filepathname):
                     sequencelist.append(filepathname)
                     lastind = fileind
                     # if missimg>0:
-                        # print '  -- last missimg', missimg
+                    # print '  -- last missimg', missimg
                     # missimg = 0
-                else: # the index is not continuous
-                    if len(sequencelist)>=batch:
+                else:  # the index is not continuous
+                    if len(sequencelist) >= batch:
                         # missimg = 1
                         self.imgnamelist.append(sequencelist)
                         # print 'image lost:', filename
@@ -94,12 +95,11 @@ class FolderUnlabelDataset(Dataset):
                         sequencelist = []
                     lastind = -1
                     # else:
-                        # missimg += 1
-            if len(sequencelist)>=batch:          
+                    # missimg += 1
+            if len(sequencelist) >= batch:
                 self.imgnamelist.append(sequencelist)
                 print '** sequence: ', len(sequencelist)
                 sequencelist = []
-
 
         sequencenum = len(self.imgnamelist)
         print 'Read', sequencenum, 'sequecnes...'
@@ -111,60 +111,65 @@ class FolderUnlabelDataset(Dataset):
             self.episodeNum.append(total_seq_num)
         self.N = total_seq_num
 
-        # save self.N, self.episodeNum, self.imgnamelist 
+        # save self.N, self.episodeNum, self.imgnamelist
         # for faster loading
         # import ipdb; ipdb.set_trace()
         if datafile == '':
             with open('unlabeldata.pkl', 'wb') as f:
-                pickle.dump({'N':self.N, 'episodeNum': self.episodeNum, 'imgnamelist': self.imgnamelist}, f, pickle.HIGHEST_PROTOCOL)
+                pickle.dump({'N': self.N, 'episodeNum': self.episodeNum,
+                             'imgnamelist': self.imgnamelist}, f, pickle.HIGHEST_PROTOCOL)
 
     def __len__(self):
         return self.N
 
     def __getitem__(self, idx):
-        epiInd=0 # calculate the epiInd
-        while idx>=self.episodeNum[epiInd]:
+        epiInd = 0  # calculate the epiInd
+        while idx >= self.episodeNum[epiInd]:
             # print self.episodeNum[epiInd],
-            epiInd += 1 
-        if epiInd>0:
-            idx -= self.episodeNum[epiInd-1]
+            epiInd += 1
+        if epiInd > 0:
+            idx -= self.episodeNum[epiInd - 1]
 
         # random fliping
         flipping = False
-        if self.aug and random.random()>0.5:
+        if self.aug and random.random() > 0.5:
             flipping = True
         # print epiInd, idx
         imgseq = []
         for k in range(self.batch):
-            img = cv2.imread(self.imgnamelist[epiInd][idx+k])
+            img = cv2.imread(self.imgnamelist[epiInd][idx + k])
 
             if self.aug:
                 img = im_hsv_augmentation(img)
                 img = im_crop(img)
 
-            outimg = im_scale_norm_pad(img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
+            outimg = im_scale_norm_pad(
+                img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
 
             imgseq.append(outimg)
 
         return np.array(imgseq)
 
-if __name__=='__main__':
-    # test 
+
+def main():
+    # test
     np.set_printoptions(precision=4)
 
     # unlabelset = FolderUnlabelDataset(imgdir='/datadrive/person/dirimg',batch = 24, extend=True, data_aug=True)#,datafile='duke_unlabeldata.pkl')
     # unlabelset = FolderUnlabelDataset(batch=24, data_aug=True, extend=True, datafile='drone_ucf_unlabeldata.pkl')
-    unlabelset = FolderUnlabelDataset(imgdir='/home/wenshan/headingdata/DukeMCMT/heading',batch = 24, data_aug=True, include_all=True)
+    unlabelset = FolderUnlabelDataset(
+        imgdir='/home/wenshan/headingdata/DukeMCMT/heading', batch=24, data_aug=True, include_all=True)
     print len(unlabelset)
     for k in range(1):
-        imgseq = unlabelset[k*1000]
+        imgseq = unlabelset[k * 1000]
         print imgseq.dtype, imgseq.shape
         seq_show(imgseq, scale=0.8)
 
-    dataloader = DataLoader(unlabelset, batch_size=1, shuffle=True, num_workers=1)
+    dataloader = DataLoader(unlabelset, batch_size=1,
+                            shuffle=True, num_workers=1)
 
     dataiter = iter(dataloader)
-   
+
     while True:
 
         try:
@@ -174,4 +179,6 @@ if __name__=='__main__':
             sample = dataiter.next()
 
         seq_show(sample.squeeze().numpy(), scale=0.8)
-          
+
+if __name__ == '__main__':
+    main()

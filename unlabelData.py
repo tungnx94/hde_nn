@@ -4,15 +4,18 @@ from folderUnlabelData import FolderUnlabelDataset
 from torch.utils.data import Dataset, DataLoader
 from utils import seq_show, put_arrow, seq_show_with_arrow
 
+
 class UnlabelDataset(Dataset):
 
-    def __init__(self, batch, balence=False, mean=[0,0,0], std=[1,1,1]):
-        self.balencelist = [4,1]
+    def __init__(self, batch, balence=False, mean=[0, 0, 0], std=[1, 1, 1]):
+        self.balencelist = [4, 1]
         self.balence = balence
 
         self.datasetlist = []
-        ucf = FolderUnlabelDataset(batch = batch, data_aug=True, datafile='ucf_unlabeldata.pkl',mean=mean,std=std) # 940
-        duke = FolderUnlabelDataset(batch = batch, data_aug=True, datafile='duke_unlabeldata.pkl',mean=mean,std=std) # 3997
+        ucf = FolderUnlabelDataset(
+            batch=batch, data_aug=True, datafile='ucf_unlabeldata.pkl', mean=mean, std=std)  # 940
+        duke = FolderUnlabelDataset(
+            batch=batch, data_aug=True, datafile='duke_unlabeldata.pkl', mean=mean, std=std)  # 3997
 
         self.datasetlist.append(ucf)
         self.datasetlist.append(duke)
@@ -26,33 +29,33 @@ class UnlabelDataset(Dataset):
 
         self.totalnum = sum(self.datanumlist)
 
-
     def __len__(self):
         return self.totalnum
 
     def __getitem__(self, idx):
         ind = idx
-        for k,datanum in enumerate(self.datanumlist):
+        for k, datanum in enumerate(self.datanumlist):
             if ind >= datanum:
                 ind -= datanum
-            else: # find the value
+            else:  # find the value
                 if self.balence:
-                    ind = ind%(int(self.datanumlist[k]/self.balencelist[k]))
+                    ind = ind % (
+                        int(self.datanumlist[k] / self.balencelist[k]))
                 return self.datasetlist[k][ind]
         print 'Error Index:', ind
-        return 
+        return
 
-        
 
-if __name__=='__main__':
-    # test 
+def main():
+    # test
     import numpy as np
     import cv2
     np.set_printoptions(precision=4)
 
     unlabeldataset = UnlabelDataset(batch=24, balence=True)
 
-    dataloader = DataLoader(unlabeldataset, batch_size=1, shuffle=True, num_workers=1)
+    dataloader = DataLoader(unlabeldataset, batch_size=1,
+                            shuffle=True, num_workers=1)
 
     # # datalist=[0,69679,69680,69680*2-1,69680*2,364785,364786]
     # for k in dataloader:
@@ -67,11 +70,13 @@ if __name__=='__main__':
     #     cv2.imshow('img',img)
     #     cv2.waitKey(0)
 
-
     dataiter = iter(dataloader)
 
     # import ipdb;ipdb.set_trace()
 
     print len(unlabeldataset)
     for sample in dataloader:
-      seq_show(sample.squeeze().numpy(), scale=0.8)
+        seq_show(sample.squeeze().numpy(), scale=0.8)
+
+if __name__ == '__main__':
+    main()

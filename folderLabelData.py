@@ -8,11 +8,12 @@ from utils import im_scale_norm_pad, img_denormalize, seq_show, im_crop, im_hsv_
 
 import random
 
+
 class FolderLabelDataset(Dataset):
 
     def __init__(self, imgdir='/home/wenshan/headingdata/label',
-                        imgsize = 192, data_aug = False, maxscale=0.1,
-                        mean=[0,0,0],std=[1,1,1]):
+                 imgsize=192, data_aug=False, maxscale=0.1,
+                 mean=[0, 0, 0], std=[1, 1, 1]):
 
         self.imgsize = imgsize
         self.imgnamelist = []
@@ -33,7 +34,7 @@ class FolderLabelDataset(Dataset):
 
         imgind = 0
         for clsfolder in listdir(imgdir):
-            
+
             clsval = self.dir2val[clsfolder]
 
             clsfolderpath = join(imgdir, clsfolder)
@@ -50,29 +51,33 @@ class FolderLabelDataset(Dataset):
         return self.N
 
     def __getitem__(self, idx):
-        img = cv2.imread(self.imgnamelist[idx]) # in bgr
+        img = cv2.imread(self.imgnamelist[idx])  # in bgr
         label = np.array(self.labellist[idx], dtype=np.float32)
 
         # random fliping
         flipping = False
-        if self.aug and random.random()>0.5:
+        if self.aug and random.random() > 0.5:
             flipping = True
             label[1] = -label[1]
         if self.aug:
             img = im_hsv_augmentation(img)
             img = im_crop(img, maxscale=self.maxscale)
 
-        outimg = im_scale_norm_pad(img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
+        outimg = im_scale_norm_pad(
+            img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
 
-        return {'img':outimg, 'label':label}
+        return {'img': outimg, 'label': label}
 
-if __name__=='__main__':
-    # test 
+
+def main():
+    # test
     np.set_printoptions(precision=4)
-    import ipdb;ipdb.set_trace()
-    facingDroneLabelDataset = FolderLabelDataset(imgdir='/datadrive/3DPES/facing_labeled', data_aug=True)
+    import ipdb
+    ipdb.set_trace()
+    facingDroneLabelDataset = FolderLabelDataset(
+        imgdir='/datadrive/3DPES/facing_labeled', data_aug=True)
     for k in range(100):
-        sample = facingDroneLabelDataset[k*100]
+        sample = facingDroneLabelDataset[k * 100]
         img = sample['img']
         label = sample['label']
         # print img.dtype, label
@@ -80,16 +85,19 @@ if __name__=='__main__':
         # print img.shape
         img = img_denormalize(img)
         img = put_arrow(img, label)
-        cv2.imshow('img',img)
+        cv2.imshow('img', img)
         cv2.waitKey(0)
 
-    dataloader = DataLoader(facingDroneLabelDataset, batch_size=4, shuffle=True, num_workers=1)
+    dataloader = DataLoader(facingDroneLabelDataset,
+                            batch_size=4, shuffle=True, num_workers=1)
 
     dataiter = iter(dataloader)
 
     # import ipdb;ipdb.set_trace()
 
     for sample in dataloader:
-      print sample['label'], sample['img'].size()
-      print seq_show(sample['img'].numpy())
+        print sample['label'], sample['img'].size()
+        print seq_show(sample['img'].numpy())
 
+
+if __name__ == '__main__':
