@@ -77,15 +77,16 @@ def getColor(x, y, maxx, maxy): #how ?
 
 # resnet: mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]
 def img_normalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
+    """ normalize RGB value to range [0..1] """
     img = img[:, :, [2, 1, 0]]  # bgr to rgb
     img = img.astype(np.float32) / 255.0
     img = (img - np.array(mean)) / np.array(std)
     img = img.transpose(2, 0, 1)
     return img
 
-
-# used for visualization only
 def img_denormalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
+    """ denormalize RGB value for visualization"""
+
     # print img.shape
     img = img.transpose(1, 2, 0)
     img = img * np.array(std) + np.array(mean)
@@ -95,21 +96,23 @@ def img_denormalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
     return img
 
 
-def seq_show(imgseq, scale=0.3):
+def seq_show(img_seq, scale=0.3):
     # input a numpy array: n x 3 x h x w
-    imgnum = imgseq.shape[0]
+    imgnum = img_seq.shape[0]
     imgshow = []
     for k in range(imgnum):
-        imgshow.append(img_denormalize(imgseq[k, :, :, :]))  # n x h x w x 3
+        imgshow.append(img_denormalize(img_seq[k, :, :, :]))  # n x h x w x 3
     imgshow = np.array(imgshow)
     imgshow = imgshow.transpose(1, 0, 2, 3).reshape(
-        imgseq.shape[2], -1, 3)  # h x (n x w) x 3
+        img_seq.shape[2], -1, 3)  # h x (n x w) x 3
     imgshow = cv2.resize(imgshow, (0, 0), fx=scale, fy=scale)
     cv2.imshow('img', imgshow)
     cv2.waitKey(0)
 
 
 def put_arrow(img, dir, center_x=150, center_y=96):
+    """ draw an arrow on image at (center_x, center_y) """
+
     # print type(img), img.dtype, img.shape
     img = img.copy()
 
@@ -125,20 +128,24 @@ def put_arrow(img, dir, center_x=150, center_y=96):
     return img
 
 
-def seq_show_with_arrow(imgseq, dirseq, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
-    # imgseq: a numpy array: n x 3 x h x w
-    # dirseq: a numpy array: n x 2
-    imgnum = imgseq.shape[0]
+def seq_show_with_arrow(img_seq, dir_seq, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
+    """ 
+    display images with arrow
+    :param img_seq: a numpy array: n x 3 x h x w (images)
+    :param dir_seq: a numpy array: n x 2 (directions)
+    """ 
+
+    imgnum = img_seq.shape[0]
     imgshow = []
 
     for k in range(imgnum):
-        img = img_denormalize(imgseq[k, :, :, :], mean, std)
-        img = put_arrow(img, dirseq[k, :])
+        img = img_denormalize(img_seq[k, :, :, :], mean, std)
+        img = put_arrow(img, dir_seq[k, :])
         imgshow.append(img)  # n x h x w x 3
 
     imgshow = np.array(imgshow)
     imgshow = imgshow.transpose(1, 0, 2, 3).reshape(
-        imgseq.shape[2], -1, 3)  # h x (n x w) x 3
+        img_seq.shape[2], -1, 3)  # h x (n x w) x 3
 
     imgshow = cv2.resize(imgshow, (0, 0), fx=scale, fy=scale)
     cv2.imshow('img', imgshow)
@@ -146,10 +153,14 @@ def seq_show_with_arrow(imgseq, dirseq, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]
 
 
 def groupPlot(data_x, data_y, group=10):
+    """ plot data by group, each using mean of coordinates """
     data_x, data_y = np.array(data_x), np.array(data_y)
-    if len(data_x) % group > 0:
-        data_x = data_x[0:len(data_x) / group * group]
-        data_y = data_y[0:len(data_y) / group * group]
+
+    # truncate length
+    d_len = len(data_x)/group * group
+    data_x = data_x[0: d_len]
+    data_y = data_y[0: d_len]
+
     data_x, data_y = data_x.reshape((-1, group)), data_y.reshape((-1, group))
     data_x, data_y = data_x.mean(axis=1), data_y.mean(axis=1)
     return (data_x, data_y)
@@ -157,7 +168,7 @@ def groupPlot(data_x, data_y, group=10):
 # amigo add for data augmentation before normalization
 def im_hsv_augmentation(image, Hscale=10, Sscale=60, Vscale=60):
     """ get HSV-image with noise"""
-    
+
     imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     
     # introduce noise
