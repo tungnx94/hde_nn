@@ -1,31 +1,37 @@
 import cv2
 import torch
+import random
+
+import numpy as np
+
 from math import sqrt, sin, cos
 import numpy as np
-import random
-# import torch.nn as nn
 
 
 def loadPretrain(model, preTrainModel):
-    preTrainDict = torch.load(preTrainModel)
+    """ load the trained parameters from a pickle file """
     model_dict = model.state_dict()
-    print 'preTrainDict:', preTrainDict.keys()
-    print 'modelDict:', model_dict.keys()
+
+    preTrainDict = torch.load(preTrainModel)
     preTrainDict = {k: v for k, v in preTrainDict.items() if k in model_dict}
+
+    # debug
     for item in preTrainDict:
         print '  Load pretrained layer: ', item
+
     model_dict.update(preTrainDict)
-    # for item in model_dict:
-    #   print '  Model layer: ',item
     model.load_state_dict(model_dict)
     return model
 
-
+# important ?
 def loadPretrain2(model, preTrainModel):
+    """
+    load the trained parameters from a pickle file
+    naming bug
+    """
     preTrainDict = torch.load(preTrainModel)
     model_dict = model.state_dict()
-    # print 'preTrainDict:',preTrainDict.keys()
-    # print 'modelDict:',model_dict.keys()
+
     # update the keyname according to the last two words
     loadDict = {}
     for k, v in preTrainDict.items():
@@ -33,30 +39,39 @@ def loadPretrain2(model, preTrainModel):
         for k2, v2 in model_dict.items():
             keys2 = k2.split('.')
             if keys[-1] == keys2[-1] and (keys[-2] == keys2[-2] or
-                                          (keys[-2][1:] == keys2[-2][2:] and keys[-2][0] == 'd' and keys2[-2][0:2] == 'de')):  # compansate for naming bug
+                                          (keys[-2][1:] == keys2[-2][2:] and keys[-2][0] == 'd' and keys2[-2][0:2] == 'de')):  # compensate for naming bug
                 loadDict[k2] = v
                 print '  Load pretrained layer: ', k2
                 break
 
     model_dict.update(loadDict)
-    # for item in model_dict:
-    #   print '  Model layer: ',item
     model.load_state_dict(model_dict)
     return model
 
 
-def getColor(x, y, maxx, maxy):
+def getColor(x, y, maxx, maxy): #how ?
+    """ :return (r,g,b,a) """
+
+    # normalize two axis
     y = y * maxx / maxy
-    maxy = maxx  # normalize two axis
+    maxy = maxx  
+
+    # get red 
     x1, y1, t = x, y, maxx
     r = np.clip(1 - sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
+
+    # get green
     x1, y1 = maxx - x, y
     g = np.clip(1 - sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
+
+    # get blue
     x1, y1 = x, maxy - y
     b = np.clip(1 - sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
+
     # x1, y1 = maxx-x, maxy-y
     # a = sqrt(float(x1*x1+y1*y1))/t
     a = 1
+
     return (r, g, b, a)
 
 
@@ -97,8 +112,10 @@ def seq_show(imgseq, scale=0.3):
 def put_arrow(img, dir, center_x=150, center_y=96):
     # print type(img), img.dtype, img.shape
     img = img.copy()
+
     cv2.line(img, (center_y - 30, center_x),
              (center_y + 30, center_x), (0, 255, 0), 2)
+
     cv2.line(img, (center_y, center_x - 30),
              (center_y, center_x + 30), (0, 255, 0), 2)
 
@@ -113,50 +130,61 @@ def seq_show_with_arrow(imgseq, dirseq, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]
     # dirseq: a numpy array: n x 2
     imgnum = imgseq.shape[0]
     imgshow = []
+
     for k in range(imgnum):
         img = img_denormalize(imgseq[k, :, :, :], mean, std)
         img = put_arrow(img, dirseq[k, :])
         imgshow.append(img)  # n x h x w x 3
+
     imgshow = np.array(imgshow)
     imgshow = imgshow.transpose(1, 0, 2, 3).reshape(
         imgseq.shape[2], -1, 3)  # h x (n x w) x 3
+
     imgshow = cv2.resize(imgshow, (0, 0), fx=scale, fy=scale)
     cv2.imshow('img', imgshow)
     cv2.waitKey(0)
 
 
-def groupPlot(datax, datay, group=10):
-    datax, datay = np.array(datax), np.array(datay)
-    if len(datax) % group > 0:
-        datax = datax[0:len(datax) / group * group]
-        datay = datay[0:len(datay) / group * group]
-    datax, datay = datax.reshape((-1, group)), datay.reshape((-1, group))
-    datax, datay = datax.mean(axis=1), datay.mean(axis=1)
-    return (datax, datay)
+def groupPlot(data_x, data_y, group=10):
+    data_x, data_y = np.array(data_x), np.array(data_y)
+    if len(data_x) % group > 0:
+        data_x = data_x[0:len(data_x) / group * group]
+        data_y = data_y[0:len(data_y) / group * group]
+    data_x, data_y = data_x.reshape((-1, group)), data_y.reshape((-1, group))
+    data_x, data_y = data_x.mean(axis=1), data_y.mean(axis=1)
+    return (data_x, data_y)
 
 # amigo add for data augmentation before normalization
-
-
 def im_hsv_augmentation(image, Hscale=10, Sscale=60, Vscale=60):
+    """ get HSV-image with noise"""
+    
     imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    # change HSV
+    
+    # introduce noise
     h = random.random() * 2 - 1
     s = random.random() * 2 - 1
     v = random.random() * 2 - 1
+
     imageHSV[:, :, 0] = np.clip(imageHSV[:, :, 0] + Hscale * h, 0, 255)
     imageHSV[:, :, 1] = np.clip(imageHSV[:, :, 1] + Sscale * s, 0, 255)
     imageHSV[:, :, 2] = np.clip(imageHSV[:, :, 2] + Vscale * v, 0, 255)
+
+    # convert back to RGB
     image = cv2.cvtColor(imageHSV, cv2.COLOR_HSV2BGR)
     return image
 
 
 def im_crop(image, maxscale=0.2):
-    imgshape = image.shape
-    startx = int(random.random() * maxscale * imgshape[1])
-    starty = int(random.random() * maxscale * imgshape[0])
-    endx = int(imgshape[1] - random.random() * maxscale * imgshape[1])
-    endy = int(imgshape[0] - random.random() * maxscale * imgshape[0])
-    return image[starty:endy, startx:endx, :]
+    """ crop an image randomly in range [0..maxscale - (1-maxscale) .. 1] """
+    shape = image.shape
+
+    start_x = int(random.random() * maxscale * shape[1])
+    end_x = int(shape[1] - random.random() * maxscale * shape[1])
+
+    start_y = int(random.random() * maxscale * shape[0])
+    end_y = int(shape[0] - random.random() * maxscale * shape[0])
+
+    return image[start_y:end_y, start_x:end_x, :]
 
 
 def im_scale_norm_pad(img, outsize=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso=False, down_len=30, flip=False):
@@ -185,10 +213,10 @@ def im_scale_norm_pad(img, outsize=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso
     # print img.shape
     imgw = img.shape[2]
     imgh = img.shape[1]
-    startx = (outsize - imgw) / 2
-    starty = (outsize - imgh) / 2
-    # print startx, starty
+    start_x = (outsize - imgw) / 2
+    start_y = (outsize - imgh) / 2
+    # print start_x, start_y
     outimg = np.zeros((3, outsize, outsize), dtype=np.float32)
-    outimg[:, starty:starty + imgh, startx:startx + imgw] = img
+    outimg[:, start_y:start_y + imgh, start_x:start_x + imgw] = img
 
     return outimg

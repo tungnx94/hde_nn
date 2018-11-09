@@ -157,23 +157,6 @@ class MyWF(WorkFlow.WorkFlow):
         self.print_delimeter('finalize ...')
         self.save_snapshot()
 
-    def load_model(self, model, name):
-        """ load the trained parameters from a pickle file :param key """
-        # load pretrained dict
-        preTrainDict = torch.load(name)
-        model_dict = model.state_dict()
-
-        preTrainDict = {k: v for k, v in preTrainDict.items()
-                        if k in model_dict}
-        # debug
-        for item in preTrainDict:
-            print('  Load pretrained layer: ', item)
-
-        # update state dict
-        model_dict.update(preTrainDict)
-        model.load_state_dict(model_dict)
-        return model
-
     def save_model(self, model, name):
         """ Save :param: model to pickle file """
         modelname = self.prefix + name + self.suffix + '.pkl'
