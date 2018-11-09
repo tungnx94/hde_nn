@@ -151,7 +151,42 @@ class MyWF(WorkFlow.WorkFlow):
         self.device = device
         self.model.to(device)
 
+    def finalize(self):
+        """ save model and values after training """
+        super(MyWF, self).finalize()
+        self.print_delimeter('finalize ...')
+        self.save_snapshot()
+
+    def load_model(self, model, name):
+        """ load the trained parameters from a pickle file :param key """
+        # load pretrained dict
+        preTrainDict = torch.load(name)
+        model_dict = model.state_dict()
+
+        preTrainDict = {k: v for k, v in preTrainDict.items()
+                        if k in model_dict}
+        # debug
+        for item in preTrainDict:
+            print('  Load pretrained layer: ', item)
+
+        # update state dict
+        model_dict.update(preTrainDict)
+        model.load_state_dict(model_dict)
+        return model
+
+    def save_model(self, model, name):
+        """ Save :param: model to pickle file """
+        modelname = self.prefix + name + self.suffix + '.pkl'
+        torch.save(model.state_dict(), self.modeldir + '/' + modelname)
+
+    def save_snapshot(self):
+        """ write accumulated values and save temporal model """
+        self.write_accumulated_values()
+        self.draw_accumulated_values()
+        self.save_model(self.model, saveModelName + '_' + str(self.countTrain))
+
     def next_sample(self, data_iter, loader, epoch):
+        """ get next batch, update data_iter and epoch if needed """
         try:
             sample = data_iter.next()
         except:
@@ -159,120 +194,10 @@ class MyWF(WorkFlow.WorkFlow):
             sample = data_iter.next()
             epoch += 1
 
-        return sample, epoch
-
-    def unlabel_loss(self, output_unlabel):
-        """ 
-        :param output_unlabel: network output
-        :return: unlabel loss
-        """
-        loss_unlabel = torch.Tensor([0]).to(self.device)
-        unlabel_batch = output_unlabel.size()[0]
-
-        for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
-            # randomly pick two other samples
-            ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
-            ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
-
-            # target1 = Variable(x_encode[ind2,:].data, requires_grad=False).cuda()
-            # target2 = Variable(x_encode[ind3,:].data, requires_grad=False).cuda()
-            # diff_big = criterion(x_encode[ind1,:], target1)
-            # #(output_unlabel[ind1]-output_unlabel[ind2])*(output_unlabel[ind1]-output_unlabel[ind2])
-            diff_big = (output_unlabel[
-                        ind1] - output_unlabel[ind2]) * (output_unlabel[ind1] - output_unlabel[ind2])
-            diff_big = diff_big.sum() / 2.0
-            # diff_small = criterion(x_encode[ind1,:], target2)
-            # #(output_unlabel[ind1]-output_unlabel[ind3])*(output_unlabel[ind1]-output_unlabel[ind3])
-            diff_small = (output_unlabel[
-                          ind1] - output_unlabel[ind3]) * (output_unlabel[ind1] - output_unlabel[ind3])
-            diff_small = diff_small.sum() / 2.0
-            # import ipdb; ipdb.set_trace()
-            loss_unlabel = loss_unlabel + \
-                (diff_small - Thresh - diff_big).clamp(0)
-
-        return loss_unlabel
-
-    def forward_unlabel(self, sample):
-        """ 
-        :param sample: unlabeled data
-        :return: unlabel loss
-        """
-        inputValue = sample.squeeze().to(self.device)
-        output = self.model(inputValue)
-
-        loss = self.unlabel_loss(output)
-
-        return loss
-
-    def forward_label(self, sample):
-        """ 
-        :param sample: labeled data
-        :return: label loss
-        """
-        inputValue = sample['img'].to(self.device)
-        targetValue = sample['label'].to(self.device)
-
-        output = self.model(inputValue)
-        loss = self.criterion(output, targetValue)
-
-        return loss
-
-    def test_label(self, val_sample, visualize):
-        inputImgs = val_sample['img'].to(self.device)
-        labels = val_sample['label'].to(self.device)
-
-        output = self.model(inputImgs)
-        loss_label = self.criterion(output, labels)
-
-        # import ipdb;ipdb.set_trace()
-        if visualize:
-            output_np = output.detach().cpu().numpy()
-            labels_np = labels.cpu().numpy()
-            angle_error = self.angle_loss(output_np, labels_np)
-            cls_accuracy = float(self.accuracy_cls(
-                output_np, labels_np)) / labels_np.shape[0]
-            print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label.item(), angle_error, cls_accuracy)
-            seq_show_with_arrow(inputImgs.cpu().numpy(), output.detach(
-            ).cpu().numpy(), scale=0.8, mean=mean, std=std)
-        return loss_label
-
-    def test_unlabel(self, val_sample, visualize):
-        """ """
-        inputValue = val_sample.squeeze().to(self.device)
-        output = self.model(inputValue)
-        loss_unlabel = self.unlabel_loss(output)
-
-        if visualize:
-            print loss_unlabel.item()
-            seq_show_with_arrow(inputValue.cpu().numpy(), output.detach(
-            ).cpu().numpy(), scale=0.8, mean=mean, std=std)
-        return loss_unlabel
-
-    def test_label_unlabel(self, val_sample, visualize):
-        """ """
-        inputImgs = val_sample['imgseq'].squeeze().to(self.device)
-        labels = val_sample['labelseq'].squeeze().to(self.device)
-
-        output = self.model(inputImgs)
-        loss_label = self.criterion(output, labels)
-        loss_unlabel = self.unlabel_loss(output)
-        loss = loss_label + Lamb * loss_unlabel
-
-        # import ipdb;ipdb.set_trace()
-        if visualize:
-            output_np = output.detach().cpu().numpy()
-            labels_np = labels.cpu().numpy()
-            angle_error = self.angle_loss(output_np, labels_np)
-            cls_accuracy = float(self.accuracy_cls(
-                output_np, labels_np)) / labels_np.shape[0]
-            print '(loss %.4f, label-loss %.4f, unlabel-loss %.4f) angle diff %.4f, accuracy %.4f' % (loss.item(),
-                                                                                                      loss_label.item(), loss_unlabel.item(), angle_error, cls_accuracy)
-            seq_show_with_arrow(inputImgs.cpu().numpy(),
-                                output_np, scale=0.8, mean=mean, std=std)
-        return loss, loss_label, loss_unlabel
+        return sample, data_iter, epoch
 
     def angle_diff(self, outputs, labels):
-        """ compute angle difference """
+        """ compute angular difference """
 
         # calculate angle from coordiate (x, y)
         output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
@@ -293,22 +218,135 @@ class MyWF(WorkFlow.WorkFlow):
 
         return diff_angle
 
-    def accuracy_cls(self, outputs, labels):
-        """ compute accuracy """
-        diff_angle = self.angle_diff(outputs, labels)
-        acc_angle = diff_angle < 0.3927  # 22.5 * pi / 180 = pi/8
-        return np.sum(acc_angle)
-
     def angle_loss(self, outputs, labels):
         """ compute mean angular difference between outputs & labels"""
         diff_angle = self.angle_diff(outputs, labels)
         return np.mean(np.abs(diff_angle))
 
-    def save_snapshot(self):
-        """ write accumulated values and save temporal model """
-        self.write_accumulated_values()
-        self.draw_accumulated_values()
-        self.save_model(self.model, saveModelName + '_' + str(self.countTrain))
+    def accuracy_cls(self, outputs, labels):
+        """ 
+        compute accuracy 
+        :param outputs, labels: numpy array
+        """
+        diff_angle = self.angle_diff(outputs, labels)
+        acc_angle = diff_angle < 0.3927  # 22.5 * pi / 180 = pi/8
+
+        acc = float(np.sum(acc_angle)) / labels.shape[0]
+        return acc
+
+    def angle_metric(self, outputs, labels):
+        """ return angle loss and accuracy"""
+        return self.angle_loss(outputs, labels), self.angle_cls(outputs, labels)
+
+    def unlabel_loss(self, output):
+        """
+        :param output: network unlabel output
+        :return: unlabel loss
+        """
+        loss_unlabel = torch.Tensor([0]).to(self.device)  # empty tensor
+        unlabel_batch = output.size()[0]
+
+        for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
+            # randomly pick two other samples
+            ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
+            ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
+
+            # target1 = Variable(x_encode[ind2,:].data, requires_grad=False).cuda()
+            # target2 = Variable(x_encode[ind3,:].data, requires_grad=False).cuda()
+            # diff_big = criterion(x_encode[ind1,:], target1)
+            # diff_small = criterion(x_encode[ind1,:], target2)
+            # import ipdb; ipdb.set_trace() ?
+
+            diff_big = torch.sum((output[ind1] - output[ind2]) ** 2) / 2.0
+            diff_small = torch.sum((output[ind1] - output[ind3]) ** 2) / 2.0
+
+            loss_unlabel += diff_small - Thresh - diff_big
+
+        return loss_unlabel
+
+    def forward_unlabel(self, sample):
+        """
+        :param sample: unlabeled data
+        :return: unlabel loss
+        """
+        inputValue = sample.squeeze().to(self.device)
+        output = self.model(inputValue)
+
+        loss = self.unlabel_loss(output)
+        return loss
+
+    def forward_label(self, sample):
+        """
+        :param sample: labeled data
+        :return: label loss
+        """
+        inputValue = sample['img'].to(self.device)
+        targetValue = sample['label'].to(self.device)
+
+        output = self.model(inputValue)
+
+        loss = self.criterion(output, targetValue)
+        return loss
+
+    def visualize_output(self, inputs, outputs):
+        seq_show_with_arrow(inputs.cpu().numpy(), outputs.detach().cpu().numpy(),
+                            scale=0.8, mean=mean, std=std)
+
+    def test_label(self, val_sample, visualize):
+        """ """
+        inputImgs = val_sample['img'].to(self.device)
+        labels = val_sample['label'].to(self.device)
+
+        output = self.model(inputImgs)
+        loss_label = self.criterion(output, labels)
+
+        # import ipdb;ipdb.set_trace()
+        if visualize:
+            self.visualize_output(inputImgs, output)
+
+            angle_error, cls_accuracy = self.angle_metric(
+                output.detach().cpu().numpy(), labels.cpu().numpy())
+
+            print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label.item(), angle_error, cls_accuracy)
+
+        return loss_label
+
+    def test_unlabel(self, val_sample, visualize):
+        """ """
+        inputImgs = val_sample.squeeze().to(self.device)
+        output = self.model(inputImgs)
+        loss_unlabel = self.unlabel_loss(output)
+
+        # import ipdb;ipdb.set_trace()
+        if visualize:
+            self.visualize_output(inputImgs, output)
+
+            print loss_unlabel.item()
+
+        return loss_unlabel
+
+    def test_label_unlabel(self, val_sample, visualize):
+        """ """
+        inputImgs = val_sample['imgseq'].squeeze().to(self.device)
+        labels = val_sample['labelseq'].squeeze().to(self.device)
+
+        output = self.model(inputImgs)
+        loss_label = self.criterion(output, labels)
+
+        loss_unlabel = self.unlabel_loss(output)
+        loss = loss_label + Lamb * loss_unlabel
+
+        # import ipdb;ipdb.set_trace()
+        if visualize:
+            self.visualize_output(inputImgs, output)
+
+            angle_error, cls_accuracy = self.angle_metric(
+                output.detach().cpu().numpy(), labels.cpu().numpy())
+
+            print 'loss %.4f, label-loss %.4f, unlabel-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss.item(),
+                                                                                                     loss_label.item(), loss_unlabel.item(), angle_error, cls_accuracy)
+
+        return loss, loss_label, loss_unlabel
 
     def train(self):
         """ train model (one batch) """
@@ -318,27 +356,12 @@ class MyWF(WorkFlow.WorkFlow):
         self.model.train()
 
         # get next labeled sample
-        try:
-            sample = self.train_data_iter.next()
-        except:
-            self.train_data_iter = iter(self.train_loader)
-            sample = self.train_data_iter.next()
-            self.labelEpoch += 1
+        sample, self.train_data_iter, self.labelEpoch = self.next_sample(
+            self.train_data_iter, self.train_loader, self.labelEpoch)
 
         # get next unlabeled sample
-        try:
-            sample_unlabel = self.train_unlabel_iter.next()
-        except:
-            self.train_unlabel_iter = iter(self.train_unlabel_loader)
-            sample_unlabel = self.train_unlabel_iter.next()
-            self.unlabelEpoch += 1
-
-        """ need testing
-        sample, self.labelEpoch = self.next_sample(
-            self.train_data_iter, self.train_loader, self.labelEpoch)
-        sample_unlabel, self.unlabelEpoch = self.next_sample(
+        sample_unlabel, self.train_unlabel_data_iter, self.unlabelEpoch = self.next_sample(
             self.train_unlabel_data_iter, self.train_unlabel_loader, self.unlabelEpoch)
-        """
 
         # calculate loss
         label_loss = self.forward_label(sample)
@@ -372,13 +395,8 @@ class MyWF(WorkFlow.WorkFlow):
         self.model.eval()
 
         # get next sample
-        try:
-            sample = self.test_data_iter.next()
-        except:
-            self.test_data_iter = iter(self.test_loader)
-            sample = self.test_data_iter.next()
-
-        # sample, self.testEpoch = self.next_sample(self.test_data_iter, self.test_loader, self.testEpoch)
+        sample, self.test_data_iter, self.testEpoch = self.next_sample(
+            self.test_data_iter, self.test_loader, self.testEpoch)
 
         # calculate test loss
         if TestType == 1 or TestType == 0:  # labeled sequence
@@ -398,28 +416,16 @@ class MyWF(WorkFlow.WorkFlow):
             self.AV['test_unlabel'].push_back(
                 loss_unlabel.item(), self.countTrain)
 
-    def finalize(self):
-        """ save model and values after training """
-        super(MyWF, self).finalize()
-        self.print_delimeter('finalize ...')
-        self.save_snapshot()
+    def train_all():
+        # the logic is not yet consistent ?
 
-    def load_model(self, model, name):
-        """ """
-        preTrainDict = torch.load(name)
-        model_dict = model.state_dict()
-        preTrainDict = {k: v for k, v in preTrainDict.items()
-                        if k in model_dict}
-        for item in preTrainDict:
-            print('  Load pretrained layer: ', item)
-        model_dict.update(preTrainDict)
-        model.load_state_dict(model_dict)
-        return model
+        for iteration in range(Trainstep):
+            wf.train()
 
-    def save_model(self, model, name):
-        """ Save :param: model to pickle file """
-        modelname = self.prefix + name + self.suffix + '.pkl'
-        torch.save(model.state_dict(), self.modeldir + '/' + modelname)
+            if TestType > 0:    # ?
+                wf.test(visualize=True)
+            elif iteration % TestIter == 0:
+                wf.test()
 
 
 def main():
@@ -427,23 +433,13 @@ def main():
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 
+    # train and validate
     try:
         # Instantiate an object for MyWF.
-        wf = MyWF("./", prefix=exp_prefix)
-
-        # Initialization.
+        wf = MyWF("./", prefix=exp_prefix).
         wf.initialize(device)
 
-        while True:
-            if TestType > 0:
-                wf.test(True)
-            else:
-                wf.train()
-                if wf.countTrain % TestIter == 0:
-                    wf.test()
-
-            if (wf.countTrain >= Trainstep):
-                break
+        wf.train_all()
 
         wf.finalize()
 
