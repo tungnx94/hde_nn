@@ -11,7 +11,7 @@ from os.path import join
 from torch.utils.data import DataLoader
 
 from workflow import WorkFlow
-from utils import loadPretrain2, loadPretrain, seq_show_with_arrow
+from utils import loadPretrain2, loadPretrain, seq_show
 from MobileReg import MobileReg
 
 from labelData import LabelDataset
@@ -272,8 +272,8 @@ class MyWF(WorkFlow.WorkFlow):
         return loss
 
     def visualize_output(self, inputs, outputs):
-        seq_show_with_arrow(inputs.cpu().numpy(), outputs.detach().cpu().numpy(),
-                            scale=0.8, mean=mean, std=std)
+        seq_show(inputs.cpu().numpy(), dir_seq=outputs.detach().cpu().numpy(),
+                 scale=0.8, mean=mean, std=std)
 
     def test_label(self, val_sample, visualize):
         """ """

@@ -97,7 +97,8 @@ def main():
 
     for sample in dataloader:
         print sample['label'], sample['img'].size()
-        print seq_show(sample['img'].numpy())
+        
+        seq_show(sample['img'].numpy(), scale=0.3)
 
 
 if __name__ == '__main__':

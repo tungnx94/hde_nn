@@ -95,21 +95,6 @@ def img_denormalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
     img = img[:, :, [2, 1, 0]]
     return img
 
-
-def seq_show(img_seq, scale=0.3):
-    # input a numpy array: n x 3 x h x w
-    imgnum = img_seq.shape[0]
-    imgshow = []
-    for k in range(imgnum):
-        imgshow.append(img_denormalize(img_seq[k, :, :, :]))  # n x h x w x 3
-    imgshow = np.array(imgshow)
-    imgshow = imgshow.transpose(1, 0, 2, 3).reshape(
-        img_seq.shape[2], -1, 3)  # h x (n x w) x 3
-    imgshow = cv2.resize(imgshow, (0, 0), fx=scale, fy=scale)
-    cv2.imshow('img', imgshow)
-    cv2.waitKey(0)
-
-
 def put_arrow(img, dir, center_x=150, center_y=96):
     """ draw an arrow on image at (center_x, center_y) """
 
@@ -127,20 +112,39 @@ def put_arrow(img, dir, center_x=150, center_y=96):
 
     return img
 
-
-def seq_show_with_arrow(img_seq, dir_seq, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
-    """ 
-    display images with arrow
-    :param img_seq: a numpy array: n x 3 x h x w (images)
-    :param dir_seq: a numpy array: n x 2 (directions)
-    """ 
-
+def seq_show(img_seq, scale=0.3):
+    # input a numpy array: n x 3 x h x w
     imgnum = img_seq.shape[0]
     imgshow = []
 
     for k in range(imgnum):
-        img = img_denormalize(img_seq[k, :, :, :], mean, std)
-        img = put_arrow(img, dir_seq[k, :])
+        imgshow.append(img_denormalize(img_seq[k, :, :, :]))  # n x h x w x 3
+
+    imgshow = np.array(imgshow)
+    imgshow = imgshow.transpose(1, 0, 2, 3).reshape(
+        img_seq.shape[2], -1, 3)  # h x (n x w) x 3
+
+    imgshow = cv2.resize(imgshow, (0, 0), fx=scale, fy=scale)
+    cv2.imshow('img', imgshow)
+    cv2.waitKey(0)
+
+def seq_show_with_arrow(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
+    """ 
+    display images (optional with arrow)
+    :param img_seq: a numpy array: n x 3 x h x w (images)
+    :param dir_seq: a numpy array: n x 2 (directions)
+    :param scale:
+    """ 
+    imgnum = img_seq.shape[0]
+    imgshow = []
+
+    for k in range(imgnum):
+        img = img_denormalize(img_seq[k], mean, std)
+
+        # put arrow
+        if dir_seg is not None: 
+            img = put_arrow(img, dir_seq[k])
+
         imgshow.append(img)  # n x h x w x 3
 
     imgshow = np.array(imgshow)

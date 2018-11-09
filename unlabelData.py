@@ -75,8 +75,9 @@ def main():
     # import ipdb;ipdb.set_trace()
 
     print len(unlabeldataset)
+    
     for sample in dataloader:
-        seq_show(sample.squeeze().numpy(), scale=0.8)
+        seq_show(sample.squeeze().numpy())
 
 if __name__ == '__main__':
     main()

@@ -8,7 +8,7 @@ from os.path import isfile, join, isdir, split
 from os import listdir
 import xml.etree.ElementTree
 from torch.utils.data import Dataset, DataLoader
-from utils import im_scale_norm_pad, img_denormalize, seq_show_with_arrow, im_hsv_augmentation, im_crop
+from utils import im_scale_norm_pad, img_denormalize, seq_show, im_hsv_augmentation, im_crop
 import random
 import matplotlib.pyplot as plt
 
@@ -182,7 +182,7 @@ def main():
         unlabelloss(labelseq)
         fakelabel = np.random.rand(24, 2)
         unlabelloss(fakelabel)
-        seq_show_with_arrow(imgseq, labelseq, scale=0.8)
+        seq_show(imgseq, dir_seq=labelseq)
 
 if __name__ == '__main__':
     main()

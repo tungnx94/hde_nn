@@ -163,7 +163,7 @@ def main():
     for k in range(1):
         imgseq = unlabelset[k * 1000]
         print imgseq.dtype, imgseq.shape
-        seq_show(imgseq, scale=0.8)
+        seq_show(imgseq)
 
     dataloader = DataLoader(unlabelset, batch_size=1,
                             shuffle=True, num_workers=1)

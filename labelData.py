@@ -3,7 +3,7 @@
 from trackingLabelData import TrackingLabelDataset
 from folderLabelData import FolderLabelDataset
 from torch.utils.data import Dataset, DataLoader
-from utils import seq_show_with_arrow
+from utils import seq_show
 
 
 class LabelDataset(Dataset):
@@ -81,8 +81,8 @@ def main():
     print len(labeldataset)
     for sample in dataloader:
         print sample['label'], sample['img'].size()
-        seq_show_with_arrow(sample['img'].numpy(), sample[
-                            'label'].numpy(), scale=0.5)
+        seq_show(sample['img'].numpy(),
+                 dir_seq=sample['label'].numpy(), scale=0.5)
 
 if __name__ == '__main__':
     main()

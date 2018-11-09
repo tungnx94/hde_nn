@@ -1,15 +1,16 @@
 import cv2
-import numpy as np
-
-from os.path import isfile, join, isdir, split
-from os import listdir
-import xml.etree.ElementTree
-from torch.utils.data import Dataset, DataLoader
-from utils import im_scale_norm_pad, seq_show, im_crop, im_hsv_augmentation, put_arrow, seq_show_with_arrow
-import pandas as pd
-
 import random
 
+import numpy as np
+import pandas as pd
+
+import xml.etree.ElementTree
+
+from os import listdir
+from os.path import isfile, join, isdir, split
+from torch.utils.data import Dataset, DataLoader
+
+from utils import im_scale_norm_pad, seq_show, im_crop, im_hsv_augmentation, put_arrow
 
 class TrackingLabelDataset(Dataset):
 
@@ -84,17 +85,20 @@ def main():
     # trackingLabelDataset = TrackingLabelDataset(filename='/datadrive/data/aayush/combined_data2/train/annotations/car_annotations.csv')
     trackingLabelDataset = TrackingLabelDataset(
         filename='/datadrive/person/DukeMTMC/trainval_duke.txt', data_aug=True)
-    # print len(trackingLabelDataset)
-    # for k in range(1000):
-    #     img = trackingLabelDataset[k*10]['img']
-    #     label = trackingLabelDataset[k*10]['label']
-    #     print img.dtype, label
-    #     print np.max(img), np.min(img), np.mean(img)
-    #     print img.shape
-    #     img = img_denormalize(img)
-    #     img = put_arrow(img, label)
-    #     cv2.imshow('img',img)
-    #     cv2.waitKey(0)
+
+    """
+    print len(trackingLabelDataset)
+    for k in range(1000):
+        img = trackingLabelDataset[k*10]['img']
+        label = trackingLabelDataset[k*10]['label']
+        print img.dtype, label
+        print np.max(img), np.min(img), np.mean(img)
+        print img.shape
+        img = img_denormalize(img)
+        img = put_arrow(img, label)
+        cv2.imshow('img',img)
+        cv2.waitKey(0)
+    """
 
     dataloader = DataLoader(trackingLabelDataset,
                             batch_size=16, shuffle=True, num_workers=1)
@@ -105,7 +109,7 @@ def main():
 
     for sample in dataloader:
         print sample['label'], sample['img'].size()
-        seq_show_with_arrow(sample['img'].numpy(), sample[
-                            'label'].numpy(), scale=0.5)
+        seq_show(sample['img'].numpy(),
+                 dir_seq=sample['label'].numpy(), scale=0.5)
 
 if __name__ == '__main__':
