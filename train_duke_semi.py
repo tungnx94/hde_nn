@@ -5,14 +5,15 @@ import random
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import config as cnf
 
 from math import pi
 from os.path import join
 from torch.utils.data import DataLoader
 
 from workflow import WorkFlow
-from utils import loadPretrain2, loadPretrain, seq_show
 from MobileReg import MobileReg
+from utils import loadPretrain2, loadPretrain, seq_show
 
 from labelData import LabelDataset
 from unlabelData import UnlabelDataset
@@ -81,12 +82,12 @@ class MyWF(WorkFlow.WorkFlow):
 
         # Data & Dataloaders
         # 1 labeled & 1 unlabeled dataset
-        label_dataset = LabelDataset(balence=True, mean=mean, std=std)
+        label_dataset = LabelDataset(balance=True, mean=mean, std=std)
         self.train_loader = DataLoader(
             label_dataset, batch_size=Batch, shuffle=True, num_workers=6)
 
         unlabel_dataset = UnlabelDataset(
-            batch=UnlabelBatch, balence=True, mean=mean, std=std)
+            batch=UnlabelBatch, balance=True, mean=mean, std=std)
         self.train_unlabel_loader = DataLoader(
             unlabel_dataset, batch_size=1, shuffle=True, num_workers=4)
 

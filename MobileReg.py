@@ -52,9 +52,12 @@ class MobileReg(nn.Module):
 
 def main():
     inputVar = Variable(torch.rand((10, 3, 192, 192)))
+
     net = MobileReg()
     net.load_pretrained_pth('pretrained_models/mobilenet_v1_0.50_224.pth')
+
     outputVar = net(inputVar)
+    
     print outputVar
 
     """

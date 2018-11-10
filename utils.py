@@ -112,23 +112,7 @@ def put_arrow(img, dir, center_x=150, center_y=96):
 
     return img
 
-def seq_show(img_seq, scale=0.3):
-    # input a numpy array: n x 3 x h x w
-    imgnum = img_seq.shape[0]
-    imgshow = []
-
-    for k in range(imgnum):
-        imgshow.append(img_denormalize(img_seq[k, :, :, :]))  # n x h x w x 3
-
-    imgshow = np.array(imgshow)
-    imgshow = imgshow.transpose(1, 0, 2, 3).reshape(
-        img_seq.shape[2], -1, 3)  # h x (n x w) x 3
-
-    imgshow = cv2.resize(imgshow, (0, 0), fx=scale, fy=scale)
-    cv2.imshow('img', imgshow)
-    cv2.waitKey(0)
-
-def seq_show_with_arrow(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
+def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
     """ 
     display images (optional with arrow)
     :param img_seq: a numpy array: n x 3 x h x w (images)
@@ -202,7 +186,7 @@ def im_crop(image, maxscale=0.2):
     return image[start_y:end_y, start_x:end_x, :]
 
 
-def im_scale_norm_pad(img, outsize=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso=False, down_len=30, flip=False):
+def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso=False, down_len=30, flip=False):
     # downsample the image for data augmentation
     minlen = np.min(img.shape[0:2])
     down_len = random.randint(down_len, down_len * 5)
@@ -210,14 +194,14 @@ def im_scale_norm_pad(img, outsize=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso
         resize_scale = float(down_len) / minlen
         img = cv2.resize(img, (0, 0), fx=resize_scale, fy=resize_scale)
 
-    resize_scale = float(outsize) / np.max(img.shape)
+    resize_scale = float(out_size) / np.max(img.shape)
     # if the image is too narrow, make it more square
     miniscale = 1.8
     x_scale, y_scale = resize_scale, resize_scale
-    if img.shape[0] * resize_scale < outsize / miniscale:
-        y_scale = outsize / miniscale / img.shape[0]
-    if img.shape[1] * resize_scale < outsize / miniscale:
-        x_scale = outsize / miniscale / img.shape[1]
+    if img.shape[0] * resize_scale < out_size / miniscale:
+        y_scale = out_size / miniscale / img.shape[0]
+    if img.shape[1] * resize_scale < out_size / miniscale:
+        x_scale = out_size / miniscale / img.shape[1]
 
     img = cv2.resize(img, (0, 0), fx=x_scale, fy=y_scale)
 
@@ -228,10 +212,10 @@ def im_scale_norm_pad(img, outsize=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso
     # print img.shape
     imgw = img.shape[2]
     imgh = img.shape[1]
-    start_x = (outsize - imgw) / 2
-    start_y = (outsize - imgh) / 2
+    start_x = (out_size - imgw) / 2
+    start_y = (out_size - imgh) / 2
     # print start_x, start_y
-    outimg = np.zeros((3, outsize, outsize), dtype=np.float32)
+    outimg = np.zeros((3, out_size, out_size), dtype=np.float32)
     outimg[:, start_y:start_y + imgh, start_x:start_x + imgw] = img
 
     return outimg

@@ -1,90 +1,95 @@
-import cv2
 import random
+import os.path
 
 import numpy as np
 import pandas as pd
+import config as cnf
 
-import xml.etree.ElementTree
+from generalData import SingleDataset
 
-from os import listdir
-from os.path import isfile, join, isdir, split
-from torch.utils.data import Dataset, DataLoader
+default_data_file = '/datadrive/data/aayush/combined_data2/train/annotations/person_annotations.csv'
 
-from utils import im_scale_norm_pad, seq_show, im_crop, im_hsv_augmentation, put_arrow
 
-class TrackingLabelDataset(Dataset):
+class TrackingLabelDataset(SingleDataset):
 
-    def __init__(self, filename='/datadrive/data/aayush/combined_data2/train/annotations/person_annotations.csv',
-                 imgsize=192, data_aug=False, maxscale=0.1,
-                 mean=[0, 0, 0], std=[1, 1, 1]):
+    def __init__(self, data_file=default_data_file,
+                 img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
+        super(TrackingLabelDataset, self)__init__(img_size, data_aug, maxscale, mean, std)
 
-        self.imgsize = imgsize
-        self.aug = data_aug
-        self.mean = mean
-        self.std = std
-        self.filename = filename
-        self.maxscale = maxscale
+        self.data_file = data_file
 
+        # save image paths & directions
         self.items = []
-        if filename[-3:] == 'csv':
-            self.items = pd.read_csv(filename)
+        if data_file.endswith(".csv"):  # .csv file
+            self.items = pd.read_csv(data_file)
+
         else:  # text file used by DukeMTMC dataset
-            imgdir = split(filename)[0]
-            # imgdir = join(imgdir,'heading') # a subdirectory containing the
-            # images
-            with open(filename, 'r') as f:
+
+            img_dir = os.path.dirname(data_file)
+            # img_dir = join(img_dir,'heading') # a subdirectory
+
+            with open(data_file, 'r') as f:
                 lines = f.readlines()
+
             for line in lines:
-                [img_name, angle] = line.strip().split(' ')
+                img_name, angle = line.strip().split(' ')
                 self.items.append(
-                    {'path': join(imgdir, img_name), 'direction_angle': angle})
+                    {'path': os.path.join(img_dir, img_name), 'direction_angle': angle})
 
-        print 'Read images', len(self.items)
+        self.N = len(self.items)
 
-    def __len__(self):
-        return len(self.items)
+        # debug
+        print 'Read #images: ', len(self.items)
 
     def __getitem__(self, idx):
-        if self.filename[-3:] == 'csv':
+        if self.data_file.endswith('csv'):
             point_info = self.items.iloc[idx]
         else:
             point_info = self.items[idx]
         # print(point_info)
-        img_name = point_info['path']
-        direction_angle = point_info['direction_angle']
 
-        direction_angle_cos = np.cos(float(direction_angle))
-        direction_angle_sin = np.sin(float(direction_angle))
-        label = np.array(
-            [direction_angle_sin, direction_angle_cos], dtype=np.float32)
+        # read image
+        img_name = point_info['path']
         img = cv2.imread(img_name)
 
-        # random fliping
-        flipping = False
-        if self.aug and random.random() > 0.5:
-            flipping = True
-            label[1] = -label[1]
-
         if img is None:
-            print 'error image:', img_name
+            print 'error reading image:', img_name
             return
-        if self.aug:
-            img = im_hsv_augmentation(img, Hscale=10, Sscale=60, Vscale=60)
-            img = im_crop(img, maxscale=self.maxscale)
 
-        outimg = im_scale_norm_pad(
-            img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
+        # get label from angle
+        angle = point_info['direction_angle']
+        angle_cos = np.cos(float(angle))
+        angle_sin = np.sin(float(angle))
 
-        return {'img': outimg, 'label': label}
+        label = np.array([angle_sin, angle_cos], dtype=np.float32)
+
+        flipping = self.get_flipping()
+        out_img, label = self.get_img_and_label(img, label, flipping)
+
+        return {'img': out_img, 'label': label}
 
 
 def main():
     # test
+    import cv2
+    from utils import seq_show, put_arrow
+    from torch.utils.data import DataLoader
+
     np.set_printoptions(precision=4)
+
     # trackingLabelDataset = TrackingLabelDataset(data_aug = True, maxscale=0.1)
-    # trackingLabelDataset = TrackingLabelDataset(filename='/datadrive/data/aayush/combined_data2/train/annotations/car_annotations.csv')
+    # trackingLabelDataset = TrackingLabelDataset(data_file='/datadrive/data/aayush/combined_data2/train/annotations/car_annotations.csv')
     trackingLabelDataset = TrackingLabelDataset(
-        filename='/datadrive/person/DukeMTMC/trainval_duke.txt', data_aug=True)
+        data_file=cnf.duke_dataset_file, data_aug=True)
+
+    dataloader = DataLoader(trackingLabelDataset,
+                            batch_size=16, shuffle=True, num_workers=1)
+
+    # import ipdb;ipdb.set_trace()
+    for sample in dataloader:
+        print sample['label'], sample['img'].size()
+        seq_show(sample['img'].numpy(),
+                 dir_seq=sample['label'].numpy(), scale=0.5)
 
     """
     print len(trackingLabelDataset)
@@ -99,17 +104,5 @@ def main():
         cv2.imshow('img',img)
         cv2.waitKey(0)
     """
-
-    dataloader = DataLoader(trackingLabelDataset,
-                            batch_size=16, shuffle=True, num_workers=1)
-
-    dataiter = iter(dataloader)
-
-    # import ipdb;ipdb.set_trace()
-
-    for sample in dataloader:
-        print sample['label'], sample['img'].size()
-        seq_show(sample['img'].numpy(),
-                 dir_seq=sample['label'].numpy(), scale=0.5)
 
 if __name__ == '__main__':

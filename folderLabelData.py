@@ -1,23 +1,18 @@
-import cv2
+import os
+import random
 import numpy as np
 
-from os.path import isfile, join, isdir
-from os import listdir
-from torch.utils.data import Dataset, DataLoader
-from utils import im_scale_norm_pad, img_denormalize, seq_show, im_crop, im_hsv_augmentation, put_arrow
-
-import random
+from generalData import SingleDataset
+from utils import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
 
 
-class FolderLabelDataset(Dataset):
+class FolderLabelDataset(SingleDataset):
 
-    def __init__(self, imgdir='/home/wenshan/headingdata/label',
-                 imgsize=192, data_aug=False, maxscale=0.1,
-                 mean=[0, 0, 0], std=[1, 1, 1]):
+    def __init__(self, img_dir='/home/wenshan/headingdata/label',
+                 img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
 
-        self.imgsize = imgsize
-        self.imgnamelist = []
-        self.labellist = []
+        super(FolderLabelDataset, self)__init__(img_size, data_aug, maxscale, mean, std)
+
         # self.dir2ind = {'n': 0,'ne': 1,'e': 2, 'se': 3,'s': 4,'sw': 5,'w': 6,'nw': 7}
         self.dir2val = {'n':  [1., 0.],
                         'ne': [0.707, 0.707],
@@ -27,78 +22,67 @@ class FolderLabelDataset(Dataset):
                         'sw': [-0.707, -0.707],
                         'w':  [0., -1.],
                         'nw': [0.707, -0.707]}
-        self.aug = data_aug
-        self.mean = mean
-        self.std = std
-        self.maxscale = maxscale
 
-        imgind = 0
-        for clsfolder in listdir(imgdir):
+        self.img_names = []
+        self.labels = []
 
-            clsval = self.dir2val[clsfolder]
+        for cls_folder in os.listdir(img_dir):
 
-            clsfolderpath = join(imgdir, clsfolder)
+            cls_val = self.dir2val[cls_folder]
 
-            for imgname in listdir(clsfolderpath):
-                if imgname[-3:] == 'jpg' or imgname[-3:] == 'png':
-                    self.imgnamelist.append(join(clsfolderpath, imgname))
-                    self.labellist.append(clsval)
+            path = os.path.join(img_dir, cls_folder)
 
-        self.N = len(self.imgnamelist)
-        print 'Read', self.N, 'images...'
+            for img_name in os.listdir(path):
+                if img_name.endswith(".jpg") or img_name.endswith(".png"):
+                    self.img_names.append(os.path.join(path, img_name))
+                    self.labels.append(cls_val)
 
-    def __len__(self):
-        return self.N
+        self.N = len(self.img_names)
+
+        print 'Read #images: ', self.__len__()
 
     def __getitem__(self, idx):
-        img = cv2.imread(self.imgnamelist[idx])  # in bgr
-        label = np.array(self.labellist[idx], dtype=np.float32)
+        img = cv2.imread(self.img_names[idx])  # in bgr
+        label = np.array(self.labels[idx], dtype=np.float32)
 
-        # random fliping
-        flipping = False
-        if self.aug and random.random() > 0.5:
-            flipping = True
-            label[1] = -label[1]
-        if self.aug:
-            img = im_hsv_augmentation(img)
-            img = im_crop(img, maxscale=self.maxscale)
+        flipping = self.get_flipping()
+        out_img, label = self.get_img_and_label(img, label, flipping)
 
-        outimg = im_scale_norm_pad(
-            img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
-
-        return {'img': outimg, 'label': label}
+        return {'img': out_img, 'label': label}
 
 
 def main():
     # test
+    import cv2
+    from torch.utils.data import DataLoader
+    from utils import seq_show, put_arrow
+
     np.set_printoptions(precision=4)
-    import ipdb
-    ipdb.set_trace()
+
     facingDroneLabelDataset = FolderLabelDataset(
-        imgdir='/datadrive/3DPES/facing_labeled', data_aug=True)
-    for k in range(100):
-        sample = facingDroneLabelDataset[k * 100]
-        img = sample['img']
-        label = sample['label']
-        # print img.dtype, label
-        # print np.max(img), np.min(img), np.mean(img)
-        # print img.shape
-        img = img_denormalize(img)
-        img = put_arrow(img, label)
-        cv2.imshow('img', img)
-        cv2.waitKey(0)
+        img_dir='/datadrive/3DPES/facing_labeled', data_aug=True)
 
     dataloader = DataLoader(facingDroneLabelDataset,
                             batch_size=4, shuffle=True, num_workers=1)
 
-    dataiter = iter(dataloader)
-
-    # import ipdb;ipdb.set_trace()
-
+    # import ipdb; ipdb.set_trace()
     for sample in dataloader:
         print sample['label'], sample['img'].size()
-        
         seq_show(sample['img'].numpy(), scale=0.3)
 
+    """
+    for k in range(100):
+        sample = facingDroneLabelDataset[k * 100]
+        img = sample['img']
+        label = sample['label']
+        print img.dtype, label
+        print np.max(img), np.min(img), np.mean(img)
+        print img.shape
+        img = img_denormalize(img)
+        img = put_arrow(img, label)
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
+    """
 
 if __name__ == '__main__':
+    main()

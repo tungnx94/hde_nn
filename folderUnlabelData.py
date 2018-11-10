@@ -1,184 +1,184 @@
 # extend with UCF data
 
 import cv2
-import numpy as np
-
-from os.path import isfile, join, isdir
-from os import listdir
-import xml.etree.ElementTree
-from torch.utils.data import Dataset, DataLoader
-from utils import im_scale_norm_pad, img_denormalize, seq_show, im_hsv_augmentation, im_crop
-import random
-import matplotlib.pyplot as plt
-
+import os
 import pickle
+import random
+
+import numpy as np
+from os.path import join
+
+from generalData import SingleDataset
 
 
-class FolderUnlabelDataset(Dataset):
+class FolderUnlabelDataset(SingleDataset):
 
-    def __init__(self, imgdir='/datadrive/person/dirimg/',
-                 imgsize=192, batch=32,
-                 data_aug=False, extend=False,
-                 mean=[0, 0, 0], std=[1, 1, 1],
-                 include_all=False, datafile=''):
+    def __init__(self, img_dir='/datadrive/person/dirimg/', data_file='',
+                 img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
+                 batch=32, extend=False, include_all=False):
 
-        self.imgsize = imgsize
-        self.imgnamelist = []
+        super(FolderUnlabelDataset, self)__init__(img_size, data_aug, mean, 0, std)
+
         self.batch = batch
-        self.aug = data_aug
-        self.mean = mean
-        self.std = std
-        self.episodeNum = []
+        self.img_seqs = []  # image sequence list
+        self.episodes = []  # episode numbers
 
-        if datafile != '':
-            with open(datafile, 'rb') as f:
+        # load from saved pickle file
+        if data_file != '':
+            with open(data_file, 'rb') as f:
                 data = pickle.load(f)
             self.N = data['N']
-            self.episodeNum = data['episodeNum']
-            self.imgnamelist = data['imgnamelist']
+            self.episodes = data['episodeNum']
+            self.img_seqs = data['img_seqs']
             return
 
-        # self.folderlist = ['4','7','11','17','23','30','32','33','37','38','49','50','52']
-        self.folderlist = []  # not include data from droneData
-        if extend:
-            for k in range(101, 1040):
-                self.folderlist.append(str(k))
+        self.load_image_sequences()
 
+        # calculate episode length accumulative
+        total_seq_num = 0
+        for seq in self.img_seqs:
+            total_seq_num += len(seq) - batch + 1
+            self.episodes.append(total_seq_num)
+
+        self.N = total_seq_num
+
+        # import ipdb; ipdb.set_trace()
+
+        # Save loaded data for future use
+        if data_file == '':
+            with open('unlabeldata.pkl', 'wb') as f:
+                pickle.dump({'N': self.N, 'episodeNum': self.episodes,
+                             'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
+
+        # debug
+        print 'Read #sequences: ', len(self.img_seqs)
+        print np.sum(np.array([len(img_list) for img_list in self.img_seqs]))
+
+    def load_image_sequences(self):
+        # img_folders = ['4','7','11','17','23','30','32','33','37','38','49','50','52']
+        img_folders = []
         if include_all:  # include all the folders in one directory -- for duke
-            self.folderlist = listdir(imgdir)
+            img_folders = os.listdir(img_dir)
+        elif extend:
+            img_folders = [str(k) for k in range(101, 1040)]
 
-        for f_ind, foldername in enumerate(self.folderlist):
-
-            folderpath = join(imgdir, foldername)
-            if not isdir(folderpath):
+        # process each folder
+        for folder in img_folders:
+            folder_path = join(img_dir, folder)
+            if not os.path.isdir(folder_path):
                 continue
 
-            imglist = listdir(folderpath)
-            imglist = sorted(imglist)
+            # all images in this folder
+            img_list = sorted(os.listdir(folder_path))
 
-            sequencelist = []
+            sequence = []
             # missimg = 0
-            lastind = -1
-            for filename in imglist:
-                if filename.split('.')[-1] != 'jpg':  # only process jpg file
+            last_idx = -1
+
+            for file_name in img_list:
+                if not file_name.endswith(".jpg"):  # only process jpg
                     continue
 
-                if include_all:  # for duke dataset
-                    filepathname = join(folderpath, filename)
-                    sequencelist.append(filepathname)
+                # file_name = self.fileprefix+folder+'_'+str(imgind)+'.jpg'
+                file_path = join(folder_path, file_name)
+
+                if include_all:  # duke dataset
+                    sequence.append(file_path)
                     continue
 
                 # filtering the incontineous data
-                fileind = filename.split('.')[0].split('_')[-1]
+                file_idx = file_name.split('.')[0].split('_')[-1]
                 try:
-                    fileind = int(fileind)
+                    file_idx = int(file_idx)
                 except:
-                    print 'filename parse error:', filename, fileind
+                    print 'filename parse error:', file_name, file_idx
                     continue
-                # filename = self.fileprefix+foldername+'_'+str(imgind)+'.jpg'
-                filepathname = join(folderpath, filename)
 
-                if lastind < 0 or fileind == lastind + 1:
-                    # if isfile(filepathname):
-                    sequencelist.append(filepathname)
-                    lastind = fileind
-                    # if missimg>0:
-                    # print '  -- last missimg', missimg
-                    # missimg = 0
+                if last_idx < 0 or file_idx == last_idx + 1: # continuous index
+                    sequence.append(file_path)
+                    last_idx = file_idx
+                    """
+                    if missimg > 0:
+                        print '  -- last missimg', missimg
+                        missimg = 0
+                    """
                 else:  # the index is not continuous
-                    if len(sequencelist) >= batch:
-                        # missimg = 1
-                        self.imgnamelist.append(sequencelist)
-                        # print 'image lost:', filename
-                        print '** sequence: ', len(sequencelist)
-                        # print sequencelist
-                        sequencelist = []
-                    lastind = -1
+                    # save sequence if long enough
+                    if len(sequence) >= batch:
+                        """
+                        missimg = 1
+                        print 'image lost:', file_name
+                        print '* sequence: ', len(sequence)
+                        """
+                        self.img_seqs.append(sequence)
+                        sequence = []
+
+                    last_idx = -1
                     # else:
                     # missimg += 1
-            if len(sequencelist) >= batch:
-                self.imgnamelist.append(sequencelist)
-                print '** sequence: ', len(sequencelist)
-                sequencelist = []
 
-        sequencenum = len(self.imgnamelist)
-        print 'Read', sequencenum, 'sequecnes...'
-        print np.sum(np.array([len(imglist) for imglist in self.imgnamelist]))
-
-        total_seq_num = 0
-        for sequ in self.imgnamelist:
-            total_seq_num += len(sequ) - batch + 1
-            self.episodeNum.append(total_seq_num)
-        self.N = total_seq_num
-
-        # save self.N, self.episodeNum, self.imgnamelist
-        # for faster loading
-        # import ipdb; ipdb.set_trace()
-        if datafile == '':
-            with open('unlabeldata.pkl', 'wb') as f:
-                pickle.dump({'N': self.N, 'episodeNum': self.episodeNum,
-                             'imgnamelist': self.imgnamelist}, f, pickle.HIGHEST_PROTOCOL)
-
-    def __len__(self):
-        return self.N
+            # save if long enough
+            if len(sequence) >= batch:
+                # print '*** sequence: ', len(sequence)
+                self.img_seqs.append(sequence)
+                sequence = []
 
     def __getitem__(self, idx):
-        epiInd = 0  # calculate the epiInd
-        while idx >= self.episodeNum[epiInd]:
-            # print self.episodeNum[epiInd],
-            epiInd += 1
-        if epiInd > 0:
-            idx -= self.episodeNum[epiInd - 1]
+        ep_idx = 0  # calculate the episode index
+        while idx >= self.episodes[ep_idx]:
+            ep_idx += 1
 
-        # random fliping
-        flipping = False
-        if self.aug and random.random() > 0.5:
-            flipping = True
-        # print epiInd, idx
+            # print self.episodes[ep_idx],
+
+        if ep_idx > 0:
+            idx -= self.episodes[ep_idx - 1]
+
+        # random flip all images in batch
+        flipping = self.get_flipping()
+
+        # print ep_idx, idx
         imgseq = []
         for k in range(self.batch):
-            img = cv2.imread(self.imgnamelist[epiInd][idx + k])
+            img = cv2.imread(self.img_seqs[ep_idx][idx + k])
 
-            if self.aug:
-                img = im_hsv_augmentation(img)
-                img = im_crop(img)
-
-            outimg = im_scale_norm_pad(
-                img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
-
-            imgseq.append(outimg)
+            out_img, _ = self.get_img_and_label(img, None, flipping)
+            imgseq.append(out_img)
 
         return np.array(imgseq)
 
 
 def main():
     # test
+    from torch.utils.data import DataLoader
+    from utils import seq_show
+
     np.set_printoptions(precision=4)
 
-    # unlabelset = FolderUnlabelDataset(imgdir='/datadrive/person/dirimg',batch = 24, extend=True, data_aug=True)#,datafile='duke_unlabeldata.pkl')
-    # unlabelset = FolderUnlabelDataset(batch=24, data_aug=True, extend=True, datafile='drone_ucf_unlabeldata.pkl')
+    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/dirimg',batch = 24, extend=True, data_aug=True)#,data_file='duke_unlabeldata.pkl')
+    # unlabelset = FolderUnlabelDataset(batch=24, data_aug=True, extend=True, data_file='drone_ucf_unlabeldata.pkl')
     unlabelset = FolderUnlabelDataset(
-        imgdir='/home/wenshan/headingdata/DukeMCMT/heading', batch=24, data_aug=True, include_all=True)
+        img_dir='/home/wenshan/headingdata/DukeMCMT/heading', batch=24, data_aug=True, include_all=True)
+
+    dataloader = DataLoader(unlabelset, batch_size=1,
+                            shuffle=True, num_workers=1)
+    data_iter = iter(dataloader)
+
+    while True:
+        try:
+            sample = data_iter.next()
+        except:
+            data_iter = iter(dataloader)
+            sample = data_iter.next()
+
+        seq_show(sample.squeeze().numpy(), scale=0.8)
+
+    """
     print len(unlabelset)
     for k in range(1):
         imgseq = unlabelset[k * 1000]
         print imgseq.dtype, imgseq.shape
         seq_show(imgseq)
-
-    dataloader = DataLoader(unlabelset, batch_size=1,
-                            shuffle=True, num_workers=1)
-
-    dataiter = iter(dataloader)
-
-    while True:
-
-        try:
-            sample = dataiter.next()
-        except:
-            dataiter = iter(dataloader)
-            sample = dataiter.next()
-
-        seq_show(sample.squeeze().numpy(), scale=0.8)
+    """
 
 if __name__ == '__main__':
     main()

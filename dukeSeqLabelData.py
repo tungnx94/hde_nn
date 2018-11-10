@@ -69,7 +69,7 @@ class DukeSeqLabelDataset(Dataset):
                 lastcam = -1
 
         sequencenum = len(self.imgnamelist)
-        print 'Read', sequencenum, 'sequecnes...'
+        print 'Read', sequencenum, 'sequences...'
         print 'Including images ', np.sum(np.array([len(imglist) for imglist in self.imgnamelist]))
 
         total_seq_num = 0
