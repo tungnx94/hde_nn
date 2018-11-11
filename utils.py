@@ -1,10 +1,8 @@
 import cv2
 import torch
+import math
 import random
 
-import numpy as np
-
-from math import sqrt, sin, cos
 import numpy as np
 
 
@@ -24,6 +22,8 @@ def loadPretrain(model, preTrainModel):
     return model
 
 # important ?
+
+
 def loadPretrain2(model, preTrainModel):
     """
     load the trained parameters from a pickle file
@@ -46,30 +46,65 @@ def loadPretrain2(model, preTrainModel):
 
     model_dict.update(loadDict)
     model.load_state_dict(model_dict)
+
     return model
 
 
-def getColor(x, y, maxx, maxy): #how ?
+def unlabel_loss(output, threshold):
+    """
+    :param output: network unlabel output (converted to numpy)
+    :return: unlabel loss
+    """
+    unlabel_batch = output.shape[0]
+    loss_unlabel = 0
+
+    for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
+        # randomly pick two other samples
+        ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
+        ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
+
+        # target1 = Variable(x_encode[ind2,:].data, requires_grad=False).cuda()
+        # target2 = Variable(x_encode[ind3,:].data, requires_grad=False).cuda()
+        # diff_big = criterion(x_encode[ind1,:], target1)
+        # diff_small = criterion(x_encode[ind1,:], target2)
+
+        diff_big = np.sum((output[ind1] - output[ind2]) ** 2) / 2.0
+        diff_small = np.sum((output[ind1] - output[ind3]) ** 2) / 2.0
+
+        cost = max(diff_small - diff_big - threshold, 0)
+        loss_unlabel += cost
+
+    return loss_unlabel
+
+
+def label_from_angle(angle):
+    angle_cos = np.cos(float(angle))
+    angle_sin = np.sin(float(angle))
+    
+    return np.array([angle_sin, angle_cos], dtype=np.float32)
+
+
+def getColor(x, y, maxx, maxy):  # how ?
     """ :return (r,g,b,a) """
 
     # normalize two axis
     y = y * maxx / maxy
-    maxy = maxx  
+    maxy = maxx
 
-    # get red 
+    # get red
     x1, y1, t = x, y, maxx
-    r = np.clip(1 - sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
+    r = np.clip(1 - math.sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
 
     # get green
     x1, y1 = maxx - x, y
-    g = np.clip(1 - sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
+    g = np.clip(1 - math.sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
 
     # get blue
     x1, y1 = x, maxy - y
-    b = np.clip(1 - sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
+    b = np.clip(1 - math.sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
 
     # x1, y1 = maxx-x, maxy-y
-    # a = sqrt(float(x1*x1+y1*y1))/t
+    # a = math.sqrt(float(x1*x1+y1*y1))/t
     a = 1
 
     return (r, g, b, a)
@@ -84,6 +119,7 @@ def img_normalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
     img = img.transpose(2, 0, 1)
     return img
 
+
 def img_denormalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
     """ denormalize RGB value for visualization"""
 
@@ -94,6 +130,7 @@ def img_denormalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
     img = (img * 255).astype(np.uint8)
     img = img[:, :, [2, 1, 0]]
     return img
+
 
 def put_arrow(img, dir, center_x=150, center_y=96):
     """ draw an arrow on image at (center_x, center_y) """
@@ -112,13 +149,14 @@ def put_arrow(img, dir, center_x=150, center_y=96):
 
     return img
 
+
 def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
     """ 
     display images (optional with arrow)
     :param img_seq: a numpy array: n x 3 x h x w (images)
     :param dir_seq: a numpy array: n x 2 (directions)
     :param scale:
-    """ 
+    """
     imgnum = img_seq.shape[0]
     imgshow = []
 
@@ -126,7 +164,7 @@ def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
         img = img_denormalize(img_seq[k], mean, std)
 
         # put arrow
-        if dir_seg is not None: 
+        if dir_seg is not None:
             img = put_arrow(img, dir_seq[k])
 
         imgshow.append(img)  # n x h x w x 3
@@ -145,7 +183,7 @@ def groupPlot(data_x, data_y, group=10):
     data_x, data_y = np.array(data_x), np.array(data_y)
 
     # truncate length
-    d_len = len(data_x)/group * group
+    d_len = len(data_x) / group * group
     data_x = data_x[0: d_len]
     data_y = data_y[0: d_len]
 
@@ -154,11 +192,13 @@ def groupPlot(data_x, data_y, group=10):
     return (data_x, data_y)
 
 # amigo add for data augmentation before normalization
+
+
 def im_hsv_augmentation(image, Hscale=10, Sscale=60, Vscale=60):
     """ get HSV-image with noise"""
 
     imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    
+
     # introduce noise
     h = random.random() * 2 - 1
     s = random.random() * 2 - 1
@@ -215,7 +255,7 @@ def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_res
     start_x = (out_size - imgw) / 2
     start_y = (out_size - imgh) / 2
     # print start_x, start_y
-    outimg = np.zeros((3, out_size, out_size), dtype=np.float32)
-    outimg[:, start_y:start_y + imgh, start_x:start_x + imgw] = img
+    out_img = np.zeros((3, out_size, out_size), dtype=np.float32)
+    out_img[:, start_y:start_y + imgh, start_x:start_x + imgw] = img
 
-    return outimg
+    return out_img

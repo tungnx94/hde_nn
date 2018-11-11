@@ -1,5 +1,5 @@
-import torch
 import sys
+import torch
 import random
 
 import torch.nn as nn
@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from workflow import WorkFlow
 from MobileReg import MobileReg
-from utils import loadPretrain2, loadPretrain, seq_show
+from utils import loadPretrain2, loadPretrain, seq_show, unlabel_loss
 
 from labelData import LabelDataset
 from unlabelData import UnlabelDataset
@@ -23,14 +23,13 @@ from dukeSeqLabelData import DukeSeqLabelDataset
 
 sys.path.append('../WorkFlow')
 
-
 exp_prefix = 'vis_1_3_'  # ?
 Batch = 128
 UnlabelBatch = 24  # 32
 learning_rate = 0.0005  # learning rate
 Trainstep = 20000  # number of train() calls
 Lamb = 0.1  # ?
-Thresh = 0.005  # threshold ?
+Thresh = 0.005  # unlabel_loss threshold
 TestBatch = 1
 
 Snapshot = 5000  # do a snapshot every Snapshot steps (save period)
@@ -224,11 +223,11 @@ class MyWF(WorkFlow.WorkFlow):
 
     def unlabel_loss(self, output):
         """
-        :param output: network unlabel output
+        :param output: network unlabel output (tensor)
         :return: unlabel loss
         """
-        loss_unlabel = torch.Tensor([0]).to(self.device)  # empty tensor
-        unlabel_batch = output.size()[0]
+        loss_unlabel = torch.Tensor([0]).to(self.device) # empty tensor
+        unlabel_batch = output.shape[0]
 
         for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
             # randomly pick two other samples
@@ -239,7 +238,6 @@ class MyWF(WorkFlow.WorkFlow):
             # target2 = Variable(x_encode[ind3,:].data, requires_grad=False).cuda()
             # diff_big = criterion(x_encode[ind1,:], target1)
             # diff_small = criterion(x_encode[ind1,:], target2)
-            # import ipdb; ipdb.set_trace() ?
 
             diff_big = torch.sum((output[ind1] - output[ind2]) ** 2) / 2.0
             diff_small = torch.sum((output[ind1] - output[ind3]) ** 2) / 2.0
@@ -256,8 +254,9 @@ class MyWF(WorkFlow.WorkFlow):
         inputValue = sample.squeeze().to(self.device)
         output = self.model(inputValue)
 
-        loss = self.unlabel_loss(output)
-        return loss
+        loss = unlabel_loss(output.numpy(), Thresh)
+
+        return torch.tensor([loss])
 
     def forward_label(self, sample):
         """
@@ -299,15 +298,15 @@ class MyWF(WorkFlow.WorkFlow):
         """ """
         inputImgs = val_sample.squeeze().to(self.device)
         output = self.model(inputImgs)
-        loss_unlabel = self.unlabel_loss(output)
+
+        loss_unlabel = unlabel_loss(output.numpy(), Thresh)
 
         # import ipdb;ipdb.set_trace()
         if visualize:
             self.visualize_output(inputImgs, output)
+            print loss_unlabel
 
-            print loss_unlabel.item()
-
-        return loss_unlabel
+        return torch.tensor([loss_unlabel])
 
     def test_label_unlabel(self, val_sample, visualize):
         """ """
@@ -317,7 +316,9 @@ class MyWF(WorkFlow.WorkFlow):
         output = self.model(inputImgs)
         loss_label = self.criterion(output, labels)
 
-        loss_unlabel = self.unlabel_loss(output)
+        loss_unlabel = unlabel_loss(output.numpy(), Thresh)
+        loss_unlabel = torch.tensor([loss_unlabel])
+
         loss = loss_label + Lamb * loss_unlabel
 
         # import ipdb;ipdb.set_trace()

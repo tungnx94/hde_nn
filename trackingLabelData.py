@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import config as cnf
 
+from utils import label_from_angle
 from generalData import SingleDataset
 
 default_data_file = '/datadrive/data/aayush/combined_data2/train/annotations/person_annotations.csv'
@@ -56,12 +57,8 @@ class TrackingLabelDataset(SingleDataset):
             print 'error reading image:', img_name
             return
 
-        # get label from angle
-        angle = point_info['direction_angle']
-        angle_cos = np.cos(float(angle))
-        angle_sin = np.sin(float(angle))
-
-        label = np.array([angle_sin, angle_cos], dtype=np.float32)
+        # get label
+        label = label_from_angle(point_info['direction_angle'])
 
         flipping = self.get_flipping()
         out_img, label = self.get_img_and_label(img, label, flipping)

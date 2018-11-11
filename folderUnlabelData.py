@@ -8,23 +8,18 @@ import random
 import numpy as np
 from os.path import join
 
-from generalData import SingleDataset
+from generalData import SingleDataset, SequenceDataset
 
 
-class FolderUnlabelDataset(SingleDataset):
+class FolderUnlabelDataset(SequenceDataset):
 
     def __init__(self, img_dir='/datadrive/person/dirimg/', data_file='',
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
                  batch=32, extend=False, include_all=False):
-
-        super(FolderUnlabelDataset, self)__init__(img_size, data_aug, mean, 0, std)
-
-        self.batch = batch
-        self.img_seqs = []  # image sequence list
-        self.episodes = []  # episode numbers
-
         # load from saved pickle file
         if data_file != '':
+            super(SequenceDataset, self)__init__(img_size, data_aug, 0, mean, std) # grandparent
+
             with open(data_file, 'rb') as f:
                 data = pickle.load(f)
             self.N = data['N']
@@ -32,17 +27,7 @@ class FolderUnlabelDataset(SingleDataset):
             self.img_seqs = data['img_seqs']
             return
 
-        self.load_image_sequences()
-
-        # calculate episode length accumulative
-        total_seq_num = 0
-        for seq in self.img_seqs:
-            total_seq_num += len(seq) - batch + 1
-            self.episodes.append(total_seq_num)
- 
-        self.N = total_seq_num
-
-        # import ipdb; ipdb.set_trace()
+        super(FolderUnlabelDataset, self)__init__(img_size, data_aug, 0, mean, std) # parent
 
         # Save loaded data for future use
         if data_file == '':
@@ -50,9 +35,7 @@ class FolderUnlabelDataset(SingleDataset):
                 pickle.dump({'N': self.N, 'episodeNum': self.episodes,
                              'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
 
-        # debug
-        print 'Read #sequences: ', len(self.img_seqs)
-        print np.sum(np.array([len(img_list) for img_list in self.img_seqs]))
+        self.read_debug()
 
     def load_image_sequences(self):
         # img_folders = ['4','7','11','17','23','30','32','33','37','38','49','50','52']
@@ -110,12 +93,7 @@ class FolderUnlabelDataset(SingleDataset):
                 sequence = []
 
     def __getitem__(self, idx):
-        ep_idx = 0  # calculate the episode index
-        while idx >= self.episodes[ep_idx]:
-            ep_idx += 1
-
-        if ep_idx > 0:
-            idx -= self.episodes[ep_idx - 1]
+        ep_idx, idx = self.get_indexes(idx)
 
         # random flip all images in batch
         flipping = self.get_flipping()

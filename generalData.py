@@ -28,11 +28,12 @@ class GeneralDataset(Dataset):
 class SingleDataset(Dataset):
 
 	def __init__(self, img_size, data_aug, maxscale, mean, std):
+        self.img_size = img_size
 		self.aug = data_aug
+        self.maxscale = maxscale
+
         self.mean = mean
         self.std = std
-        self.maxscale = maxscale
-        self.img_size = img_size
 
         self.N = 0
 
@@ -60,3 +61,37 @@ class SingleDataset(Dataset):
         	out_size=self.img_size, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
 
     	return out_img, label
+
+class SequenceDataset(SingleDataset)
+
+     def __init__(self, img_size, data_aug, maxscale, mean, std, batch):
+
+        super(SingleDataset, self)__init__(img_size, data_aug, 0, mean, std)
+        self.batch = batch
+        self.img_seqs = []
+        self.episodes = []
+
+        self.load_image_sequences()
+
+        # total length
+        self.N = 0
+        for sequ in self.img_seqs:
+            self.N += len(sequ) - batch + 1
+            self.episodes.append(self.N)
+
+    def load_image_sequences(self):
+        pass
+
+    def read_debug(self):
+        print 'Read #sequences: ', len(self.img_seqs)
+        print 'Read #images: ', sum([len(sequence) for sequence in self.img_seqs])
+
+    def get_indexes(self, idx):
+        ep_idx = 0  # calculate the episode index
+        while idx >= self.episodes[ep_idx]:
+            ep_idx += 1
+
+        if ep_idx > 0:
+            idx -= self.episodes[ep_idx - 1]
+
+        return ep_idx, idx
