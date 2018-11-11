@@ -1,42 +1,35 @@
 # for dukeMCMT dataset
 # return a sequence of data with label
 
+import os
 import cv2
 import numpy as np
 
-from os.path import isfile, join, isdir, split
-from os import listdir
-import xml.etree.ElementTree
-from torch.utils.data import Dataset, DataLoader
 from utils import im_scale_norm_pad, img_denormalize, seq_show, im_hsv_augmentation, im_crop
 import random
-import matplotlib.pyplot as plt
-
-import random
 
 
-class DukeSeqLabelDataset(Dataset):
+from generalData import SingleDataset
 
-    def __init__(self, labelfile='/datadrive/person/DukeMTMC/heading_gt.txt',
-                 imgsize=192, batch=32,
-                 data_aug=False,
-                 mean=[0, 0, 0], std=[1, 1, 1]):
 
-        self.imgsize = imgsize
-        self.imgnamelist = []
+class DukeSeqLabelDataset(SingleDataset):
+
+    def __init__(self, label_file='/datadrive/person/DukeMTMC/heading_gt.txt',
+                 img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], batch=32):
+
+        super(DukeSeqLabelDataset, self)__init__(img_size, data_aug, mean, 0, std)
+
         self.batch = batch
-        self.aug = data_aug
-        self.mean = mean
-        self.std = std
-        self.episodeNum = []
+        self.img_seqs = []
+        self.episodes = []
 
         frame_iter = 6
 
         sequencelist = []
-        imgdir = split(labelfile)[0]
-        # imgdir = join(imgdir,'heading') # a subdirectory containing the
+        img_dir = os.path.split(label_file)[0] # correct 
+        
         # images
-        with open(labelfile, 'r') as f:
+        with open(label_file, 'r') as f:
             lines = f.readlines()
 
         lastind = -1
@@ -50,17 +43,17 @@ class DukeSeqLabelDataset(Dataset):
                 print 'filename parse error:', img_name, frameid
                 continue
 
-            filepathname = join(imgdir, img_name)
+            file_path = os.path.join(img_dir, img_name)
             camnum = img_name.strip().split('_')[0]
 
             # import ipdb; ipdb.set_trace()
             if (lastind < 0 or frameid == lastind + frame_iter) and (camnum == lastcam or lastcam == -1):
-                sequencelist.append((filepathname, angle))
+                sequencelist.append((file_path, angle))
                 lastind = frameid
                 lastcam = camnum
             else:  # the index is not continuous
                 if len(sequencelist) >= batch:
-                    self.imgnamelist.append(sequencelist)
+                    self.img_seqs.append(sequencelist)
                     print '** sequence: ', len(sequencelist)
                     sequencelist = []
                 else:
@@ -68,38 +61,35 @@ class DukeSeqLabelDataset(Dataset):
                 lastind = -1
                 lastcam = -1
 
-        sequencenum = len(self.imgnamelist)
-        print 'Read', sequencenum, 'sequences...'
-        print 'Including images ', np.sum(np.array([len(imglist) for imglist in self.imgnamelist]))
-
+        # total length
         total_seq_num = 0
-        for sequ in self.imgnamelist:
+        for sequ in self.img_seqs:
             total_seq_num += len(sequ) - batch + 1
-            self.episodeNum.append(total_seq_num)
+            self.episodes.append(total_seq_num)
         self.N = total_seq_num
 
-    def __len__(self):
-        return self.N
+        # debug
+        print 'Read #sequences: ', len(self.img_seqs)
+        print 'Read #images: ', sum([len(sequence) for sequence in self.img_seqs])
 
     def __getitem__(self, idx):
         epiInd = 0  # calculate the epiInd
-        while idx >= self.episodeNum[epiInd]:
-            # print self.episodeNum[epiInd],
+        while idx >= self.episodes[epiInd]:
+            # print self.episodes[epiInd],
             epiInd += 1
         if epiInd > 0:
-            idx -= self.episodeNum[epiInd - 1]
+            idx -= self.episodes[epiInd - 1]
 
         # random fliping
-        flipping = False
-        if self.aug and random.random() > 0.5:
-            flipping = True
+        flipping = self.get_flipping()
 
         # print epiInd, idx
         imgseq = []
         labelseq = []
         for k in range(self.batch):
-            img = cv2.imread(self.imgnamelist[epiInd][idx + k][0])
-            angle = self.imgnamelist[epiInd][idx + k][1]
+            img = cv2.imread(self.img_seqs[epiInd][idx + k][0])
+            angle = self.img_seqs[epiInd][idx + k][1]
+
             direction_angle_cos = np.cos(float(angle))
             direction_angle_sin = np.sin(float(angle))
             label = np.array(
@@ -110,8 +100,9 @@ class DukeSeqLabelDataset(Dataset):
                 img = im_crop(img)
                 if flipping:
                     label[1] = - label[1]
+
             outimg = im_scale_norm_pad(
-                img, outsize=self.imgsize, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
+                img, outsize=self.img_size, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
 
             imgseq.append(outimg)
             labelseq.append(label)
@@ -149,26 +140,19 @@ def unlabelloss(labelseq):
 
 def main():
     # test
+    from torch.utils.data import DataLoader
+
     np.set_printoptions(precision=4)
 
-    # unlabelset = FolderUnlabelDataset(imgdir='/datadrive/person/DukeMTMC/heading',batch = 32, data_aug=True, include_all=True,datafile='duke_unlabeldata.pkl')
+    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',batch = 32, data_aug=True, include_all=True,datafile='duke_unlabeldata.pkl')
+    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',batch = 24, data_aug=True, include_all=True)
     unlabelset = DukeSeqLabelDataset(
-        labelfile='/datadrive/person/DukeMTMC/test_heading_gt.txt', batch=24, data_aug=True)
-    # unlabelset = FolderUnlabelDataset(imgdir='/datadrive/person/DukeMTMC/heading',batch = 24, data_aug=True, include_all=True)
+        label_file='/datadrive/person/DukeMTMC/test_heading_gt.txt', batch=24, data_aug=True)
     print len(unlabelset)
-    # import ipdb; ipdb.set_trace()
-
-    # for k in range(10):
-    #     sample = unlabelset[k*1000]
-    #     imgseq, labelseq = sample['imgseq'], sample['labelseq']
-    #     print imgseq.dtype, imgseq.shape
-    #     seq_show_with_arrow(imgseq,labelseq, scale=0.8)
 
     dataloader = DataLoader(unlabelset, batch_size=1,
                             shuffle=True, num_workers=1)
-
     dataiter = iter(dataloader)
-
     while True:
 
         try:
@@ -183,6 +167,14 @@ def main():
         fakelabel = np.random.rand(24, 2)
         unlabelloss(fakelabel)
         seq_show(imgseq, dir_seq=labelseq)
+
+    # import ipdb; ipdb.set_trace()
+
+    # for k in range(10):
+    #     sample = unlabelset[k*1000]
+    #     imgseq, labelseq = sample['imgseq'], sample['labelseq']
+    #     print imgseq.dtype, imgseq.shape
+    #     seq_show_with_arrow(imgseq,labelseq, scale=0.8)
 
 if __name__ == '__main__':
     main()

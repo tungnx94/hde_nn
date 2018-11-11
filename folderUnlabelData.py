@@ -39,7 +39,7 @@ class FolderUnlabelDataset(SingleDataset):
         for seq in self.img_seqs:
             total_seq_num += len(seq) - batch + 1
             self.episodes.append(total_seq_num)
-
+ 
         self.N = total_seq_num
 
         # import ipdb; ipdb.set_trace()
@@ -72,14 +72,12 @@ class FolderUnlabelDataset(SingleDataset):
             img_list = sorted(os.listdir(folder_path))
 
             sequence = []
-            # missimg = 0
             last_idx = -1
 
             for file_name in img_list:
                 if not file_name.endswith(".jpg"):  # only process jpg
                     continue
 
-                # file_name = self.fileprefix+folder+'_'+str(imgind)+'.jpg'
                 file_path = join(folder_path, file_name)
 
                 if include_all:  # duke dataset
@@ -97,25 +95,13 @@ class FolderUnlabelDataset(SingleDataset):
                 if last_idx < 0 or file_idx == last_idx + 1: # continuous index
                     sequence.append(file_path)
                     last_idx = file_idx
-                    """
-                    if missimg > 0:
-                        print '  -- last missimg', missimg
-                        missimg = 0
-                    """
-                else:  # the index is not continuous
+                else:  # indexes not continuous
                     # save sequence if long enough
                     if len(sequence) >= batch:
-                        """
-                        missimg = 1
-                        print 'image lost:', file_name
-                        print '* sequence: ', len(sequence)
-                        """
                         self.img_seqs.append(sequence)
                         sequence = []
 
                     last_idx = -1
-                    # else:
-                    # missimg += 1
 
             # save if long enough
             if len(sequence) >= batch:
@@ -127,8 +113,6 @@ class FolderUnlabelDataset(SingleDataset):
         ep_idx = 0  # calculate the episode index
         while idx >= self.episodes[ep_idx]:
             ep_idx += 1
-
-            # print self.episodes[ep_idx],
 
         if ep_idx > 0:
             idx -= self.episodes[ep_idx - 1]
