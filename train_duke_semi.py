@@ -1,4 +1,4 @@
-import sys
+import sysT
 import torch
 import random
 
@@ -12,6 +12,9 @@ from os.path import join
 from torch.utils.data import DataLoader
 
 from workflow import WorkFlow
+from train_wf import TrainWF 
+from test_wf import TestLabelSeqWF, Test
+
 from MobileReg import MobileReg
 from utils import loadPretrain, seq_show, unlabel_loss, angle_metric
 
@@ -21,23 +24,8 @@ from folderLabelData import FolderLabelDataset
 from folderUnlabelData import FolderUnlabelDataset
 from dukeSeqLabelData import DukeSeqLabelDataset
 
+import sys
 sys.path.append('../WorkFlow')
-
-exp_prefix = 'vis_1_3_'  # ?
-Batch = 128
-UnlabelBatch = 24  # 32
-learning_rate = 0.0005  # learning rate
-Trainstep = 20000  # number of train() calls
-Lamb = 0.1  # ?
-Thresh = 0.005  # unlabel_loss threshold
-TestBatch = 1
-
-Snapshot = 5000  # do a snapshot every Snapshot steps (save period)
-TestIter = 10  # do a testing every TestIter steps
-ShowIter = 1  # print to screen
-
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
 
 # hardcode in labelData, used where ?
 train_label_file = '/datadrive/person/DukeMTMC/trainval_duke.txt'
@@ -49,320 +37,23 @@ test_label_img_folder = '/home/wenshan/headingdata/val_drone'
 test_unlabel_img_folder = '/datadrive/exp_bags/20180811_gascola'
 
 pre_mobile_model = 'pretrained_models/mobilenet_v1_0.50_224.pth'
-load_pre_mobile = False
 
 pre_model = 'models/1_2_facing_20000.pkl'
-load_pre_train = True
 
 TestType = 2  # 0: none, 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
-LogParamList = ['Batch', 'UnlabelBatch', 'learning_rate', 'Trainstep',
-                'Lamb', 'Thresh']  # these params will be log into the file
 
+def select_WF():
+    """ choose WF from test type """
+    wf = GeneralWF("./", prefix=exp_prefix).
 
-class GeneralWF(WorkFlow.WorkFlow):
-
-    def __init__(self, workingDir, prefix="", suffix="", device=None):
-        super(GeneralWF, self).__init__(workingDir, prefix, suffix)
-
-        # Record useful params in logfile
-        logstr = ''
-        for param in LogParamList:
-            logstr += param + ': ' + str(globals()[param]) + ', '
-        self.logger.info(logstr)
-
-        self.device = device
-        # select device if not specified
-        if self.device is None:
-            self.device = torch.device(
-                "cuda" if torch.cuda.is_available() else "cpu")
-
-        global TestBatch
-
-
-        # Model
-        self.model = MobileReg()
-        if load_pre_mobile:
-            self.model.load_pretrained_pth(pre_mobile_model)
-        self.model.to(self.device)
-
-        if load_pre_train:
-            loadPretrain(self.model, pre_model)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learn)
-        self.criterion = nn.MSELoss()
-
-
-        # for test
-        self.labelEpoch = 0
-        self.unlabelEpoch = 0
-        self.testEpoch = 0
-
-        self.countTrain = 0
-
-        # Data & Dataloaders
-        # 1 labeled & 1 unlabeled dataset
-        label_dataset = LabelDataset(balance=True, mean=mean, std=std)
-        self.train_loader = DataLoader(
-            label_dataset, batch_size=Batch, shuffle=True, num_workers=6)
-
-        unlabel_dataset = UnlabelDataset(
-            batch=UnlabelBatch, balance=True, mean=mean, std=std)
-        self.train_unlabel_loader = DataLoader(
-            unlabel_dataset, batch_size=1, shuffle=True, num_workers=4)
-
-        # Test data
-        if TestType == 1 or TestType == 0:  # labeled sequence
-            testdataset = DukeSeqLabelDataset(
-                labelfile=test_label_file, batch=UnlabelBatch, data_aug=True, mean=mean, std=std)
-            TestBatch = 1
-
-        elif TestType == 2:  # labeled folder
-            testdataset = FolderLabelDataset(
-                imgdir=test_label_img_folder, data_aug=False, mean=mean, std=std)
-            TestBatch = 50
-
-        elif TestType == 3:  # unlabeled sequence
-            testdataset = FolderUnlabelDataset(
-                imgdir=test_unlabel_img_folder, data_aug=False, include_all=True, mean=mean, std=std)
-            TestBatch = 1
-
-        # Test loader
-        self.test_loader = torch.utils.data.DataLoader(
-            testdataset, batch_size=TestBatch, shuffle=True, num_workers=1)
-
-        # Data iterators
-        self.train_data_iter = iter(self.train_loader)
-        self.train_unlabel_iter = iter(self.train_unlabel_loader)
-        self.test_data_iter = iter(self.test_loader)
-
-        # self.AV ?
-        # self.AVP ?
-        self.AV['loss'].avgWidth = 100  # there's a default plotter for 'loss'
-
-        # second param is the number of average data
-        self.add_accumulated_value('label_loss', 100)
-        self.add_accumulated_value('unlabel_loss', 100)
-        self.add_accumulated_value('test_loss', 10)
-        self.add_accumulated_value('test_label', 10)
-        self.add_accumulated_value('test_unlabel', 10)
-
-        self.AVP.append(WorkFlow.VisdomLinePlotter(
-            "total_loss", self.AV, ['loss', 'test_loss'], [True, True]))
-        self.AVP.append(WorkFlow.VisdomLinePlotter(
-            "label_loss", self.AV, ['label_loss', 'test_label'], [True, True]))
-        self.AVP.append(WorkFlow.VisdomLinePlotter("unlabel_loss", self.AV, [
-                        'unlabel_loss', 'test_unlabel'], [True, True]))
-
-    def initialize(self):
-        """ Initilize """
-        super(GeneralWF, self).initialize()
-        self.logger.info("Initialized.")
-
-    def finalize(self):
-        """ save model and values after training """
-        super(GeneralWF, self).finalize()
-        self.print_delimeter('finalize ...')
-        self.save_snapshot()
-
-    def save_model(self, model, name):
-        """ Save :param: model to pickle file """
-        modelname = self.prefix + name + self.suffix + '.pkl'
-        torch.save(model.state_dict(), self.modeldir + '/' + modelname)
-
-    def save_snapshot(self):
-        """ write accumulated values and save temporal model """
-        self.write_accumulated_values()
-        self.draw_accumulated_values()
-        self.save_model(self.model, saveModelName + '_' + str(self.countTrain))
-
-    def next_sample(self, data_iter, loader, epoch):
-        """ get next batch, update data_iter and epoch if needed """
-        try:
-            sample = data_iter.next()
-        except:
-            data_iter = iter(loader)
-            sample = data_iter.next()
-            epoch += 1
-
-        return sample, data_iter, epoch
-
-    def forward_unlabel(self, sample):
-        """
-        :param sample: unlabeled data
-        :return: unlabel loss
-        """
-        inputValue = sample.squeeze().to(self.device)
-        output = self.model(inputValue)
-
-        loss = unlabel_loss(output.numpy(), Thresh)
-
-        return torch.tensor([loss])
-
-    def forward_label(self, sample):
-        """
-        :param sample: labeled data
-        :return: label loss
-        """
-        inputValue = sample['img'].to(self.device)
-        targetValue = sample['label'].to(self.device)
-
-        output = self.model(inputValue)
-
-        loss = self.criterion(output, targetValue)
-        return loss
-
-    def visualize_output(self, inputs, outputs):
-        seq_show(inputs.cpu().numpy(), dir_seq=outputs.detach().cpu().numpy(),
-                 scale=0.8, mean=mean, std=std)
-
-    def test_label(self, val_sample, visualize):
-        """ """
-        inputImgs = val_sample['img'].to(self.device)
-        labels = val_sample['label'].to(self.device)
-
-        output = self.model(inputImgs)
-        loss_label = self.criterion(output, labels)
-
-        # import ipdb;ipdb.set_trace()
-        if visualize:
-            self.visualize_output(inputImgs, output)
-
-            angle_error, cls_accuracy = angle_metric(
-                output.detach().cpu().numpy(), labels.cpu().numpy())
-
-            print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label.item(), angle_error, cls_accuracy)
-
-        return loss_label
-
-    def test_unlabel(self, val_sample, visualize):
-        """ """
-        inputImgs = val_sample.squeeze().to(self.device)
-        output = self.model(inputImgs)
-
-        loss_unlabel = unlabel_loss(output.numpy(), Thresh)
-
-        # import ipdb;ipdb.set_trace()
-        if visualize:
-            self.visualize_output(inputImgs, output)
-            print loss_unlabel
-
-        return torch.tensor([loss_unlabel])
-
-    def test_label_unlabel(self, val_sample, visualize):
-        """ """
-        inputImgs = val_sample['imgseq'].squeeze().to(self.device)
-        labels = val_sample['labelseq'].squeeze().to(self.device)
-
-        output = self.model(inputImgs)
-        loss_label = self.criterion(output, labels)
-
-        loss_unlabel = unlabel_loss(output.numpy(), Thresh)
-        loss_unlabel = torch.tensor([loss_unlabel])
-
-        loss = loss_label + Lamb * loss_unlabel
-
-        # import ipdb;ipdb.set_trace()
-        if visualize:
-            self.visualize_output(inputImgs, output)
-
-            angle_error, cls_accuracy = angle_metric(
-                output.detach().cpu().numpy(), labels.cpu().numpy())
-
-            print 'loss %.4f, label-loss %.4f, unlabel-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss.item(),
-                                                                                                     loss_label.item(), loss_unlabel.item(), angle_error, cls_accuracy)
-
-        return loss, loss_label, loss_unlabel
-
-    def train(self):
-        """ train model (one batch) """
-        super(GeneralWF, self).train()
-
-        self.countTrain += 1
-        self.model.train()
-
-        # get next labeled sample
-        sample, self.train_data_iter, self.labelEpoch = self.next_sample(
-            self.train_data_iter, self.train_loader, self.labelEpoch)
-
-        # get next unlabeled sample
-        sample_unlabel, self.train_unlabel_data_iter, self.unlabelEpoch = self.next_sample(
-            self.train_unlabel_data_iter, self.train_unlabel_loader, self.unlabelEpoch)
-
-        # calculate loss
-        label_loss = self.forward_label(sample)
-        unlabel_loss = self.forward_unlabel(sample_unlabel)
-        loss = label_loss + Lamb * unlabel_loss
-
-        # backpropagate
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-
-        # update training loss history
-        self.AV['loss'].push_back(loss.item())
-        self.AV['label_loss'].push_back(label_loss.item())
-        self.AV['unlabel_loss'].push_back(unlabel_loss.item())
-
-        # record current params
-        if self.countTrain % ShowIter == 0:
-            loss_str = self.get_log_str()
-            self.logger.info("%s #%d - (%d %d) %s lr: %.6f" % (exp_prefix[:-1],
-                                                               self.countTrain, self.labelEpoch, self.unlabelEpoch, loss_str, learn))
-        # save temporary model
-        if (self.countTrain % Snapshot == 0):
-            self.save_snapshot()
-
-    def test(self, visualize=False):
-        """ test model (one batch) """
-
-        # activate test mode
-        super(GeneralWF, self).test()
-        self.model.eval()
-
-        # get next sample
-        sample, self.test_data_iter, self.testEpoch = self.next_sample(
-            self.test_data_iter, self.test_loader, self.testEpoch)
-
-        # calculate test loss
-        if TestType == 1 or TestType == 0:  # labeled sequence
-            loss, loss_label, loss_unlabel = self.test_label_unlabel(
-                sample, visualize)
-
-        elif TestType == 2:  # labeled folder
-            loss_label = self.test_label(sample, visualize)
-
-        elif TestType == 3:  # unlabeled sequence
-            loss_unlabel = self.test_unlabel(sample, visualize)
-
-        # update test loss history
-        if TestType == 0:  # why only 0 ?
-            self.AV['test_loss'].push_back(loss.item(), self.countTrain)
-            self.AV['test_label'].push_back(loss_label.item(), self.countTrain)
-            self.AV['test_unlabel'].push_back(
-                loss_unlabel.item(), self.countTrain)
-
-    def train_all():
-        # the logic is not yet consistent ?
-        for iteration in range(Trainstep):
-            if TestType > 0:    # ?
-                self.test(visualize=True)
-            else:
-                self.train()
-                if iteration % TestIter == 0:
-                    self.test()
-
-        print "Finished training"
-
-
-
+    return wf
 
 def main():
     """ Train and validate new model """
     try:
-        # Instantiate an object for GeneralWF.
-
-        # choose WF from TestType
-        if 
-        wf = GeneralWF("./", prefix=exp_prefix).
+        # Instantiate workflow.
+        if wf = select_WF(TestType)
+        
 
         wf.initialize()
         wf.run()

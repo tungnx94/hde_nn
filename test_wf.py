@@ -69,30 +69,6 @@ class TestLabelSeqWF(TestWF):  # Type 1
     def get_test_dataset()
         return DukeSeqLabelDataset(labelfile=test_label_file, batch=UnlabelBatch, data_aug=True, mean=mean, std=std)
 
-    def calculate_loss(self, val_sample):
-        """ combined loss """
-        inputImgs = val_sample['imgseq'].squeeze().to(self.device)
-        labels = val_sample['labelseq'].squeeze().to(self.device)
-
-        output = self.model(inputImgs)
-        loss_label = self.criterion(output, labels)
-
-        loss_unlabel = unlabel_loss(output.numpy(), Thresh)
-        loss_unlabel = torch.tensor([loss_unlabel])
-
-        loss = loss_label + Lamb * loss_unlabel
-
-        if self.visualize:  # display
-            self.visualize_output(inputImgs, output)
-
-            angle_error, cls_accuracy = angle_metric(
-                output.detach().cpu().numpy(), labels.cpu().numpy())
-
-            print 'loss %.4f, label-loss %.4f, unlabel-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss.item(),
-                                                                                                     loss_label.item(), loss_unlabel.item(), angle_error, cls_accuracy)
-
-        return loss, loss_label, loss_unlabel
-
 
 class TestFolderWF(TestWF):  # Type 2
 
@@ -106,13 +82,13 @@ class TestFolderWF(TestWF):  # Type 2
         labels = val_sample['label'].to(self.device)
 
         output = self.model(inputImgs)
-        loss_label = self.criterion(output, labels)
+        loss_label = self.criterion(output, labels).item()
 
         if visualize:
             self.visualize_output(inputImgs, output)
             angle_error, cls_accuracy = angle_metric(
                 output.detach().cpu().numpy(), labels.cpu().numpy())
-            print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label.item(), angle_error, cls_accuracy)
+            print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label, angle_error, cls_accuracy)
 
         return loss_label
 

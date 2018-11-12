@@ -134,9 +134,20 @@ class GeneralWF(Workflow.Workflow):
 
         loss_unlabel = unlabel_loss(output.numpy(), Thresh)
         loss_unlabel = torch.tensor([loss_unlabel])
-        loss = loss_label + Lamb * loss_unlabel
+        loss_total = loss_label + Lamb * loss_unlabel
 
-        return {"total": loss.item(), "label": loss_label.item(), "unlabel": loss_unlabel.item()}
+        loss = {"total": loss_total.item(), "label": loss_label.item(),
+                "unlabel": loss_unlabel.item()}
+
+        if self.visualize:  # display
+            self.visualize_output(inputImgs, output)
+
+            angle_error, cls_accuracy = angle_metric(
+                output.detach().cpu().numpy(), labels.cpu().numpy())
+
+            print 'loss: {}, angle diff %.4f, accuracy %.4f'.format(loss, angle_error, cls_accuracy)
+
+        return loss
 
     def test(self):
         """ test one batch """
