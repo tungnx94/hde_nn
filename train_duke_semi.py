@@ -59,10 +59,10 @@ LogParamList = ['Batch', 'UnlabelBatch', 'learning_rate', 'Trainstep',
                 'Lamb', 'Thresh']  # these params will be log into the file
 
 
-class MyWF(WorkFlow.WorkFlow):
+class GeneralWF(WorkFlow.WorkFlow):
 
     def __init__(self, workingDir, prefix="", suffix="", device=None):
-        super(MyWF, self).__init__(workingDir, prefix, suffix)
+        super(GeneralWF, self).__init__(workingDir, prefix, suffix)
 
         # Record useful params in logfile
         logstr = ''
@@ -70,19 +70,33 @@ class MyWF(WorkFlow.WorkFlow):
             logstr += param + ': ' + str(globals()[param]) + ', '
         self.logger.info(logstr)
 
-        self.labelEpoch = 0
-        self.unlabelEpoch = 0
-        self.testEpoch = 0
-
-        self.countTrain = 0
         self.device = device
-
-        # choose device automaticall if not specified
+        # select device if not specified
         if self.device is None:
             self.device = torch.device(
                 "cuda" if torch.cuda.is_available() else "cpu")
 
         global TestBatch
+
+
+        # Model
+        self.model = MobileReg()
+        if load_pre_mobile:
+            self.model.load_pretrained_pth(pre_mobile_model)
+        self.model.to(self.device)
+
+        if load_pre_train:
+            loadPretrain(self.model, pre_model)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learn)
+        self.criterion = nn.MSELoss()
+
+
+        # for test
+        self.labelEpoch = 0
+        self.unlabelEpoch = 0
+        self.testEpoch = 0
+
+        self.countTrain = 0
 
         # Data & Dataloaders
         # 1 labeled & 1 unlabeled dataset
@@ -120,17 +134,6 @@ class MyWF(WorkFlow.WorkFlow):
         self.train_unlabel_iter = iter(self.train_unlabel_loader)
         self.test_data_iter = iter(self.test_loader)
 
-        # Model
-        self.model = MobileReg()
-        if load_pre_mobile:
-            self.model.load_pretrained_pth(pre_mobile_model)
-        self.model.to(self.device)
-
-        if load_pre_train:
-            loadPretrain(self.model, pre_model)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learn)
-        self.criterion = nn.MSELoss()
-
         # self.AV ?
         # self.AVP ?
         self.AV['loss'].avgWidth = 100  # there's a default plotter for 'loss'
@@ -151,12 +154,12 @@ class MyWF(WorkFlow.WorkFlow):
 
     def initialize(self):
         """ Initilize """
-        super(MyWF, self).initialize()
+        super(GeneralWF, self).initialize()
         self.logger.info("Initialized.")
 
     def finalize(self):
         """ save model and values after training """
-        super(MyWF, self).finalize()
+        super(GeneralWF, self).finalize()
         self.print_delimeter('finalize ...')
         self.save_snapshot()
 
@@ -271,7 +274,7 @@ class MyWF(WorkFlow.WorkFlow):
 
     def train(self):
         """ train model (one batch) """
-        super(MyWF, self).train()
+        super(GeneralWF, self).train()
 
         self.countTrain += 1
         self.model.train()
@@ -312,7 +315,7 @@ class MyWF(WorkFlow.WorkFlow):
         """ test model (one batch) """
 
         # activate test mode
-        super(MyWF, self).test()
+        super(GeneralWF, self).test()
         self.model.eval()
 
         # get next sample
@@ -341,23 +344,28 @@ class MyWF(WorkFlow.WorkFlow):
         # the logic is not yet consistent ?
         for iteration in range(Trainstep):
             if TestType > 0:    # ?
-                wf.test(visualize=True)
+                self.test(visualize=True)
             else:
-                wf.train()
+                self.train()
                 if iteration % TestIter == 0:
-                    wf.test()
+                    self.test()
 
         print "Finished training"
+
+
 
 
 def main():
     """ Train and validate new model """
     try:
-        # Instantiate an object for MyWF.
-        wf = MyWF("./", prefix=exp_prefix).
+        # Instantiate an object for GeneralWF.
+
+        # choose WF from TestType
+        if 
+        wf = GeneralWF("./", prefix=exp_prefix).
 
         wf.initialize()
-        wf.train_all()
+        wf.run()
         wf.finalize()
 
     except WorkFlow.SigIntException as e:
