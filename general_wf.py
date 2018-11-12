@@ -31,6 +31,7 @@ class GeneralWF(Workflow):
             self.device = torch.device(
                 "cuda" if torch.cuda.is_available() else "cpu")
 
+        self.lamb = Lamb
         self.mean = [0.485, 0.456, 0.406]
         self.std = [0.229, 0.224, 0.225]
 
@@ -93,7 +94,7 @@ class GeneralWF(Workflow):
 
         loss_unlabel = unlabel_loss(output.numpy(), Thresh)
         loss_unlabel = torch.tensor([loss_unlabel])
-        loss_total = loss_label + Lamb * loss_unlabel
+        loss_total = loss_label + self.lamb * loss_unlabel
 
         loss = {"total": loss_total.item(), "label": loss_label.item(),
                 "unlabel": loss_unlabel.item()}

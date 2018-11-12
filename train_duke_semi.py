@@ -7,26 +7,26 @@ from workflow import WorkFlow
 from train_wf import TrainWF
 from test_wf import TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
-pre_mobile_model = 'pretrained_models/mobilenet_v1_0.50_224.pth'
-pre_model = 'models/1_2_facing_20000.pkl'
+PreMobileModel = 'pretrained_models/mobilenet_v1_0.50_224.pth'
+PreModel = 'models/1_2_facing_20000.pkl'
 
 TestType = 2  # 0: none, 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
-exp_prefix = 'vis_1_3_'
+ExpPrefix = 'vis_1_3_'
 
 
 def select_WF(TestType):
     """ choose WF from test type """
-    trainWF = TrainWF("./", prefix=exp_prefix,
-                      mobile_model=pre_mobile_model, trained_model=pre_model)
+    trainWF = TrainWF("./", prefix=ExpPrefix,
+                      mobile_model=PreMobileModel, trained_model=PreModel)
 
-    testLabelWF = TestLabelSeqWF("./", prefix=exp_prefix,
-                                 mobile_model=pre_mobile_model, trained_model=pre_model)
+    testLabelWF = TestLabelSeqWF("./", prefix=ExpPrefix,
+                                 mobile_model=PreMobileModel, trained_model=PreModel)
 
-    testFolderWF = TestFolderWF("./", prefix=exp_prefix,
-                                mobile_model=pre_mobile_model, trained_model=pre_model)
+    testFolderWF = TestFolderWF("./", prefix=ExpPrefix,
+                                mobile_model=PreMobileModel, trained_model=PreModel)
 
-    testUnlabelWF = TestUnlabelSeqWF("./", prefix=exp_prefix,
-                                     mobile_model=pre_mobile_model, trained_model=pre_model)
+    testUnlabelWF = TestUnlabelSeqWF("./", prefix=ExpPrefix,
+                                     mobile_model=PreMobileModel, trained_model=PreModel)
 
     wfs = [trainWF, testLabelWF, testFolderWF, testUnlabelWF]
 

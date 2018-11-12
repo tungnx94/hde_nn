@@ -29,10 +29,25 @@ class DataLoader(torch.utils.data.DataLoader):
 
 class GeneralDataset(Dataset):
 
-    def __init__(self):
-        self.balance_factors = []
+    def __init__(self, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
+        self.mean = mean
+        self.std = std
        	self.datasets = []
-       	self.dataset_sizes = []
+
+        if balance
+            self.factors = None:
+        else self.factors = []
+
+        self.init_datasets()
+
+        if self.factors is not None:
+            self.factors = [1] * len(self.datasets)
+
+        self.dataset_sizes = [
+            len(dataset) * factor for dataset, factor in zip(self.datasets, self.factors)]
+
+    def init_datasets(self):
+        pass
 
     def __len__(self):
         return sum(self.dataset_sizes)
@@ -66,9 +81,7 @@ class SingleDataset(Dataset):
 
 	def get_flipping(self):
 		""" random fliping with probability 0.5 """
-        if self.aug and random.random() > 0.5:
-            return True
-        return False
+        return (self.aug and random.random() > 0.5)
 
     def get_img_and_label(self, img, label, flipping):
     	""" :return pair of image after augmentation/scale and corresponding label """

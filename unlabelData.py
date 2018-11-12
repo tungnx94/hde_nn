@@ -2,30 +2,28 @@
 from generalData import GeneralDataset
 from folderUnlabelData import FolderUnlabelDataset
 
-img_dir='/datadrive/person/dirimg/'
-ucf_data_file = 'ucf_unlabeldata.pkl'
-duke_data_file = 'duke_unlabeldata.pkl'
+UcfFile = 'ucf_unlabeldata.pkl'
+DukeFile = 'duke_unlabeldata.pkl'
+
+Factors = [4, 1]
 
 class UnlabelDataset(GeneralDataset):
 
     def __init__(self, seq_length, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
-        super.(LabelDataset, self)__init__()
+        self.seg_length = seq_length
 
-        if balance:
-            self.balance_factors = [4, 1]
-        else:
-            self.balance_factors = [1, 1]
+        super.(LabelDataset, self)__init__(balance, mean, std)
 
-        # datasets
+    def init_datasets(self):
+        if self.factors is None
+            self.factors = Factors
+
         ucf = FolderUnlabelDataset(
-            seq_length=seq_length, data_aug=True, data_file=ucf_data_file, mean=mean, std=std)  # 940
+            seq_length=self.seq_length, data_aug=True, data_file=UcfFile, mean=self.mean, std=self.std)  # 940
         duke = FolderUnlabelDataset(
-            seq_length=seq_length, data_aug=True, data_file=duke_data_file, mean=mean, std=std)  # 3997
+            seq_length=self.seq_length, data_aug=True, data_file=DukeFile, mean=self.mean, std=self.std)  # 3997
 
         self.datasets = [ucf, duke]
-
-        self.dataset_sizes = [
-            len(dataset) * factor for dataset, factor in zip(self.datasets, self.balance_factors)]
 
 
 def main():
@@ -33,7 +31,7 @@ def main():
     import cv2
     import numpy as np
     from utils import seq_show, put_arrow
-    from torch.utils.data import DataLoader
+    from generalData import DataLoader
 
     np.set_printoptions(precision=4)
 

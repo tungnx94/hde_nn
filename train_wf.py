@@ -14,9 +14,8 @@ from dukeSeqLabelData import DukeSeqLabelDataset
 Batch = 128
 SeqLength = 24  # 32
 UnlabelBatch = 1
-LearningRate = 0.0005  # learning rate
+LearningRate = 0.0005  # to tune
 Trainstep = 20000  # number of train() calls
-Lamb = 0.1  # ?
 Thresh = 0.005  # unlabel_loss threshold
 
 Snapshot = 5000  # do a snapshot every Snapshot steps (save period)
@@ -25,6 +24,12 @@ ShowIter = 1  # print to screen
 
 SaveModelName = 'facing'
 TestLabelFile = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
+
+AccumulateValues = {"label_loss": 100,
+                    "unlabel_loss": 100,
+                    "test_loss": 10,
+                    "test_label": 10,
+                    "test_unlabel": 10}
 
 
 class TrainWF(GeneralWF):
@@ -37,9 +42,8 @@ class TrainWF(GeneralWF):
         self.unlabelBatch = UnlabelBatch
         self.seqLength = SeqLength
         self.lr = LearningRate
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
-        # counter
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         self.countTrain = 0
 
         # Train dataset & loader
@@ -57,11 +61,8 @@ class TrainWF(GeneralWF):
         self.AV['loss'].avgWidth = 100  # there's a default plotter for 'loss'
 
         # second param is the number of average data
-        self.add_accumulated_value('label_loss', 100)
-        self.add_accumulated_value('unlabel_loss', 100)
-        self.add_accumulated_value('test_loss', 10)
-        self.add_accumulated_value('test_label', 10)
-        self.add_accumulated_value('test_unlabel', 10)
+        for key, val in AccumulateValues:
+            self.add_accumulated_value(key, val)
 
         self.AVP.append(WorkFlow.VisdomLinePlotter(
             "total_loss", self.AV, ['loss', 'test_loss'], [True, True]))
@@ -131,7 +132,7 @@ class TrainWF(GeneralWF):
         # calculate loss
         label_loss = self.forward_label(sample)
         unlabel_loss = self.forward_unlabel(sample_unlabel)
-        loss = label_loss + Lamb * unlabel_loss
+        loss = label_loss + self.lamb * unlabel_loss
 
         # backpropagate
         self.optimizer.zero_grad()

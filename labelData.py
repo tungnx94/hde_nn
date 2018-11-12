@@ -4,33 +4,26 @@ from generalData import GeneralDataset
 from trackingLabelData import TrackingLabelDataset
 from folderLabelData import FolderLabelDataset
 
-person_ann_file = '/datadrive/data/aayush/combined_data2/train/annotations/person_annotations.csv'
-tracking_label_file = '/datadrive/person/DukeMTMC/trainval_duke.txt'
-heading_label_folder = '/home/wenshan/headingdata/label'
+PersonFiles = '/datadrive/data/aayush/combined_data2/train/annotations/person_annotations.csv'
+DukeLabelFile = '/datadrive/person/DukeMTMC/trainval_duke.txt'
+HandLabelFolder = '/home/wenshan/headingdata/label'
 
+Factors = [2, 1, 20]
 
 class LabelDataset(GeneralDataset):
 
-    def __init__(self, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
-        super.(LabelDataset, self)__init__()
+    def init_datasets(self):
+        if self.factors is None:
+            self.factors = Factors
 
-        if balance:
-            self.balance_factors = [2, 1, 20]
-        else:
-            self.balance_factors = [1, 1, 1]
-
-        # datasets
         virat = TrackingLabelDataset(
-            data_file=person_ann_file, data_aug=True, mean=mean, std=std)  # 69680
+            data_file=PersonFiles, data_aug=True, mean=self.mean, std=self.std)  # 69680
         duke = TrackingLabelDataset(
-            data_file=tracking_label_file, data_aug=True, mean=mean, std=std)  # 225426
+            data_file=DukeLabelFile, data_aug=True, mean=self.mean, std=self.std)  # 225426
         handlabel = FolderLabelDataset(
-            img_dir=heading_label_folder, data_aug=True, mean=mean, std=std)  # 1201
+            img_dir=HandLabelFolder, data_aug=True, mean=self.mean, std=self.std)  # 1201
 
         self.datasets = [virat, duke, handlabel]
-
-        self.dataset_sizes = [
-            len(dataset) * factor for dataset, factor in zip(self.datasets, self.balance_factors)]
 
 
 def main():
