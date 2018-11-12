@@ -106,7 +106,7 @@ class FolderUnlabelDataset(SequenceDataset):
 
 def main():
     # test
-    from torch.utils.data import DataLoader
+    from generalData import DataLoader
     from utils import seq_show
 
     np.set_printoptions(precision=4)
@@ -117,17 +117,8 @@ def main():
     unlabelset = FolderUnlabelDataset(
         img_dir=img_dir, seq_length=24, data_aug=True, include_all=True)
 
-    dataloader = DataLoader(unlabelset, batch_size=1,
-                            shuffle=True, num_workers=1)
-    data_iter = iter(dataloader)
-
-    while True:
-        try:
-            sample = data_iter.next()
-        except:
-            data_iter = iter(dataloader)
-            sample = data_iter.next()
-
+    dataloader = DataLoader(unlabelset)
+    for sample in dataloader:
         seq_show(sample.squeeze().numpy(), scale=0.8)
 
     """

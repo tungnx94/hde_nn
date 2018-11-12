@@ -1,7 +1,31 @@
 import random
+import torch
 
 from torch.utils.data import Dataset
 from utils import im_scale_norm_pad, im_crop, im_hsv_augmentation
+
+
+class DataLoader(torch.utils.data.DataLoader):
+
+    def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1):
+
+        super(DataLoader, self).__init__(self, batch_size=batch_size,
+              shuffle=shuffle, num_workers=num_workers)
+
+        self.epoch = 0
+        self.data_iter = iter(self)
+
+    def next_sample(self):
+        """ get next batch, update data_iter and epoch if needed """
+        try:
+            sample = self.data_iter.next()
+        except:
+            epoch += 1
+            self.data_iter = iter(self)
+            sample = self.data_iter.next()
+
+        return sample
+
 
 class GeneralDataset(Dataset):
 

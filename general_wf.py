@@ -7,17 +7,22 @@ import numpy as np
 
 import config as cnf
 
-from torch.utils.data import DataLoader
+from Workflow import Workflow
+from generalData import DataLoader
 from MobileReg import MobileReg
+
 from utils import loadPretrain, seq_show, unlabel_loss, angle_metric
 
-Lamb = 0.1 
-LogParamList = ['Batch', 'UnlabelBatch', 'learning_rate', 'Trainstep',
+Lamb = 0.1
+TestBatch = 1
+LogParamList = ['Batch', 'UnlabelBatch', 'LearningRate', 'Trainstep',
                 'Lamb', 'Thresh']  # these params will be log into the file
 
-class GeneralWF(Workflow.Workflow):
 
-    def __init__(self, workingDir, prefix="", suffix="", device=None, mobile_model=None, trained_model=None):
+class GeneralWF(Workflow):
+
+    def __init__(self, workingDir, prefix="", suffix="",
+                 device=None, mobile_model=None, trained_model=None):
         super(General, self).__init__(workingDir, prefix, suffix)
 
         self.device = device
@@ -29,8 +34,7 @@ class GeneralWF(Workflow.Workflow):
         self.mean = [0.485, 0.456, 0.406]
         self.std = [0.229, 0.224, 0.225]
 
-        self.testBatch = 1
-        self.testEpoch = 0
+        self.testBatch = TestBatch
         self.visualize = True
 
         # Model
@@ -45,10 +49,8 @@ class GeneralWF(Workflow.Workflow):
 
         # Test dataset & loader
         self.test_dataset = self.get_test_dataset()
-        self.test_loader = torch.utils.data.DataLoader(
-            self.test_dataset, batch_size=self.testBatch, shuffle=True, num_workers=1)
-
-        self.test_data_iter = iter(self.test_loader)
+        self.test_loader = DataLoader(
+            self.test_dataset, batch_size=self.testBatch)
 
         self.criterion = nn.MSELoss()  # loss function
 
@@ -112,13 +114,11 @@ class GeneralWF(Workflow.Workflow):
         super(GeneralWF, self).test()
         self.model.eval()
 
-        # get next sample
-        sample, self.test_data_iter, self.testEpoch = self.next_sample(
-            self.test_data_iter, self.test_loader, self.testEpoch)
-
-        # test loss
+        # calculate next sample loss
+        sample = self.test_loader.next_sample()
         loss = self.calculate_loss(sample)
+        
         return loss
 
-    def run():
+    def run(self):
         pass

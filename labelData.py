@@ -38,13 +38,12 @@ def main():
     import cv2
     import numpy as np
     from utils import seq_show
-    from torch.utils.data import DataLoader
+    from generalData import DataLoader
 
     np.set_printoptions(precision=4)
 
     labeldataset = LabelDataset(balance=True)
-    dataloader = DataLoader(labeldataset, batch_size=16,
-                            shuffle=True, num_workers=1)
+    dataloader = DataLoader(labeldataset, batch_size=16)
 
     # import ipdb;ipdb.set_trace()
     print len(labeldataset)

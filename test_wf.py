@@ -6,7 +6,7 @@ from folderLabelData import FolderLabelDataset
 from folderUnlabelData import FolderUnlabelDataset
 from dukeSeqLabelData import DukeSeqLabelDataset
 
-UnlabelBatch = 24  # 32
+LabelSeqLength = 24  # 32
 TestStep = 10000  # number of test() calls
 
 test_label_file = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
@@ -15,7 +15,7 @@ test_unlabel_img_folder = '/datadrive/exp_bags/20180811_gascola'
 
 class TestWF(GeneralWF):
 
-    def run():
+    def run(self):
         for iteration in range(TestStep):
             self.test()
         print "Finished testing"
@@ -23,14 +23,14 @@ class TestWF(GeneralWF):
 
 class TestLabelSeqWF(TestWF):  # Type 1
 
-    def get_test_dataset()
-        return DukeSeqLabelDataset(labelfile=test_label_file, batch=UnlabelBatch, data_aug=True,
+    def get_test_dataset(self)
+        return DukeSeqLabelDataset(labelfile=test_label_file, seg_length=LabelSeqLength, data_aug=True,
                                    mean=self.mean, std=self.std)
 
 
 class TestFolderWF(TestWF):  # Type 2
 
-    def get_test_dataset():
+    def get_test_dataset(self):
         self.testBatch = 50
         return FolderLabelDataset(img_dir=test_label_img_folder, data_aug=False,
                                   mean=self.mean, std=self.std)
@@ -54,7 +54,7 @@ class TestFolderWF(TestWF):  # Type 2
 
 class TestUnlabelSeqWF(TestWF):  # Type 3
 
-    def get_test_dataset():
+    def get_test_dataset(self):
         return FolderUnlabelDataset(img_dir=test_unlabel_img_folder, data_aug=False, include_all=True,
                                     mean=self.mean, std=self.std)
 
@@ -66,7 +66,7 @@ class TestUnlabelSeqWF(TestWF):  # Type 3
         loss_unlabel = unlabel_loss(output.numpy(), Thresh)
 
         # import ipdb;ipdb.set_trace()
-        if visualize:
+        if self.visualize:
             self.visualize_output(inputImgs, output)
             print loss_unlabel
 

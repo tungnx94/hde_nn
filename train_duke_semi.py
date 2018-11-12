@@ -7,14 +7,6 @@ from workflow import WorkFlow
 from train_wf import TrainWF
 from test_wf import TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
-train_label_file = '/datadrive/person/DukeMTMC/trainval_duke.txt'
-test_label_file = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
-unlabel_file = 'duke_unlabeldata.pkl'
-saveModelName = 'facing'
-
-test_label_img_folder = '/home/wenshan/headingdata/val_drone'
-test_unlabel_img_folder = '/datadrive/exp_bags/20180811_gascola'
-
 pre_mobile_model = 'pretrained_models/mobilenet_v1_0.50_224.pth'
 pre_model = 'models/1_2_facing_20000.pkl'
 

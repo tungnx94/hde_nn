@@ -70,7 +70,7 @@ def main():
     # test
     import cv2
     from utils import seq_show, put_arrow
-    from torch.utils.data import DataLoader
+    from generalData import DataLoader
 
     np.set_printoptions(precision=4)
 
@@ -79,8 +79,7 @@ def main():
     trackingLabelDataset = TrackingLabelDataset(
         data_file=default_data_file, data_aug=True)
 
-    dataloader = DataLoader(trackingLabelDataset,
-                            batch_size=16, shuffle=True, num_workers=1)
+    dataloader = DataLoader(trackingLabelDataset, batch_size=16)
 
     # import ipdb;ipdb.set_trace()
     for sample in dataloader:

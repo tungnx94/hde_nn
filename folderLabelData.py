@@ -54,7 +54,7 @@ class FolderLabelDataset(SingleDataset):
 def main():
     # test
     import cv2
-    from torch.utils.data import DataLoader
+    from generalData import DataLoader
     from utils import seq_show, put_arrow
 
     np.set_printoptions(precision=4)

@@ -78,7 +78,7 @@ class DukeSeqLabelDataset(SequenceDataset):
 
 def main():
     # test
-    from torch.utils.data import DataLoader
+    from generalData import DataLoader
     from utils import seq_show
     np.set_printoptions(precision=4)
 
@@ -89,17 +89,8 @@ def main():
         label_file=label_file, seq_length=24, data_aug=True)
     print len(unlabelset)
 
-    dataloader = DataLoader(unlabelset, batch_size=1,
-                            shuffle=True, num_workers=1)
-    data_iter = iter(dataloader)
-
-    while True:
-        try:
-            sample = data_iter.next()
-        except:
-            data_iter = iter(dataloader)
-            sample = data_iter.next()
-
+    dataloader = DataLoader(unlabelset)
+    for sample in dataloader:        
         imgseq, labelseq = sample['imgseq'].squeeze().numpy(), sample[
             'labelseq'].squeeze().numpy()
         print "unlabel loss: ", unlabel_loss(labelseq, 0.005)
