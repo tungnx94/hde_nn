@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from workflow import WorkFlow
 from MobileReg import MobileReg
-from utils import loadPretrain2, loadPretrain, seq_show, unlabel_loss
+from utils import loadPretrain, seq_show, unlabel_loss, angle_metric
 
 from labelData import LabelDataset
 from unlabelData import UnlabelDataset
@@ -55,14 +55,13 @@ pre_model = 'models/1_2_facing_20000.pkl'
 load_pre_train = True
 
 TestType = 2  # 0: none, 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
-
 LogParamList = ['Batch', 'UnlabelBatch', 'learning_rate', 'Trainstep',
                 'Lamb', 'Thresh']  # these params will be log into the file
 
 
 class MyWF(WorkFlow.WorkFlow):
 
-    def __init__(self, workingDir, prefix="", suffix=""):
+    def __init__(self, workingDir, prefix="", suffix="", device=None):
         super(MyWF, self).__init__(workingDir, prefix, suffix)
 
         # Record useful params in logfile
@@ -76,7 +75,13 @@ class MyWF(WorkFlow.WorkFlow):
         self.testEpoch = 0
 
         self.countTrain = 0
-        self.device = 'cuda'
+        self.device = device
+
+        # choose device automaticall if not specified
+        if self.device is None:
+            self.device = torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu")
+
         global TestBatch
 
         # Data & Dataloaders
@@ -119,6 +124,7 @@ class MyWF(WorkFlow.WorkFlow):
         self.model = MobileReg()
         if load_pre_mobile:
             self.model.load_pretrained_pth(pre_mobile_model)
+        self.model.to(self.device)
 
         if load_pre_train:
             loadPretrain(self.model, pre_model)
@@ -143,13 +149,10 @@ class MyWF(WorkFlow.WorkFlow):
         self.AVP.append(WorkFlow.VisdomLinePlotter("unlabel_loss", self.AV, [
                         'unlabel_loss', 'test_unlabel'], [True, True]))
 
-    def initialize(self, device):
-        """ Initilize WF with device """
+    def initialize(self):
+        """ Initilize """
         super(MyWF, self).initialize()
-
         self.logger.info("Initialized.")
-        self.device = device
-        self.model.to(device)
 
     def finalize(self):
         """ save model and values after training """
@@ -178,73 +181,6 @@ class MyWF(WorkFlow.WorkFlow):
             epoch += 1
 
         return sample, data_iter, epoch
-
-    def angle_diff(self, outputs, labels):
-        """ compute angular difference """
-
-        # calculate angle from coordiate (x, y)
-        output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
-        label_angle = np.arctan2(labels[:, 0], labels[:, 1])
-
-        diff_angle = output_angle - label_angle
-
-        # map difference to (-pi, pi)
-        mask = diff_angle < -pi
-        diff_angle[mask] = diff_angle[mask] + 2 * pi
-        mask = diff_angle > pi
-        diff_angle[mask] = diff_angle[mask] - 2 * pi
-
-        # debug
-        print output_angle
-        print label_angle
-        print diff_angle
-
-        return diff_angle
-
-    def angle_loss(self, outputs, labels):
-        """ compute mean angular difference between outputs & labels"""
-        diff_angle = self.angle_diff(outputs, labels)
-        return np.mean(np.abs(diff_angle))
-
-    def accuracy_cls(self, outputs, labels):
-        """ 
-        compute accuracy 
-        :param outputs, labels: numpy array
-        """
-        diff_angle = self.angle_diff(outputs, labels)
-        acc_angle = diff_angle < 0.3927  # 22.5 * pi / 180 = pi/8
-
-        acc = float(np.sum(acc_angle)) / labels.shape[0]
-        return acc
-
-    def angle_metric(self, outputs, labels):
-        """ return angle loss and accuracy"""
-        return self.angle_loss(outputs, labels), self.angle_cls(outputs, labels)
-
-    def unlabel_loss(self, output):
-        """
-        :param output: network unlabel output (tensor)
-        :return: unlabel loss
-        """
-        loss_unlabel = torch.Tensor([0]).to(self.device) # empty tensor
-        unlabel_batch = output.shape[0]
-
-        for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
-            # randomly pick two other samples
-            ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
-            ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
-
-            # target1 = Variable(x_encode[ind2,:].data, requires_grad=False).cuda()
-            # target2 = Variable(x_encode[ind3,:].data, requires_grad=False).cuda()
-            # diff_big = criterion(x_encode[ind1,:], target1)
-            # diff_small = criterion(x_encode[ind1,:], target2)
-
-            diff_big = torch.sum((output[ind1] - output[ind2]) ** 2) / 2.0
-            diff_small = torch.sum((output[ind1] - output[ind3]) ** 2) / 2.0
-
-            loss_unlabel += diff_small - Thresh - diff_big
-
-        return loss_unlabel
 
     def forward_unlabel(self, sample):
         """
@@ -287,7 +223,7 @@ class MyWF(WorkFlow.WorkFlow):
         if visualize:
             self.visualize_output(inputImgs, output)
 
-            angle_error, cls_accuracy = self.angle_metric(
+            angle_error, cls_accuracy = angle_metric(
                 output.detach().cpu().numpy(), labels.cpu().numpy())
 
             print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label.item(), angle_error, cls_accuracy)
@@ -325,7 +261,7 @@ class MyWF(WorkFlow.WorkFlow):
         if visualize:
             self.visualize_output(inputImgs, output)
 
-            angle_error, cls_accuracy = self.angle_metric(
+            angle_error, cls_accuracy = angle_metric(
                 output.detach().cpu().numpy(), labels.cpu().numpy())
 
             print 'loss %.4f, label-loss %.4f, unlabel-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss.item(),
@@ -375,7 +311,7 @@ class MyWF(WorkFlow.WorkFlow):
     def test(self, visualize=False):
         """ test model (one batch) """
 
-        # put into test mode
+        # activate test mode
         super(MyWF, self).test()
         self.model.eval()
 
@@ -403,29 +339,25 @@ class MyWF(WorkFlow.WorkFlow):
 
     def train_all():
         # the logic is not yet consistent ?
-
         for iteration in range(Trainstep):
-            wf.train()
-
             if TestType > 0:    # ?
                 wf.test(visualize=True)
-            elif iteration % TestIter == 0:
-                wf.test()
+            else:
+                wf.train()
+                if iteration % TestIter == 0:
+                    wf.test()
+
+        print "Finished training"
 
 
 def main():
     """ Train and validate new model """
-    use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda" if use_cuda else "cpu")
-
-    # train and validate
     try:
         # Instantiate an object for MyWF.
         wf = MyWF("./", prefix=exp_prefix).
-        wf.initialize(device)
 
+        wf.initialize()
         wf.train_all()
-
         wf.finalize()
 
     except WorkFlow.SigIntException as e:

@@ -1,27 +1,33 @@
-import cv2
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
+
 from torch.autograd import Variable
 from mobilenet import mobilenet_v1_050
 
 
 class MobileReg(nn.Module):
 
-    def __init__(self, hidnum=256, regnum=2):  input size should be 112
+    def __init__(self, hidnum=256, regnum=2):  
+        # input size should be 112
+
         super(MobileReg, self).__init__()
-        self.feature = mobilenet_v1_050()
+
+        self.feature = mobilenet_v1(0.50)
         self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  conv to 1 by 1
         self.reg = nn.Linear(hidnum, regnum)
+        
         self._initialize_weights()
 
     def forward(self, x):
-        import ipdb;ipdb.set_trace()
+        import ipdb; ipdb.set_trace()
         x = self.feature(x)
         # print x.size()
+
         x = F.relu(self.conv7(x), inplace=True)
         # print x.size()
+
         x = self.reg(x.view(x.size()[0], -1))
 
         return x
@@ -45,7 +51,8 @@ class MobileReg(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-    def load_pretrained_pth(self, fname):  load mobilenet-from-tf - amigo
+    def load_pretrained_pth(self, fname):  
+        """ load mobilenet-from-tf - amigo """
         params = torch.load(fname)
         self.feature.load_from_npz(params)
 

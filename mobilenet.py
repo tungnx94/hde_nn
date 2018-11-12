@@ -2,12 +2,11 @@
 # Remove the last two dw
 # So the output is 14x14x512, same with VGG
 
-
-from collections import namedtuple, OrderedDict
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from collections import namedtuple, OrderedDict
 
 # Conv and DepthSepConv namedtuple define layers of the MobileNet architecture
 # Conv defines 3x3 convolution layers
@@ -211,9 +210,11 @@ class MobileNet_v1(nn.Module):
 
         # self.classifier = nn.Conv2d(max(int(conv_defs[-1].depth * depth_multiplier), min_depth), num_classes, 1)
 
-        # init
+        """
+        # init do nothing ?
         for m in self.modules():
             break
+        """
 
     def forward(self, x):
         x = self.features(x)
@@ -241,31 +242,8 @@ class MobileNet_v1(nn.Module):
         self.load_state_dict(model_dict)
 
 
-def mobilenet_v1_075(pretrained=False, **kwargs):
-    """Constructs a MobileNet_v1_075 model.
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    model = MobileNet_v1(depth_multiplier=0.75, **kwargs)
-    return model
-
-
-def mobilenet_v1_050(pretrained=False, **kwargs):
-    """Constructs a MobileNet_v1_075 model.
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    model = MobileNet_v1(depth_multiplier=0.50, **kwargs)
-    return model
-
-
-def mobilenet_v1_025(pretrained=False, **kwargs):
-    """Constructs a MobileNet_v1_075 model.
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    model = MobileNet_v1(depth_multiplier=0.25, **kwargs)
-    return model
+def mobilenet_v1_depth(multiplier, pretrained=False, **kwargs)
+    return MobileNet_v1(depth_multiplier=multiplier, **kwargs)
 
 
 def _reduced_kernel_size_for_small_input(input_tensor, kernel_size):
