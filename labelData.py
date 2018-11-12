@@ -4,6 +4,7 @@ from generalData import GeneralDataset
 from trackingLabelData import TrackingLabelDataset
 from folderLabelData import FolderLabelDataset
 
+person_ann_file = '/datadrive/data/aayush/combined_data2/train/annotations/person_annotations.csv'
 tracking_label_file = '/datadrive/person/DukeMTMC/trainval_duke.txt'
 heading_label_folder = '/home/wenshan/headingdata/label'
 
@@ -20,7 +21,7 @@ class LabelDataset(GeneralDataset):
 
         # datasets
         virat = TrackingLabelDataset(
-            data_aug=True, maxscale=0.1, mean=mean, std=std)  # 69680
+            data_file=person_ann_file, data_aug=True, mean=mean, std=std)  # 69680
         duke = TrackingLabelDataset(
             data_file=tracking_label_file, data_aug=True, mean=mean, std=std)  # 225426
         handlabel = FolderLabelDataset(

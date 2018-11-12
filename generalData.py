@@ -64,10 +64,10 @@ class SingleDataset(Dataset):
 
 class SequenceDataset(SingleDataset)
 
-     def __init__(self, img_size, data_aug, maxscale, mean, std, batch):
+     def __init__(self, img_size, data_aug, maxscale, mean, std, seq_length):
 
         super(SingleDataset, self)__init__(img_size, data_aug, 0, mean, std)
-        self.batch = batch
+        self.seq_length = seq_length
         self.img_seqs = []
         self.episodes = []
 
@@ -75,8 +75,8 @@ class SequenceDataset(SingleDataset)
 
         # total length
         self.N = 0
-        for sequ in self.img_seqs:
-            self.N += len(sequ) - batch + 1
+        for sequence in self.img_seqs:
+            self.N += len(sequence) - seq_length + 1
             self.episodes.append(self.N)
 
     def load_image_sequences(self):
@@ -85,6 +85,18 @@ class SequenceDataset(SingleDataset)
     def read_debug(self):
         print 'Read #sequences: ', len(self.img_seqs)
         print 'Read #images: ', sum([len(sequence) for sequence in self.img_seqs])
+
+    def save_sequence(self, sequence):
+        """ add new sequence to list if long enough """
+        if len(sequence) >= self.seq_length:
+            print 'sequence: ', len(sequence)
+
+            self.img_seqs.append(sequence)
+            sequence = []
+        else:
+            print '!sequence too short'
+
+        return sequence
 
     def get_indexes(self, idx):
         ep_idx = 0  # calculate the episode index

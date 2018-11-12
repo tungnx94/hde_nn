@@ -1,62 +1,31 @@
-import sys
 import torch
-import random
-
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
+
 import config as cnf
 
-from math import pi
-from os.path import join
 from torch.utils.data import DataLoader
+from utils import unlabel_loss
 
 from general_wf import GeneralWF
-from MobileReg import MobileReg
-from utils import loadPretrain, seq_show, unlabel_loss, angle_metric
-
 from labelData import LabelDataset
 from unlabelData import UnlabelDataset
-from folderLabelData import FolderLabelDataset
-from folderUnlabelData import FolderUnlabelDataset
 from dukeSeqLabelData import DukeSeqLabelDataset
 
-sys.path.append('../WorkFlow')
-
-exp_prefix = 'vis_1_3_'  # ?
 Batch = 128
-UnlabelBatch = 24  # 32
+SeqLength = 24 # 32
+UnlabelBatch = 1  
 learning_rate = 0.0005  # learning rate
 Trainstep = 20000  # number of train() calls
 Lamb = 0.1  # ?
 Thresh = 0.005  # unlabel_loss threshold
-TestBatch = 1
 
 Snapshot = 5000  # do a snapshot every Snapshot steps (save period)
 TestIter = 10  # do a testing every TestIter steps
 ShowIter = 1  # print to screen
 
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
-
-# hardcode in labelData, used where ?
-train_label_file = '/datadrive/person/DukeMTMC/trainval_duke.txt'
-test_label_file = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
-unlabel_file = 'duke_unlabeldata.pkl'
 saveModelName = 'facing'
-
-test_label_img_folder = '/home/wenshan/headingdata/val_drone'
-test_unlabel_img_folder = '/datadrive/exp_bags/20180811_gascola'
-
-pre_mobile_model = 'pretrained_models/mobilenet_v1_0.50_224.pth'
-load_pre_mobile = False
-
-pre_model = 'models/1_2_facing_20000.pkl'
-load_pre_train = True
-
-LogParamList = ['Batch', 'UnlabelBatch', 'learning_rate', 'Trainstep',
-                'Lamb', 'Thresh']  # these params will be log into the file
-
+test_label_file = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
 
 class TrainWF(GeneralWF):
 
@@ -64,6 +33,10 @@ class TrainWF(GeneralWF):
         super(TrainWF, self).__init__(workingDir, prefix, suffix, device)
 
         self.visualize = False
+        self.labelBatch = Batch
+        self.unlabelBatch = UnlabelBatch
+        self.seqLength = SeqLength
+        self.optimizer = optim.Adam(self.model.parameters(), lr=Lr)
 
         # counters
         self.labelEpoch = 0
@@ -74,10 +47,10 @@ class TrainWF(GeneralWF):
         label_dataset = LabelDataset(
             balance=True, mean=self.mean, std=self.std)
         self.train_loader = DataLoader(
-            label_dataset, batch_size=Batch, shuffle=True, num_workers=6)
+            label_dataset, batch_size=self.labelBatch, shuffle=True, num_workers=6)
 
         unlabel_dataset = UnlabelDataset(
-            batch=UnlabelBatch, balance=True, mean=self.mean, std=self.std)
+            self.seqLength, balance=True, mean=self.mean, std=self.std)
         self.train_unlabel_loader = DataLoader(
             unlabel_dataset, batch_size=1, shuffle=True, num_workers=4)
 
@@ -122,7 +95,7 @@ class TrainWF(GeneralWF):
         """ write accumulated values and save temporal model """
         self.write_accumulated_values()
         self.draw_accumulated_values()
-        self.save_model(self.model, savemodel_name +
+        self.save_model(self.model, saveModelName +
                         '_' + str(self.countTrain))
 
     def forward_unlabel(self, sample):
@@ -174,6 +147,7 @@ class TrainWF(GeneralWF):
         self.optimizer.step()
 
         # update training loss history
+        # convert loss to numeric value ?
         self.AV['loss'].push_back(loss.item())
         self.AV['label_loss'].push_back(label_loss.item())
         self.AV['unlabel_loss'].push_back(unlabel_loss.item())

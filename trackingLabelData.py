@@ -13,8 +13,8 @@ default_data_file = '/datadrive/data/aayush/combined_data2/train/annotations/per
 
 class TrackingLabelDataset(SingleDataset):
 
-    def __init__(self, data_file=default_data_file,
-                 img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
+    def __init__(self, data_file, img_size=192, data_aug=False, maxscale=0.1,
+                 mean=[0, 0, 0], std=[1, 1, 1]):
         super(TrackingLabelDataset, self)__init__(img_size, data_aug, maxscale, mean, std)
 
         self.data_file = data_file
@@ -77,7 +77,7 @@ def main():
     # trackingLabelDataset = TrackingLabelDataset(data_aug = True, maxscale=0.1)
     # trackingLabelDataset = TrackingLabelDataset(data_file='/datadrive/data/aayush/combined_data2/train/annotations/car_annotations.csv')
     trackingLabelDataset = TrackingLabelDataset(
-        data_file=cnf.duke_dataset_file, data_aug=True)
+        data_file=default_data_file, data_aug=True)
 
     dataloader = DataLoader(trackingLabelDataset,
                             batch_size=16, shuffle=True, num_workers=1)

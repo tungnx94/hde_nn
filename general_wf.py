@@ -1,66 +1,23 @@
-import torch
-import random
-
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
-import config as cnf
-
-from math import pi
-from os.path import join
-from torch.utils.data import DataLoader
-
-from general_wf import GeneralWF
-from MobileReg import MobileReg
-from utils import loadPretrain, seq_show, unlabel_loss, angle_metric
-
-from labelData import LabelDataset
-from unlabelData import UnlabelDataset
-from folderLabelData import FolderLabelDataset
-from folderUnlabelData import FolderUnlabelDataset
-from dukeSeqLabelData import DukeSeqLabelDataset
-
 import sys
 sys.path.append('../WorkFlow')
 
-exp_prefix = 'vis_1_3_'  # ?
-Batch = 128
-UnlabelBatch = 24  # 32
-learning_rate = 0.0005  # learning rate
-Trainstep = 20000  # number of train() calls
-Lamb = 0.1  # ?
-Thresh = 0.005  # unlabel_loss threshold
-TestBatch = 1
+import torch
+import torch.nn as nn
+import numpy as np
 
-Snapshot = 5000  # do a snapshot every Snapshot steps (save period)
-TestIter = 10  # do a testing every TestIter steps
-ShowIter = 1  # print to screen
+import config as cnf
 
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
+from torch.utils.data import DataLoader
+from MobileReg import MobileReg
+from utils import loadPretrain, seq_show, unlabel_loss, angle_metric
 
-# hardcode in labelData, used where ?
-train_label_file = '/datadrive/person/DukeMTMC/trainval_duke.txt'
-test_label_file = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
-unlabel_file = 'duke_unlabeldata.pkl'
-saveModelName = 'facing'
-
-test_label_img_folder = '/home/wenshan/headingdata/val_drone'
-test_unlabel_img_folder = '/datadrive/exp_bags/20180811_gascola'
-
-pre_mobile_model = 'pretrained_models/mobilenet_v1_0.50_224.pth'
-load_pre_mobile = False
-
-pre_model = 'models/1_2_facing_20000.pkl'
-load_pre_train = True
-
+Lamb = 0.1 
 LogParamList = ['Batch', 'UnlabelBatch', 'learning_rate', 'Trainstep',
                 'Lamb', 'Thresh']  # these params will be log into the file
 
-
 class GeneralWF(Workflow.Workflow):
 
-    def __init__(self, workingDir, prefix="", suffix="", device=None, pre_mobile_model=None, pre_model=None):
+    def __init__(self, workingDir, prefix="", suffix="", device=None, mobile_model=None, trained_model=None):
         super(General, self).__init__(workingDir, prefix, suffix)
 
         self.device = device
@@ -78,13 +35,13 @@ class GeneralWF(Workflow.Workflow):
 
         # Model
         self.model = MobileReg()
-        if pre_mobile_model is not None
-            self.model.load_pretrained_pth(pre_mobile_model)
+        if mobile_model is not None
+            self.model.load_pretrained_pth(mobile_model)
 
         self.model.to(self.device)
 
-        if pre_model is not None  # load trained params
-            loadPretrain(self.model, pre_model)
+        if trained_model is not None  # load trained params
+            loadPretrain(self.model, trained_model)
 
         # Test dataset & loader
         self.test_dataset = self.get_test_dataset()
@@ -111,7 +68,7 @@ class GeneralWF(Workflow.Workflow):
 
     def visualize_output(self, inputs, outputs):
         seq_show(inputs.cpu().numpy(), dir_seq=outputs.detach().cpu().numpy(),
-                 scale=0.8, mean=mean, std=std)
+                 scale=0.8, mean=self.mean, std=self.std)
 
     def next_sample(self, data_iter, loader, epoch):
         """ get next batch, update data_iter and epoch if needed """

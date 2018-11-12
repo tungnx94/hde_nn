@@ -2,10 +2,13 @@
 from generalData import GeneralDataset
 from folderUnlabelData import FolderUnlabelDataset
 
+img_dir='/datadrive/person/dirimg/'
+ucf_data_file = 'ucf_unlabeldata.pkl'
+duke_data_file = 'duke_unlabeldata.pkl'
 
-class UnlabelDataset(Generalataset):
+class UnlabelDataset(GeneralDataset):
 
-    def __init__(self, batch, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
+    def __init__(self, seq_length, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
         super.(LabelDataset, self)__init__()
 
         if balance:
@@ -15,9 +18,9 @@ class UnlabelDataset(Generalataset):
 
         # datasets
         ucf = FolderUnlabelDataset(
-            batch=batch, data_aug=True, data_file='ucf_unlabeldata.pkl', mean=mean, std=std)  # 940
+            seq_length=seq_length, data_aug=True, data_file=ucf_data_file, mean=mean, std=std)  # 940
         duke = FolderUnlabelDataset(
-            batch=batch, data_aug=True, data_file='duke_unlabeldata.pkl', mean=mean, std=std)  # 3997
+            seq_length=seq_length, data_aug=True, data_file=duke_data_file, mean=mean, std=std)  # 3997
 
         self.datasets = [ucf, duke]
 
@@ -34,7 +37,7 @@ def main():
 
     np.set_printoptions(precision=4)
 
-    unlabeldataset = UnlabelDataset(batch=24, balance=True)
+    unlabeldataset = UnlabelDataset(seq_length=24, balance=True)
     dataloader = DataLoader(unlabeldataset, batch_size=1,
                             shuffle=True, num_workers=1)
 

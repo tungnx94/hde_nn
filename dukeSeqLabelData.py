@@ -11,10 +11,11 @@ from generalData import SequenceDataset
 
 class DukeSeqLabelDataset(SequenceDataset):
 
-    def __init__(self, label_file='/datadrive/person/DukeMTMC/heading_gt.txt',
-                 img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], batch=32):
+    def __init__(self, label_file,
+                 img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=32):
 
-        super(DukeSeqLabelDataset, self)__init__(img_size, data_aug, 0, mean, std)
+        super(DukeSeqLabelDataset, self)__init__(img_size, data_aug, 0, mean, std, seq_length)
+        
         self.label_file = label_file
 
         self.read_debug()
@@ -28,7 +29,7 @@ class DukeSeqLabelDataset(SequenceDataset):
 
         last_idx = -1
         last_cam = -1
-        sequence = [] #image sequence
+        sequence = []  # image sequence
         for line in lines:
             [img_name, angle] = line.strip().split(' ')
 
@@ -41,7 +42,7 @@ class DukeSeqLabelDataset(SequenceDataset):
                 continue
 
             file_path = os.path.join(img_dir, img_name)
-            cam_num = img_name.strip().split('_')[0] # what is this ?
+            cam_num = img_name.strip().split('_')[0]  # what is this ?
 
             # import ipdb; ipdb.set_trace()
             if (last_idx < 0 or frame_id == last_idx + frame_iter) and (cam_num == last_cam or last_cam == -1):
@@ -49,12 +50,7 @@ class DukeSeqLabelDataset(SequenceDataset):
                 last_idx = frame_id
                 last_cam = cam_num
             else:  # the index is not continuous
-                if len(sequence) >= batch:
-                    self.img_seqs.append(sequence)
-                    print '** sequence: ', len(sequence)
-                    sequence = []
-                else:
-                    print '!sequence too short'
+                sequence = self.save_sequence(sequence)
                 last_idx = -1
                 last_cam = -1
 
@@ -66,7 +62,7 @@ class DukeSeqLabelDataset(SequenceDataset):
 
         imgseq = []
         labelseq = []
-        for k in range(self.batch):
+        for k in range(self.seq_length):
             img = cv2.imread(self.img_seqs[ep_idx][idx + k][0])
 
             angle = self.img_seqs[ep_idx][idx + k][1]
@@ -79,16 +75,18 @@ class DukeSeqLabelDataset(SequenceDataset):
 
         return {'imgseq': np.array(imgseq), 'labelseq': np.array(labelseq)}
 
+
 def main():
     # test
     from torch.utils.data import DataLoader
     from utils import seq_show
     np.set_printoptions(precision=4)
 
-    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',batch = 32, data_aug=True, include_all=True,datafile='duke_unlabeldata.pkl')
-    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',batch = 24, data_aug=True, include_all=True)
+    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',seq_length = 32, data_aug=True, include_all=True,datafile='duke_unlabeldata.pkl')
+    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',seq_length = 24, data_aug=True, include_all=True)
+    label_file = '/datadrive/person/DukeMTMC/test_heading_gt.txt'
     unlabelset = DukeSeqLabelDataset(
-        label_file='/datadrive/person/DukeMTMC/test_heading_gt.txt', batch=24, data_aug=True)
+        label_file=label_file, seq_length=24, data_aug=True)
     print len(unlabelset)
 
     dataloader = DataLoader(unlabelset, batch_size=1,

@@ -8,7 +8,7 @@ from utils import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentati
 
 class FolderLabelDataset(SingleDataset):
 
-    def __init__(self, img_dir='/home/wenshan/headingdata/label',
+    def __init__(self, img_dir,
                  img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
 
         super(FolderLabelDataset, self)__init__(img_size, data_aug, maxscale, mean, std)
@@ -59,8 +59,9 @@ def main():
 
     np.set_printoptions(precision=4)
 
+    test_img_dir = '/datadrive/3DPES/facing_labeled'
     facingDroneLabelDataset = FolderLabelDataset(
-        img_dir='/datadrive/3DPES/facing_labeled', data_aug=True)
+        img_dir=test_img_dir, data_aug=True)
 
     dataloader = DataLoader(facingDroneLabelDataset,
                             batch_size=4, shuffle=True, num_workers=1)
