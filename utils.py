@@ -22,10 +22,8 @@ def loadPretrain(model, preTrainModel):
     model.load_state_dict(model_dict)
     return model
 
-# important ?
 
-
-def loadPretrain2(model, preTrainModel):
+def loadPretrain2(model, preTrainModel):  # important ?
     """
     load the trained parameters from a pickle file
     naming bug
@@ -110,7 +108,7 @@ def angle_loss(outputs, labels):
     return np.mean(np.abs(diff_angle))
 
 
-def accuracy_cls(self, outputs, labels):
+def accuracy_cls(outputs, labels):
     """ 
     compute accuracy 
     :param outputs, labels: numpy array
@@ -122,33 +120,29 @@ def accuracy_cls(self, outputs, labels):
     return acc
 
 
-def angle_metric(self, outputs, labels):
+def angle_metric(outputs, labels):
     """ return angle loss and accuracy"""
     return angle_loss(outputs, labels), angle_cls(outputs, labels)
 
 
-def getColor(x, y, maxx, maxy):  # how ?
+def normalized_color(x, y, t):
+    return np.clip(1 - math.sqrt(float(x * x + y * y)) / t, 0, 1)
+
+
+def getColor(x, y, max_x, max_y):  # how ?
     """ :return (r,g,b,a) """
     # normalize two axis
-    y = y * maxx / maxy
-    maxy = maxx
+    y = y * max_x / max_y
+    max_y = max_x
 
-    # get red
-    x1, y1, t = x, y, maxx
-    r = np.clip(1 - math.sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
+    R = normalized_color(x, y, max_x)
+    G = normalized_color(max_x - x, y, max_x)
+    B = normalized_color(x, max_y - y, max_x)
 
-    # get green
-    x1, y1 = maxx - x, y
-    g = np.clip(1 - math.sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
-
-    # get blue
-    x1, y1 = x, maxy - y
-    b = np.clip(1 - math.sqrt(float(x1 * x1 + y1 * y1)) / t, 0, 1)
-
-    # x1, y1 = maxx-x, maxy-y
+    # x1, y1 = max_x-x, max_y-y
     # a = math.sqrt(float(x1*x1+y1*y1))/t
-    a = 1
-    return (r, g, b, a)
+    A = 1
+    return (R, G, B, A)
 
 
 # resnet: mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]
