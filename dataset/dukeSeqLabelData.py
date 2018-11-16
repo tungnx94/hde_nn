@@ -13,10 +13,9 @@ class DukeSeqLabelDataset(SequenceDataset):
     def __init__(self, label_file,
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=32):
 
-        super(DukeSeqLabelDataset, self)__init__(img_size, data_aug, 0, mean, std, seq_length)
-        
         self.label_file = label_file
 
+        super(DukeSeqLabelDataset, self)__init__(img_size, data_aug, 0, mean, std, seq_length)
         self.read_debug()
 
     def load_image_sequences(self):
@@ -81,8 +80,6 @@ def main():
     from ..utils.image import seq_show
     np.set_printoptions(precision=4)
 
-    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',seq_length = 32, data_aug=True, include_all=True,datafile='duke_unlabeldata.pkl')
-    # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/DukeMTMC/heading',seq_length = 24, data_aug=True, include_all=True)
     label_file = '../data/person/DukeMTMC/test_heading_gt.txt'
     unlabelset = DukeSeqLabelDataset(
         label_file=label_file, seq_length=24, data_aug=True)
