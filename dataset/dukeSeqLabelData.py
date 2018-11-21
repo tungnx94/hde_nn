@@ -1,10 +1,13 @@
 # for dukeMCMT dataset
 # return a sequence of data with label
+import sys
+sys.path.insert(0, "..")
+
 import os
 import cv2
 import numpy as np
 
-from ..utils.data import unlabel_loss, label_from_angle
+from utils.data import unlabel_loss, label_from_angle
 from generalData import SequenceDataset
 
 
@@ -15,7 +18,7 @@ class DukeSeqLabelDataset(SequenceDataset):
 
         self.label_file = label_file
 
-        super(DukeSeqLabelDataset, self)__init__(img_size, data_aug, 0, mean, std, seq_length)
+        super(DukeSeqLabelDataset, self).__init__(img_size, data_aug, 0, mean, std, seq_length)
         self.read_debug()
 
     def load_image_sequences(self):
@@ -77,15 +80,17 @@ class DukeSeqLabelDataset(SequenceDataset):
 def main():
     # test
     from generalData import DataLoader
-    from ..utils.image import seq_show
+    from utils.image import seq_show
     np.set_printoptions(precision=4)
 
-    label_file = '../data/person/DukeMTMC/test_heading_gt.txt'
+    label_file = '/media/mohammad/DATA/icra2019/DukeMCMT/test_heading_gt.txt'
     unlabelset = DukeSeqLabelDataset(
         label_file=label_file, seq_length=24, data_aug=True)
     print len(unlabelset)
 
     dataloader = DataLoader(unlabelset)
+
+    count = 10
     for sample in dataloader:        
         imgseq, labelseq = sample['imgseq'].squeeze().numpy(), sample[
             'labelseq'].squeeze().numpy()
@@ -95,6 +100,10 @@ def main():
         print "fake loss: ", unlabel_loss(fakelabel, 0.005)
 
         seq_show(imgseq, dir_seq=labelseq)
+
+        count -= 1
+        if count < 0:
+            break
 
     # import ipdb; ipdb.set_trace()
     """

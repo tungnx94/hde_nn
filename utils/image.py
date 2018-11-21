@@ -76,7 +76,7 @@ def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
         img = img_denormalize(img_seq[k], mean, std)
 
         # put arrow
-        if dir_seg is not None:
+        if dir_seq is not None:
             img = put_arrow(img, dir_seq[k])
 
         imgshow.append(img)  # n x h x w x 3
