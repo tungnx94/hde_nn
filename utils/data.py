@@ -6,9 +6,9 @@ import numpy as np
 from math import pi
 
 
-BASE_FOLDER = "/media/mohammad/DATA/icra2019"
-def get_path(data):
-    return os.path.join(BASE_FOLDER, data)
+BASE = "/media/mohammad/DATA/icra2019"
+def get_path(data, base_folder=BASE):
+    return os.path.join(base_folder, data)
 
 def loadPretrain(model, preTrainModel):
     """ load the trained parameters from a pickle file """

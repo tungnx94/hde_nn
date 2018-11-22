@@ -1,14 +1,21 @@
 # Combine two labeled dataset together
+import sys
+sys.path.insert(0, "..")
+
+from utils.data import get_path
 
 from generalData import GeneralDataset
 from trackingLabelData import TrackingLabelDataset
 from folderLabelData import FolderLabelDataset
 
-PersonFiles = '../data/combined_data2/train/annotations/person_annotations.csv'
-DukeLabelFile = '../data/person/DukeMTMC/trainval_duke.txt'
-HandLabelFolder = '../data/headingdata/label'
+
+PersonFiles = 'combined_data2/train/annotations/person_annotations.csv'
+DukeLabelFile = 'DukeMCMT/trainval_duke.txt'
+HandLabelFolder = 'label'
+
 
 Factors = [2, 1, 20]
+
 
 class LabelDataset(GeneralDataset):
 
@@ -17,11 +24,11 @@ class LabelDataset(GeneralDataset):
             self.factors = Factors
 
         virat = TrackingLabelDataset(
-            data_file=PersonFiles, data_aug=True, mean=self.mean, std=self.std)  # 69680
+            data_file=get_path(PersonFiles), data_aug=True, mean=self.mean, std=self.std)  # 69680
         duke = TrackingLabelDataset(
-            data_file=DukeLabelFile, data_aug=True, mean=self.mean, std=self.std)  # 225426
+            data_file=get_path(DukeLabelFile), data_aug=True, mean=self.mean, std=self.std)  # 225426
         handlabel = FolderLabelDataset(
-            img_dir=HandLabelFolder, data_aug=True, mean=self.mean, std=self.std)  # 1201
+            img_dir=get_path(HandLabelFolder), data_aug=True, mean=self.mean, std=self.std)  # 1201
 
         self.datasets = [virat, duke, handlabel]
 

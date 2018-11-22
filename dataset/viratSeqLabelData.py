@@ -3,15 +3,15 @@
 
 # for dukeMCMT dataset
 # return a sequence of data with label
+import sys
+sys.path.insert(0, "..")
+
 import os
 import cv2
 import numpy as np
 
-from ..utils.data import unlabel_loss, label_from_angle
+from utils.data import unlabel_loss, label_from_angle
 from generalData import SequenceDataset
-
-import cv2
-import numpy as np
 
 
 class ViratSeqLabelDataset(SequenceDataset):
@@ -22,9 +22,9 @@ class ViratSeqLabelDataset(SequenceDataset):
         self.label_file = label_file
         self.subsample_rate = subsample_rate
 
-        super(ViratSeqLabelDataset, self).__init__(img_size, data_aug, 0, mean, std, seq_length)
+        super(ViratSeqLabelDataset, self).__init__(
+            img_size, data_aug, 0, mean, std, seq_length)
         self.read_debug()
-
 
     def load_image_sequences(self):
         img_dir = os.path.split(label_file)[0]
@@ -98,10 +98,12 @@ if __name__ == '__main__':
     np.set_printoptions(precision=4)
 
     label_file = 'VIRAT/train/annotations/annotations.csv'
-    unlabelset = ViratSeqLabelDataset(get_path(label_file), seq_length=24, data_aug=True)
+    unlabelset = ViratSeqLabelDataset(
+        get_path(label_file), seq_length=24, data_aug=True)
     print len(unlabelset)
 
-    import ipdb; ipdb.set_trace()
+    import ipdb
+    ipdb.set_trace()
 
     dataloader = DataLoader(unlabelset)
     for sample in dataloader:

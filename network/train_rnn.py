@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, "..")
+
 import os
 import ipdb
 import network
@@ -12,11 +15,11 @@ from logger import Logger
 from torch.autograd import Variable
 from RNNModels import MobilenetGRU
 
-from ..dataset.generalData import DataLoader
-from ..dataset.dukeSeqLabelData import DukeSeqLabelDataset
-from ..dataset.viratSeqLabelData import ViratSeqLabelDataset
+from dataset.generalData import DataLoader
+from dataset.dukeSeqLabelData import DukeSeqLabelDataset
+from dataset.viratSeqLabelData import ViratSeqLabelDataset
 
-from ..utils.image import img_denormalize, put_arrow
+from utils.image import img_denormalize, put_arrow
 
 IS_CUDA = torch.cuda.is_available()  # True
 
@@ -40,9 +43,9 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-TrainAnnotations = '../datasets/DukeMTMC/heading_gt_train.txt'
-ValAnnotations = '../datasets/DukeMTMC/heading_gt_val.txt'
-ImageFolder = '../datasets/DukeMTMC/heading_zip/' # why ?
+TrainAnnotations = 'DukeMCMT/trainval_duke.txt'
+ValAnnotations = 'DukeMCMT/test_heading_gt.txt'
+ImageFolder = 'DukeMCMT/heading/' # heading_zip ?
 LogFolder = '../outputs/tf_logs/'
 ModelFolder = '../outputs/intermediate_models/'
 
@@ -251,8 +254,8 @@ def main():
     log_loss = 20
     save_net_freq = 10000
 
-    train_annotations_filename = '../datasets/VIRAT/train_annotations.csv'
-    val_annotations_filename = '../datasets/VIRAT/val_annotations.csv'
+    train_annotations_filename = 'VIRAT/train/annotations/annotations.csv'
+    val_annotations_filename = 'VIRAT/val/annotations/annotations.csv'
 
     expt_name = 'virat_mobilenet_gru_w_logit_no_pool_sgd_lr%s' % (str(lr))
 

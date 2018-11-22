@@ -6,7 +6,7 @@ import torchvision.models as models
 
 from mobilenet import mobilenet_v1_050
 
-MobileNetPretrained = '../pretrained_models/mobilenet_v1_0.50_224.pth'
+MobileNetPretrained = 'pretrained_models/mobilenet_v1_0.50_224.pth'
 
 class GRUBaseline(nn.Module):
 

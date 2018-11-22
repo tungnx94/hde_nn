@@ -1,9 +1,17 @@
 # Combine two labeled dataset together
+import sys
+sys.path.insert(0, "..")
+
+from utils.data import get_path
 from generalData import GeneralDataset
 from folderUnlabelData import FolderUnlabelDataset
 
-UcfFile = '../data/ucf_unlabeldata.pkl'
-DukeFile = '../data/duke_unlabeldata.pkl'
+Base = "/home/mohammad/projects/facing_icra/data"
+UcfFile = 'ucf_unlabeldata.pkl'
+DukeFile = 'duke_unlabeldata.pkl'
+
+UcfPath = get_path(UcfFile, base_folder=Base)
+DukePath = get_path(DukeFile, base_folder=Base)
 
 Factors = [4, 1]
 
@@ -19,9 +27,9 @@ class UnlabelDataset(GeneralDataset):
             self.factors = Factors
 
         ucf = FolderUnlabelDataset(
-            seq_length=self.seq_length, data_aug=True, data_file=UcfFile, mean=self.mean, std=self.std)  # 940
+            seq_length=self.seq_length, data_aug=True, data_file=UcfPath, mean=self.mean, std=self.std)  # 940
         duke = FolderUnlabelDataset(
-            seq_length=self.seq_length, data_aug=True, data_file=DukeFile, mean=self.mean, std=self.std)  # 3997
+            seq_length=self.seq_length, data_aug=True, data_file=DukePath, mean=self.mean, std=self.std)  # 3997
 
         self.datasets = [ucf, duke]
 
@@ -30,7 +38,7 @@ def main():
     # test
     import cv2
     import numpy as np
-    from ..utils.image import seq_show, put_arrow
+    from utils.image import seq_show, put_arrow
     from generalData import DataLoader
 
     np.set_printoptions(precision=4)
