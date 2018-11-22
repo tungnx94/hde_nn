@@ -1,9 +1,14 @@
+import os
 import torch
 import random
 import numpy as np
 
 from math import pi
 
+
+BASE_FOLDER = "/media/mohammad/DATA/icra2019"
+def get_path(data):
+    return os.path.join(BASE_FOLDER, data)
 
 def loadPretrain(model, preTrainModel):
     """ load the trained parameters from a pickle file """

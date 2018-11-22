@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, "..")
+
 import random
 import os.path
 
@@ -5,17 +8,15 @@ import numpy as np
 import pandas as pd
 import config as cnf
 
-from ..utils.data import label_from_angle
+from utils.data import label_from_angle
 from generalData import SingleDataset
-
-default_data_file = '../data/combined_data2/train/annotations/person_annotations.csv'
 
 
 class TrackingLabelDataset(SingleDataset):
 
     def __init__(self, data_file, img_size=192, data_aug=False, maxscale=0.1,
                  mean=[0, 0, 0], std=[1, 1, 1]):
-        super(TrackingLabelDataset, self)__init__(img_size, data_aug, maxscale, mean, std)
+        super(TrackingLabelDataset, self).__init__(img_size, data_aug, maxscale, mean, std)
 
         self.data_file = data_file
 
@@ -69,15 +70,17 @@ class TrackingLabelDataset(SingleDataset):
 def main():
     # test
     import cv2
-    from ..utils.image import seq_show, put_arrow
+    from utils.image import seq_show, put_arrow
+    from utils.data import get_path
     from generalData import DataLoader
 
     np.set_printoptions(precision=4)
 
     # trackingLabelDataset = TrackingLabelDataset(data_aug = True, maxscale=0.1)
     # trackingLabelDataset = TrackingLabelDataset(data_file='/datadrive/data/aayush/combined_data2/train/annotations/car_annotations.csv')
+    data_file = 'combined_data2/train/annotations/person_annotations.csv'
     trackingLabelDataset = TrackingLabelDataset(
-        data_file=default_data_file, data_aug=True)
+        data_file=get_path(data_file), data_aug=True)
 
     dataloader = DataLoader(trackingLabelDataset, batch_size=16)
 
@@ -102,3 +105,4 @@ def main():
     """
 
 if __name__ == '__main__':
+    main()

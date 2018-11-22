@@ -22,7 +22,7 @@ class ViratSeqLabelDataset(SequenceDataset):
         self.label_file = label_file
         self.subsample_rate = subsample_rate
 
-        super(ViratSeqLabelDataset, self)__init__(img_size, data_aug, 0, mean, std, seq_length)
+        super(ViratSeqLabelDataset, self).__init__(img_size, data_aug, 0, mean, std, seq_length)
         self.read_debug()
 
 
@@ -93,11 +93,12 @@ class ViratSeqLabelDataset(SequenceDataset):
 if __name__ == '__main__':
     # test
     from generalData import DataLoader
-    from ..utils.image import seq_show
+    from utils.image import seq_show
+    from utils.data import get_path
     np.set_printoptions(precision=4)
 
-    label_file = '/datasets/VIRAT/train_annotations.csv'
-    unlabelset = ViratSeqLabelDataset(label_file, seq_length=24, data_aug=True)
+    label_file = 'VIRAT/train/annotations/annotations.csv'
+    unlabelset = ViratSeqLabelDataset(get_path(label_file), seq_length=24, data_aug=True)
     print len(unlabelset)
 
     import ipdb; ipdb.set_trace()

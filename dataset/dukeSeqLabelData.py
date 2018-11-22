@@ -81,11 +81,12 @@ def main():
     # test
     from generalData import DataLoader
     from utils.image import seq_show
+    from utils.data import get_path
     np.set_printoptions(precision=4)
 
-    label_file = '/media/mohammad/DATA/icra2019/DukeMCMT/test_heading_gt.txt'
+    label_file = 'DukeMCMT/test_heading_gt.txt'
     unlabelset = DukeSeqLabelDataset(
-        label_file=label_file, seq_length=24, data_aug=True)
+        label_file=get_path(label_file), seq_length=24, data_aug=True)
     print len(unlabelset)
 
     dataloader = DataLoader(unlabelset)
@@ -104,15 +105,6 @@ def main():
         count -= 1
         if count < 0:
             break
-
-    # import ipdb; ipdb.set_trace()
-    """
-    for k in range(10):
-        sample = unlabelset[k*1000]
-        imgseq, labelseq = sample['imgseq'], sample['labelseq']
-        print imgseq.dtype, imgseq.shape
-        seq_show_with_arrow(imgseq,labelseq, scale=0.8)
-    """
 
 if __name__ == '__main__':
     main()

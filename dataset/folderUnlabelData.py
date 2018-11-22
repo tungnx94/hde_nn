@@ -1,6 +1,9 @@
 # extend with UCF data
-import cv2
+import sys
+sys.path.insert(0, "..")
+
 import os
+import cv2
 import pickle
 import random
 
@@ -18,7 +21,7 @@ class FolderUnlabelDataset(SequenceDataset):
         # load from saved pickle file, priority
         if data_file != '':
             # grandparent
-            super(SequenceDataset, self)__init__(img_size, data_aug, 0, mean, std)
+            super(SequenceDataset, self).__init__(img_size, data_aug, 0, mean, std)
             self.seq_length = seq_length
 
             with open(data_file, 'rb') as f:
@@ -106,15 +109,16 @@ class FolderUnlabelDataset(SequenceDataset):
 def main():
     # test
     from generalData import DataLoader
-    from ..utils.image import seq_show
+    from utils.image import seq_show
+    from utils.data import get_path
 
     np.set_printoptions(precision=4)
 
     # unlabelset = FolderUnlabelDataset(img_dir='/datadrive/person/dirimg',seq_length = 24, extend=True, data_aug=True)#,data_file='duke_unlabeldata.pkl')
     # unlabelset = FolderUnlabelDataset(seq_length=24, data_aug=True, extend=True, data_file='drone_ucf_unlabeldata.pkl')
-    img_dir = '../data/headingdata/DukeMCMT/heading'
+    img_dir = 'DukeMCMT/heading'
     unlabelset = FolderUnlabelDataset(
-        img_dir=img_dir, seq_length=24, data_aug=True, include_all=True)
+        img_dir=get_path(img_dir), seq_length=24, data_aug=True, include_all=True)
 
     dataloader = DataLoader(unlabelset)
     for sample in dataloader:

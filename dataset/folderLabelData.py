@@ -1,9 +1,12 @@
+import sys
+sys.path.insert(0, "..")
+
 import os
 import random
 import numpy as np
 
 from generalData import SingleDataset
-from ..utils.image import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
+from utils.image import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
 
 
 class FolderLabelDataset(SingleDataset):
@@ -11,7 +14,7 @@ class FolderLabelDataset(SingleDataset):
     def __init__(self, img_dir,
                  img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
 
-        super(FolderLabelDataset, self)__init__(img_size, data_aug, maxscale, mean, std)
+        super(FolderLabelDataset, self).__init__(img_size, data_aug, maxscale, mean, std)
 
         # self.dir2ind = {'n': 0,'ne': 1,'e': 2, 'se': 3,'s': 4,'sw': 5,'w': 6,'nw': 7}
         self.dir2val = {'n':  [1., 0.],
@@ -55,13 +58,14 @@ def main():
     # test
     import cv2
     from generalData import DataLoader
-    from ..utils.image import seq_show, put_arrow
+    from utils.image import seq_show, put_arrow
+    from utils.data import get_path 
 
     np.set_printoptions(precision=4)
 
-    test_img_dir = '/data/3DPES/facing_labeled'
+    test_img_dir = '3DPES/facing_labeled'
     facingDroneLabelDataset = FolderLabelDataset(
-        img_dir=test_img_dir, data_aug=True)
+        img_dir=get_path(test_img_dir), data_aug=True)
 
     dataloader = DataLoader(facingDroneLabelDataset,
                             batch_size=4, shuffle=True, num_workers=1)
