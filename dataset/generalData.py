@@ -129,12 +129,12 @@ class SequenceDataset(SingleDataset):
     def save_sequence(self, sequence):
         # add new sequence to list if long enough 
         if len(sequence) >= self.seq_length:
-            print 'sequence: ', len(sequence)
+            #print 'sequence: ', len(sequence)
 
             self.img_seqs.append(sequence)
             sequence = []
-        else:
-            print '!sequence too short'
+        #else:
+            #print '!sequence too short'
 
         return sequence
 

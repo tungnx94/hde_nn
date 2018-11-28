@@ -13,15 +13,21 @@ from os.path import join
 from generalData import SingleDataset, SequenceDataset
 
 
+DataFolder = "/home/mohammad/projects/facing_icra/data"
+SaveFile = "unlabeldata.pkl"
+SavePath = os.path.join(DataFolder, SaveFile)
+
 class FolderUnlabelDataset(SequenceDataset):
 
     def __init__(self, img_dir='', data_file='',
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
                  seq_length=32, extend=False, include_all=False):
-        # load from saved pickle file, priority
+        
         if data_file != '':
+            # load from saved pickle file, priority
             # grandparent
-            super(SequenceDataset, self).__init__(img_size, data_aug, 0, mean, std)
+            super(SequenceDataset, self).__init__(
+                img_size, data_aug, 0, mean, std)
             self.seq_length = seq_length
 
             with open(data_file, 'rb') as f:
@@ -29,29 +35,33 @@ class FolderUnlabelDataset(SequenceDataset):
             self.N = data['N']
             self.episodes = data['episodeNum']
             self.img_seqs = data['img_seqs']
-            return
+        else:
+            # load from folder
+            self.include_all = include_all
+            self.extend = extend
+            self.img_dir = img_dir
+            # parent
+            super(FolderUnlabelDataset, self).__init__(
+                img_size, data_aug, 0, mean, std, seq_length)
 
-        # parent
-        super(FolderUnlabelDataset, self)__init__(img_size, data_aug, 0, mean, std, seq_length)
+            # Save loaded data for future use
+            if data_file == '':
+                with open(SavePath, 'wb') as f:
+                    pickle.dump({'N': self.N, 'episodeNum': self.episodes,
+                                 'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
 
-        # Save loaded data for future use
-        if data_file == '':
-            with open('unlabeldata.pkl', 'wb') as f:
-                pickle.dump({'N': self.N, 'episodeNum': self.episodes,
-                             'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
         self.read_debug()
 
     def load_image_sequences(self):
-        # img_folders = ['4','7','11','17','23','30','32','33','37','38','49','50','52']
         img_folders = []
-        if include_all:  # include all the folders in one directory -- for duke
-            img_folders = os.listdir(img_dir)
-        elif extend:
+        if self.include_all:  # include all the folders in one directory -- for duke
+            img_folders = os.listdir(self.img_dir)
+        elif self.extend:
             img_folders = [str(k) for k in range(101, 1040)]
 
         # process each folder
         for folder in img_folders:
-            folder_path = join(img_dir, folder)
+            folder_path = join(self.img_dir, folder)
             if not os.path.isdir(folder_path):
                 continue
 
@@ -67,7 +77,7 @@ class FolderUnlabelDataset(SequenceDataset):
 
                 file_path = join(folder_path, file_name)
 
-                if include_all:  # duke dataset
+                if self.include_all:  # duke dataset
                     sequence.append(file_path)
                     continue
 
@@ -121,16 +131,13 @@ def main():
         img_dir=get_path(img_dir), seq_length=24, data_aug=True, include_all=True)
 
     dataloader = DataLoader(unlabelset)
+    count = 20
     for sample in dataloader:
         seq_show(sample.squeeze().numpy(), scale=0.8)
 
-    """
-    print len(unlabelset)
-    for k in range(1):
-        imgseq = unlabelset[k * 1000]
-        print imgseq.dtype, imgseq.shape
-        seq_show(imgseq)
-    """
+        count -= 1
+        if count < 0:
+            break
 
 if __name__ == '__main__':
     main()
