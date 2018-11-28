@@ -73,17 +73,6 @@ class GeneralWF(Workflow):
         seq_show(inputs.cpu().numpy(), dir_seq=outputs.detach().cpu().numpy(),
                  scale=0.8, mean=self.mean, std=self.std)
 
-    def next_sample(self, data_iter, loader, epoch):
-        """ get next batch, update data_iter and epoch if needed """
-        try:
-            sample = data_iter.next()
-        except:
-            data_iter = iter(loader)
-            sample = data_iter.next()
-            epoch += 1
-
-        return sample, data_iter, epoch
-
     def calculate_loss(self, val_sample):
         """ combined loss """
         inputImgs = val_sample['imgseq'].squeeze().to(self.device)
@@ -118,7 +107,7 @@ class GeneralWF(Workflow):
         # calculate next sample loss
         sample = self.test_loader.next_sample()
         loss = self.calculate_loss(sample)
-        
+
         return loss
 
     def run(self):

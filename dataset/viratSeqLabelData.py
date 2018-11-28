@@ -18,7 +18,7 @@ class ViratSeqLabelDataset(SingleSequenceDataset):
                  mean=[0, 0, 0], std=[1, 1, 1], seq_length=32, subsample_rate=3):
 
         self.label_file = label_file
-        self.subsample_rate = subsample_rate
+        self.subsample_rate = subsample_rate #distance between 2 frame
 
         super(ViratSeqLabelDataset, self).__init__(
             img_size, data_aug, 0, mean, std, seq_length)
@@ -45,9 +45,10 @@ class ViratSeqLabelDataset(SingleSequenceDataset):
             if len(v) <= 1:
                 continue
 
-            v = sorted(v, key=lambda x: x[1])
-            split_v = []
-            cur_v = [v[0]]
+            # v = [[line, frame_num]]
+            v = sorted(v, key=lambda x: x[1]) #sort by frame number
+            split_v = [] # frame sequences 
+            cur_v = [v[0]] # consecutive frames
             for i in range(1, len(v)):
                 if v[i][1] == v[i - 1][1] + 1:
                     cur_v.append(v[i])
