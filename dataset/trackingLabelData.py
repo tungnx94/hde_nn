@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0, "..")
 
+import cv2
 import random
 import os.path
 
@@ -16,6 +17,7 @@ class TrackingLabelDataset(SingleDataset):
 
     def __init__(self, data_file, img_size=192, data_aug=False, maxscale=0.1,
                  mean=[0, 0, 0], std=[1, 1, 1]):
+
         super(TrackingLabelDataset, self).__init__(img_size, data_aug, maxscale, mean, std)
 
         self.data_file = data_file
@@ -26,7 +28,6 @@ class TrackingLabelDataset(SingleDataset):
             self.items = pd.read_csv(data_file)
 
         else:  # text file used by DukeMTMC dataset
-
             img_dir = os.path.dirname(data_file)
             # img_dir = join(img_dir,'heading') # a subdirectory
 
@@ -69,40 +70,29 @@ class TrackingLabelDataset(SingleDataset):
 
 def main():
     # test
-    import cv2
     from utils.image import seq_show, put_arrow
     from utils.data import get_path
     from generalData import DataLoader
 
     np.set_printoptions(precision=4)
 
-    # trackingLabelDataset = TrackingLabelDataset(data_aug = True, maxscale=0.1)
-    # trackingLabelDataset = TrackingLabelDataset(data_file='/datadrive/data/aayush/combined_data2/train/annotations/car_annotations.csv')
-    data_file = 'combined_data2/train/annotations/person_annotations.csv'
+    #data_file = 'combined_data2/train/annotations/person_annotations.csv'
+    data_file = 'DukeMCMT/trainval_duke.txt'
+    
     trackingLabelDataset = TrackingLabelDataset(
         data_file=get_path(data_file), data_aug=True)
 
     dataloader = DataLoader(trackingLabelDataset, batch_size=16)
 
-    # import ipdb;ipdb.set_trace()
+    count = 20
     for sample in dataloader:
         print sample['label'], sample['img'].size()
         seq_show(sample['img'].numpy(),
                  dir_seq=sample['label'].numpy(), scale=0.5)
 
-    """
-    print len(trackingLabelDataset)
-    for k in range(1000):
-        img = trackingLabelDataset[k*10]['img']
-        label = trackingLabelDataset[k*10]['label']
-        print img.dtype, label
-        print np.max(img), np.min(img), np.mean(img)
-        print img.shape
-        img = img_denormalize(img)
-        img = put_arrow(img, label)
-        cv2.imshow('img',img)
-        cv2.waitKey(0)
-    """
+        count -= 1
+        if count < 0:
+            break
 
 if __name__ == '__main__':
     main()

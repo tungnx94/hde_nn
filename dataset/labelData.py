@@ -25,8 +25,10 @@ class LabelDataset(GeneralDataset):
 
         virat = TrackingLabelDataset(
             data_file=get_path(PersonFiles), data_aug=True, mean=self.mean, std=self.std)  # 69680
+
         duke = TrackingLabelDataset(
             data_file=get_path(DukeLabelFile), data_aug=True, mean=self.mean, std=self.std)  # 225426
+
         handlabel = FolderLabelDataset(
             img_dir=get_path(HandLabelFolder), data_aug=True, mean=self.mean, std=self.std)  # 1201
 
@@ -37,7 +39,7 @@ def main():
     # test
     import cv2
     import numpy as np
-    from ..utils.image import seq_show
+    from utils.image import seq_show
     from generalData import DataLoader
 
     np.set_printoptions(precision=4)
@@ -48,25 +50,15 @@ def main():
     # import ipdb;ipdb.set_trace()
     print len(labeldataset)
 
+    count = 10
     for sample in dataloader:
         print sample['label'], sample['img'].size()
         seq_show(sample['img'].numpy(),
                  dir_seq=sample['label'].numpy(), scale=0.5)
 
-    """ old code 
-    # datalist=[0,69679,69680,69680*2-1,69680*2,364785,364786] ?
-    for k in dataloader:
-        sample = labeldataset[k]
-        img = sample['img']
-        label = sample['label']
-        print img.dtype, label
-        print np.max(img), np.min(img), np.mean(img)
-        print img.shape
-        img = img_denormalize(img)
-        img = put_arrow(img, label)
-        cv2.imshow('img',img)
-        cv2.waitKey(0)
-    """
+        count -= 1
+        if count < 0:
+            break
 
 if __name__ == '__main__':
     main()

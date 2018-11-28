@@ -17,7 +17,7 @@ from generalData import SequenceDataset
 class ViratSeqLabelDataset(SequenceDataset):
 
     def __init__(self, label_file, img_size=192, data_aug=False,
-                 mean=[0, 0, 0], std=[1, 1, 1], seq_length=32, subsample_rate=3)
+                 mean=[0, 0, 0], std=[1, 1, 1], seq_length=32, subsample_rate=3):
 
         self.label_file = label_file
         self.subsample_rate = subsample_rate
@@ -27,7 +27,7 @@ class ViratSeqLabelDataset(SequenceDataset):
         self.read_debug()
 
     def load_image_sequences(self):
-        img_dir = os.path.split(label_file)[0]
+        img_dir = os.path.split(label_file)[0] # role ?
         with open(self.label_file, 'r') as f:
             lines = f.readlines()
 
@@ -106,16 +106,14 @@ if __name__ == '__main__':
     ipdb.set_trace()
 
     dataloader = DataLoader(unlabelset)
+    count = 10
+
     for sample in dataloader:
         imgseq, labelseq = sample['imgseq'].squeeze().numpy(), sample[
             'labelseq'].squeeze().numpy()
 
         seq_show(imgseq, dir_seq=labelseq, scale=0.8)
 
-    """
-    for k in range(10):
-        sample = unlabelset[k*1000]
-        imgseq, labelseq = sample['imgseq'], sample['labelseq']
-        print imgseq.dtype, imgseq.shape
-        seq_show_with_arrow(imgseq,labelseq, scale=0.8)
-    """
+        count -= 1
+        if count < 0:
+            break

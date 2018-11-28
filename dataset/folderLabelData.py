@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0, "..")
 
 import os
+import cv2
 import random
 import numpy as np
 
@@ -56,7 +57,6 @@ class FolderLabelDataset(SingleDataset):
 
 def main():
     # test
-    import cv2
     from generalData import DataLoader
     from utils.image import seq_show, put_arrow
     from utils.data import get_path 
@@ -71,23 +71,14 @@ def main():
                             batch_size=4, shuffle=True, num_workers=1)
 
     # import ipdb; ipdb.set_trace()
+    count = 20
     for sample in dataloader:
         print sample['label'], sample['img'].size()
         seq_show(sample['img'].numpy(), scale=0.3)
-
-    """
-    for k in range(100):
-        sample = facingDroneLabelDataset[k * 100]
-        img = sample['img']
-        label = sample['label']
-        print img.dtype, label
-        print np.max(img), np.min(img), np.mean(img)
-        print img.shape
-        img = img_denormalize(img)
-        img = put_arrow(img, label)
-        cv2.imshow('img', img)
-        cv2.waitKey(0)
-    """
+        
+        count -= 1
+        if count < 0:
+            break
 
 if __name__ == '__main__':
     main()
