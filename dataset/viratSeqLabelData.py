@@ -1,8 +1,6 @@
-# for dukeMCMT dataset
+# for VIRAT dataset
 # return a sequence of data with label
 
-# for dukeMCMT dataset
-# return a sequence of data with label
 import sys
 sys.path.insert(0, "..")
 
@@ -11,10 +9,10 @@ import cv2
 import numpy as np
 
 from utils.data import unlabel_loss, label_from_angle
-from generalData import SequenceDataset
+from generalData import SingleSequenceDataset
 
 
-class ViratSeqLabelDataset(SequenceDataset):
+class ViratSeqLabelDataset(SingleSequenceDataset):
 
     def __init__(self, label_file, img_size=192, data_aug=False,
                  mean=[0, 0, 0], std=[1, 1, 1], seq_length=32, subsample_rate=3):
@@ -27,7 +25,8 @@ class ViratSeqLabelDataset(SequenceDataset):
         self.read_debug()
 
     def load_image_sequences(self):
-        img_dir = os.path.split(label_file)[0] # role ?
+        # need fixing
+        img_dir = os.path.split(label_file)[0]  # role ?
         with open(self.label_file, 'r') as f:
             lines = f.readlines()
 
@@ -66,29 +65,6 @@ class ViratSeqLabelDataset(SequenceDataset):
                     subsampled_arr = [(join(self.img_dir, x[0].strip().split(' ')[0]), x[
                                        0].strip().split(' ')[1]) for x in subsampled_arr]
                     self.img_seqs.append(subsampled_arr)
-
-    # copied from dukeSeqLabelData
-    def __getitem__(self, idx):
-        ep_idx, idx = self.get_indexes(idx)
-
-        # random fliping
-        flipping = self.get_flipping()
-
-        imgseq = []
-        labelseq = []
-        for k in range(self.seq_length):
-            img = cv2.imread(self.img_seqs[ep_idx][idx + k][0])
-
-            angle = self.img_seqs[ep_idx][idx + k][1]
-            label = label_from_angle(angle)
-
-            out_img, label = self.get_img_and_label(img, label, flipping)
-
-            imgseq.append(out_img)
-            labelseq.append(label)
-
-        return {'imgseq': np.array(imgseq), 'labelseq': np.array(labelseq)}
-
 
 if __name__ == '__main__':
     # test

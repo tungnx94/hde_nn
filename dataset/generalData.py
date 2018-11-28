@@ -11,10 +11,10 @@ from utils.image import im_scale_norm_pad, im_crop, im_hsv_augmentation
 class DataLoader(torch.utils.data.DataLoader):
 
     def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1):
-        self.dataset = dataset 
+        self.dataset = dataset
 
         super(DataLoader, self).__init__(self.dataset, batch_size=batch_size,
-              shuffle=shuffle, num_workers=num_workers)
+                                         shuffle=shuffle, num_workers=num_workers)
 
         self.epoch = 0
         self.data_iter = iter(self)
@@ -40,7 +40,8 @@ class GeneralDataset(Dataset):
 
         if balance:
             self.factors = None
-        else: self.factors = []
+        else:
+            self.factors = []
 
         self.init_datasets()
 
@@ -99,12 +100,13 @@ class SingleDataset(Dataset):
                 label[1] = -label[1]
 
         out_img = im_scale_norm_pad(img,
-            out_size=self.img_size, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
+                                    out_size=self.img_size, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
 
         return out_img, label
 
 
 class SequenceDataset(SingleDataset):
+
     def __init__(self, img_size, data_aug, maxscale, mean, std, seq_length):
         super(SequenceDataset, self).__init__(img_size, data_aug, 0, mean, std)
         self.seq_length = seq_length
@@ -124,17 +126,18 @@ class SequenceDataset(SingleDataset):
         print 'Read #images: ', sum([len(sequence) for sequence in self.img_seqs])
 
     def load_image_sequences(self):
+        # for Duke and VIRAT
         pass
 
     def save_sequence(self, sequence):
-        # add new sequence to list if long enough 
+        # add new sequence to list if long enough
         if len(sequence) >= self.seq_length:
-            #print 'sequence: ', len(sequence)
+            # print 'sequence: ', len(sequence)
 
             self.img_seqs.append(sequence)
             sequence = []
-        #else:
-            #print '!sequence too short'
+        # else:
+            # print '!sequence too short'
 
         return sequence
 
@@ -147,3 +150,31 @@ class SequenceDataset(SingleDataset):
             idx -= self.episodes[ep_idx - 1]
 
         return ep_idx, idx
+
+
+class SingleSequenceDataset(SequenceDataset):
+
+    def __init__(self, img_size, data_aug, maxscale, mean, std, seq_length):
+        super(SingleSequenceDataset, self).__init__(
+            img_size, data_aug, maxscale, mean, std, seq_length)
+
+    def __getitem__(self, idx):
+        ep_idx, idx = self.get_indexes(idx)
+
+        # random fliping
+        flipping = self.get_flipping()
+
+        imgseq = []
+        labelseq = []
+        for k in range(self.seq_length):
+            img = cv2.imread(self.img_seqs[ep_idx][idx + k][0])
+
+            angle = self.img_seqs[ep_idx][idx + k][1]
+            label = label_from_angle(angle)
+
+            out_img, label = self.get_img_and_label(img, label, flipping)
+
+            imgseq.append(out_img)
+            labelseq.append(label)
+
+        return {'imgseq': np.array(imgseq), 'labelseq': np.array(labelseq)}
