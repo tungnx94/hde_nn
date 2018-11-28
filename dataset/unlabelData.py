@@ -28,6 +28,7 @@ class UnlabelDataset(GeneralDataset):
 
         ucf = FolderUnlabelDataset(
             seq_length=self.seq_length, data_aug=True, data_file=UcfPath, mean=self.mean, std=self.std)  # 940
+        
         duke = FolderUnlabelDataset(
             seq_length=self.seq_length, data_aug=True, data_file=DukePath, mean=self.mean, std=self.std)  # 3997
 
