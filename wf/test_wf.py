@@ -4,7 +4,7 @@ sys.path.append("..")
 import torch
 import config as cnf
 
-from utils.data import unlabel_loss, angle_metric
+from utils.data import unlabel_loss, angle_metric, get_path
 from data.folderLabelData import FolderLabelDataset
 from data.folderUnlabelData import FolderUnlabelDataset
 from data.dukeSeqLabelData import DukeSeqLabelDataset
@@ -12,9 +12,9 @@ from data.dukeSeqLabelData import DukeSeqLabelDataset
 LabelSeqLength = 24  # 32
 TestStep = 10000  # number of test() calls
 
-TestLabelFile = '../data/person/DukeMTMC/test_heading_gt.txt'
-TestLabelImgFolder = '../data/headingdata/val_drone'
-TestUnlabelImgFolder = '../data/exp_bags/20180811_gascola'
+TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
+TestLabelImgFolder = 'val_drone'
+TestUnlabelImgFolder = 'gascola/20180811'
 
 class TestWF(GeneralWF):
 
@@ -27,7 +27,7 @@ class TestWF(GeneralWF):
 class TestLabelSeqWF(TestWF):  # Type 1
 
     def get_test_dataset(self)
-        return DukeSeqLabelDataset(label_file=TestLabelFile, seg_length=LabelSeqLength, data_aug=True,
+        return DukeSeqLabelDataset(get_path(TestLabelFile), seg_length=LabelSeqLength, data_aug=True,
                                    mean=self.mean, std=self.std)
 
 
@@ -35,7 +35,7 @@ class TestFolderWF(TestWF):  # Type 2
 
     def get_test_dataset(self):
         self.testBatch = 50
-        return FolderLabelDataset(img_dir=TestLabelImgFolder, data_aug=False,
+        return FolderLabelDataset(get_path(TestLabelImgFolder), data_aug=False,
                                   mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):
@@ -58,7 +58,7 @@ class TestFolderWF(TestWF):  # Type 2
 class TestUnlabelSeqWF(TestWF):  # Type 3
 
     def get_test_dataset(self):
-        return FolderUnlabelDataset(img_dir=TestUnlabelImgFolder, data_aug=False, include_all=True,
+        return FolderUnlabelDataset(get_path(TestUnlabelImgFolder), data_aug=False, include_all=True,
                                     mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):

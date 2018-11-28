@@ -7,7 +7,7 @@ import torch.optim as optim
 
 import config as cnf
 
-from utils.data import unlabel_loss
+from utils.data import unlabel_loss, get_path
 
 from general_wf import GeneralWF, DataLoader
 from data.labelData import LabelDataset
@@ -26,7 +26,7 @@ TestIter = 10  # do a testing every TestIter steps
 ShowIter = 1  # print to screen
 
 SaveModelName = 'facing'
-TestLabelFile = '../data/person/DukeMTMC/test_heading_gt.txt'
+TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
 
 AccumulateValues = {"label_loss": 100,
                     "unlabel_loss": 100,
@@ -75,7 +75,7 @@ class TrainWF(GeneralWF):
                         'unlabel_loss', 'test_unlabel'], [True, True]))
 
     def get_test_dataset(self):
-        return DukeSeqLabelDataset(labelfile=TestLabelFile,
+        return DukeSeqLabelDataset(get_path(TestLabelFile),
                                    batch=UnlabelBatch, data_aug=True, mean=self.mean, std=self.std)
 
     def finalize(self):

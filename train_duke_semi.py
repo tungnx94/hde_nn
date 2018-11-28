@@ -3,10 +3,12 @@ import config as cnf
 from workflow.train_wf import TrainWF
 from workflow.wtest_wf import TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
-PreMobileModel = 'data/pretrained_models/mobilenet_v1_0.50_224.pth'
-PreModel = 'data/models/1_2_facing_20000.pkl'
+PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 
-TestType = 2  # 0: none, 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
+#PreModel = 'data/models/1_2_facing_20000.pkl'
+PreModel = None
+
+TestType = 0  # 0: none(train), 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
 ExpPrefix = 'vis_1_3_'
 
 
