@@ -250,9 +250,8 @@ class WorkFlow(object):
         print("%s%s%s" % (leading, s, ending))
 
     def get_log_str(self):
-        logstr = ''
+        logstr = ""
         for key in self.AV.keys():
-            print key
             try:
                 logstr += '%s: %.5f ' % (key, self.AV[key].last_avg())
             except WFException as e:

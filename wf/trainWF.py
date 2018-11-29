@@ -24,7 +24,7 @@ Trainstep = 20000  # number of train() calls
 Thresh = 0.005  # unlabel_loss threshold
 
 Snapshot = 500  # do a snapshot every Snapshot steps (save period)
-TestIter = 3  # do a testing every TestIter steps
+TestIter = 10  # do a testing every TestIter steps
 ShowIter = 1  # print to screen
 
 SaveModelName = 'facing'
@@ -110,7 +110,7 @@ class TrainWF(GeneralWF):
         output = self.model(inputValue)
 
         loss = unlabel_loss(output.detach().cpu().numpy(), Thresh)
-        return torch.tensor([loss]).to(self.device)
+        return torch.tensor([loss]).to(self.device).float()
 
     def forward_label(self, sample):
         """
@@ -164,6 +164,7 @@ class TrainWF(GeneralWF):
 
     def test(self):
         """ update test loss history """
+        print "validation"
         loss = GeneralWF.test(self)
 
         self.AV['test_loss'].push_back(loss["total"], self.countTrain)
@@ -173,7 +174,6 @@ class TrainWF(GeneralWF):
     def run(self):
         """ train on all samples """
         for iteration in range(1, Trainstep+1):
-            print "iteration", iteration
             self.train()
 
             if iteration % TestIter == 0:
