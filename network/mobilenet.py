@@ -242,7 +242,7 @@ class MobileNet_v1(nn.Module):
         self.load_state_dict(model_dict)
 
 
-def mobilenet_v1_depth(multiplier, pretrained=False, **kwargs)
+def mobilenet_v1(multiplier, pretrained=False, **kwargs):
     return MobileNet_v1(depth_multiplier=multiplier, **kwargs)
 
 

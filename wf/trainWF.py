@@ -9,10 +9,12 @@ import config as cnf
 
 from utils.data import unlabel_loss, get_path
 
-from general_wf import GeneralWF, DataLoader
-from data.labelData import LabelDataset
-from data.unlabelData import UnlabelDataset
-from data.dukeSeqLabelData import DukeSeqLabelDataset
+from generalWF import GeneralWF, DataLoader
+from dataset.labelData import LabelDataset
+from dataset.unlabelData import UnlabelDataset
+from dataset.dukeSeqLabelData import DukeSeqLabelDataset
+
+from wf.visdomPlotter import VisdomLinePlotter
 
 Batch = 128
 SeqLength = 24  # 32
@@ -21,8 +23,8 @@ LearningRate = 0.0005  # to tune
 Trainstep = 20000  # number of train() calls
 Thresh = 0.005  # unlabel_loss threshold
 
-Snapshot = 5000  # do a snapshot every Snapshot steps (save period)
-TestIter = 10  # do a testing every TestIter steps
+Snapshot = 500  # do a snapshot every Snapshot steps (save period)
+TestIter = 3  # do a testing every TestIter steps
 ShowIter = 1  # print to screen
 
 SaveModelName = 'facing'
@@ -37,8 +39,10 @@ AccumulateValues = {"label_loss": 100,
 
 class TrainWF(GeneralWF):
 
-    def __init__(self, workingDir, prefix="", suffix="", device=None):
-        super(TrainWF, self).__init__(workingDir, prefix, suffix, device)
+    def __init__(self, workingDir, prefix="", suffix="",
+                 device=None, mobile_model=None, trained_model=None):
+        super(TrainWF, self).__init__(workingDir, prefix,
+                                      suffix, device, mobile_model, trained_model)
 
         self.visualize = False
         self.labelBatch = Batch
@@ -64,19 +68,19 @@ class TrainWF(GeneralWF):
         self.AV['loss'].avgWidth = 100  # there's a default plotter for 'loss'
 
         # second param is the number of average data
-        for key, val in AccumulateValues:
+        for key, val in AccumulateValues.items():
             self.add_accumulated_value(key, val)
 
-        self.AVP.append(WorkFlow.VisdomLinePlotter(
+        self.AVP.append(VisdomLinePlotter(
             "total_loss", self.AV, ['loss', 'test_loss'], [True, True]))
-        self.AVP.append(WorkFlow.VisdomLinePlotter(
+        self.AVP.append(VisdomLinePlotter(
             "label_loss", self.AV, ['label_loss', 'test_label'], [True, True]))
-        self.AVP.append(WorkFlow.VisdomLinePlotter("unlabel_loss", self.AV, [
+        self.AVP.append(VisdomLinePlotter("unlabel_loss", self.AV, [
                         'unlabel_loss', 'test_unlabel'], [True, True]))
 
     def get_test_dataset(self):
         return DukeSeqLabelDataset(get_path(TestLabelFile),
-                                   batch=UnlabelBatch, data_aug=True, mean=self.mean, std=self.std)
+                                   seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
 
     def finalize(self):
         """ save model and values after training """
@@ -105,8 +109,8 @@ class TrainWF(GeneralWF):
         inputValue = sample.squeeze().to(self.device)
         output = self.model(inputValue)
 
-        loss = unlabel_loss(output.numpy(), Thresh)
-        return torch.tensor([loss])
+        loss = unlabel_loss(output.detach().cpu().numpy(), Thresh)
+        return torch.tensor([loss]).to(self.device)
 
     def forward_label(self, sample):
         """
@@ -135,6 +139,7 @@ class TrainWF(GeneralWF):
         # calculate loss
         label_loss = self.forward_label(sample)
         unlabel_loss = self.forward_unlabel(sample_unlabel)
+
         loss = label_loss + self.lamb * unlabel_loss
 
         # backpropagate
@@ -151,7 +156,7 @@ class TrainWF(GeneralWF):
         # record current params
         if self.countTrain % ShowIter == 0:
             loss_str = self.get_log_str()
-            self.logger.info("%s #%d - (%d %d) %s" % (exp_prefix[:-1],
+            self.logger.info("%s #%d - (%d %d) %s" % (self.prefix[:-1],
                                                       self.countTrain, self.train_loader.epoch, self.train_unlabel_loader.epoch, loss_str))
         # save temporary model
         if (self.countTrain % Snapshot == 0):
@@ -165,9 +170,10 @@ class TrainWF(GeneralWF):
         self.AV['test_label'].push_back(loss["label"], self.countTrain)
         self.AV['test_unlabel'].push_back(loss["unlabel"], self.countTrain)
 
-    def run():
+    def run(self):
         """ train on all samples """
-        for iteration in range(Trainstep):
+        for iteration in range(1, Trainstep+1):
+            print "iteration", iteration
             self.train()
 
             if iteration % TestIter == 0:

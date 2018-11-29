@@ -17,11 +17,11 @@ DataFolder = "/home/mohammad/projects/facing_icra/data"
 
 class FolderUnlabelDataset(SequenceDataset):
 
-    def __init__(self, img_dir='', data_file='',
+    def __init__(self, img_dir='', data_file=None,
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
                  seq_length=32, extend=False, include_all=False):
         
-        if data_file != '':
+        if data_file != None:
             # load from saved pickle file, priority
             # grandparent
             super(SequenceDataset, self).__init__(
@@ -127,14 +127,14 @@ def main():
     duke_img_dir = "DukeMCMT/heading"
     ucf_img_dir = "dirimg"
 
-    #unlabelset = FolderUnlabelDataset(
-    #    img_dir=get_path(duke_img_dir), seq_length=24, data_aug=True, include_all=True)
-
     unlabelset = FolderUnlabelDataset(
-        img_dir=get_path(ucf_img_dir), seq_length=24, data_aug=True, extend=True)    
+        img_dir=get_path(duke_img_dir), seq_length=24, data_aug=True, include_all=True)
+
+    #unlabelset = FolderUnlabelDataset(
+    #    img_dir=get_path(ucf_img_dir), seq_length=24, data_aug=True, extend=True)    
 
     dataloader = DataLoader(unlabelset)
-    count = 20
+    count = 5
     for sample in dataloader:
         seq_show(sample.squeeze().numpy(), scale=0.8)
 

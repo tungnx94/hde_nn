@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torch.autograd import Variable
-from mobilenet import mobilenet_v1_050
+from mobilenet import mobilenet_v1
 
 
 class MobileReg(nn.Module):
@@ -15,13 +15,14 @@ class MobileReg(nn.Module):
         super(MobileReg, self).__init__()
 
         self.feature = mobilenet_v1(0.50)
-        self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  conv to 1 by 1
+        self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  #conv to 1 by 1
         self.reg = nn.Linear(hidnum, regnum)
         
         self._initialize_weights()
 
     def forward(self, x):
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
+        
         x = self.feature(x)
         # print x.size()
 

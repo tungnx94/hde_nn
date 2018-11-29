@@ -1,17 +1,19 @@
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
+"""
 import os
 import sys
 import time
 import signal
 import logging
-
 import numpy as np
 
-from av import AccumulatedValue
+#import accValue.AccumulatedValue as AccumulatedValue
+import accValue
+
 
 class WFException(Exception):
 
@@ -19,19 +21,13 @@ class WFException(Exception):
         self.message = message
         self.name = name
 
-    def describe(self):
+    def __str__(self):
         if (self.name is not None):
             desc = self.name + ": " + self.message
         else:
             desc = self.message
 
         return desc
-
-
-class SigIntException(WFException):
-
-    def __init__(self, message, name=None):
-        super(SigIntException, self).__init__(message, name)
 
 
 class WorkFlow(object):
@@ -50,22 +46,15 @@ class WorkFlow(object):
         self.imgdir = os.path.join(self.workingDir, 'resimg')
         self.modeldir = os.path.join(self.workingDir, 'models')
 
-        if (not os.path.isdir(self.workingDir)):
-            os.makedirs(self.workingDir)
-
-        if (not os.path.isdir(self.logdir)):
-            os.makedirs(self.logdir)
-
-        if (not os.path.isdir(self.imgdir)):
-            os.makedirs(self.imgdir)
-
-        if (not os.path.isdir(self.modeldir)):
-            os.makedirs(self.modeldir)
+        folders = [self.workingDir, self.logdir, self.imgdir, self.modeldir]
+        for folder in folders:
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
 
         self.isInitialized = False
 
         # Accumulated value dictionary.
-        self.AV = {"loss": AccumulatedValue("loss")}
+        self.AV = {"loss": accValue.AccumulatedValue("loss")}
 
         # Accumulated value Plotter.
         # self.AVP should be an object of class AccumulatedValuePlotter.
@@ -84,20 +73,19 @@ class WorkFlow(object):
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.DEBUG)
 
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
         streamHandler = logging.StreamHandler()
         streamHandler.setLevel(logging.DEBUG)
-
-        formatter = logging.Formatter('%(levelname)s: %(message)s')
         streamHandler.setFormatter(formatter)
 
         self.logger.addHandler(streamHandler)
 
+        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
         logFilePathPlusName = os.path.join(self.logdir, self.logFilename)
+
         fileHandler = logging.FileHandler(
             filename=logFilePathPlusName, mode="w")
         fileHandler.setLevel(logging.DEBUG)
-
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
         fileHandler.setFormatter(formatter)
 
         self.logger.addHandler(fileHandler)
@@ -113,7 +101,7 @@ class WorkFlow(object):
             raise(exp)
 
         # Name is new. Create a new AccumulatedValue object.
-        self.AV[name] = AccumulatedValue(name, avgWidth)
+        self.AV[name] = accValue.AccumulatedValue(name, avgWidth)
 
     def have_accumulated_value(self, name):
         return (name in self.AV.keys())
@@ -136,18 +124,18 @@ class WorkFlow(object):
         self.check_signal()
 
         # Check whether the working directory exists.
-        if (False == os.path.isdir(self.workingDir)):
+        if not os.path.isdir(self.workingDir):
             # Directory does not exist, create the directory.
             os.mkdir(self.workingDir)
 
-        if (True == self.isInitialized):
+        if self.isInitialized:
             # This should be an error.
             desc = "The work flow is already initialized."
             exp = WFException(desc, "initialize")
             raise(exp)
 
         # Initialize AVP.
-        if (len(self.AVP) > 0):
+        if len(self.AVP) > 0:
             self.AVP[0].initialize()
             self.logger.info("AVP initialized.")
 
@@ -158,6 +146,7 @@ class WorkFlow(object):
         self.isInitialized = True
 
         self.debug_print("initialize() get called.")
+        self.logger.info("WF initialized.")
 
     def train(self):
         # Check the system-wide signal.
@@ -186,7 +175,7 @@ class WorkFlow(object):
     def finalize(self):
         WorkFlow.IS_FINALISING = True
 
-        if (False == self.isInitialized):
+        if not self.isInitialized:
             # This should be an error.
             desc = "The work flow is not initialized yet."
             exp = WFException(desc, "finalize")
@@ -206,7 +195,7 @@ class WorkFlow(object):
         WorkFlow.IS_FINALISING = False
 
     def plot_accumulated_values(self):
-        if (0 == len(self.AVP)):
+        if len(self.AVP) == 0:
             return
 
         for avp in self.AVP:
@@ -248,7 +237,7 @@ class WorkFlow(object):
 
     def check_signal(self):
         if (True == WorkFlow.SIG_INT):
-            raise SigIntException("SIGINT received.", "SigIntExp")
+            raise WFException("SIGINT received.", "SigIntExp")
 
     def print_delimeter(self, title="", c="=", n=10, leading="\n", ending="\n"):
         d = [c for i in range(int(n))]
@@ -263,10 +252,12 @@ class WorkFlow(object):
     def get_log_str(self):
         logstr = ''
         for key in self.AV.keys():
+            print key
             try:
                 logstr += '%s: %.5f ' % (key, self.AV[key].last_avg())
             except WFException as e:
                 continue
+
         return logstr
 
 # Default signal handler.

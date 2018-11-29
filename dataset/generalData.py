@@ -1,12 +1,15 @@
 import sys
 sys.path.insert(0, "..")
 
+
+import cv2
 import random
 import torch
+import numpy as np
 
 from torch.utils.data import Dataset
 from utils.image import im_scale_norm_pad, im_crop, im_hsv_augmentation
-
+from utils.data import label_from_angle
 
 class DataLoader(torch.utils.data.DataLoader):
 
@@ -24,7 +27,7 @@ class DataLoader(torch.utils.data.DataLoader):
         try:
             sample = self.data_iter.next()
         except:
-            epoch += 1
+            self.epoch += 1
             self.data_iter = iter(self)
             sample = self.data_iter.next()
 

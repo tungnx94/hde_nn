@@ -18,12 +18,12 @@ Factors = [4, 1]
 class UnlabelDataset(GeneralDataset):
 
     def __init__(self, seq_length, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
-        self.seg_length = seq_length
+        self.seq_length = seq_length
 
-        super(LabelDataset, self).__init__(balance, mean, std)
+        super(UnlabelDataset, self).__init__(balance, mean, std)
 
     def init_datasets(self):
-        if self.factors is None
+        if self.factors is None:
             self.factors = Factors
 
         ucf = FolderUnlabelDataset(

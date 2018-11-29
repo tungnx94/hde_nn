@@ -4,17 +4,19 @@ sys.path.append("..")
 import torch
 import config as cnf
 
+from generalWF import GeneralWF
 from utils.data import unlabel_loss, angle_metric, get_path
-from data.folderLabelData import FolderLabelDataset
-from data.folderUnlabelData import FolderUnlabelDataset
-from data.dukeSeqLabelData import DukeSeqLabelDataset
+
+from dataset.folderLabelData import FolderLabelDataset
+from dataset.folderUnlabelData import FolderUnlabelDataset
+from dataset.dukeSeqLabelData import DukeSeqLabelDataset
 
 LabelSeqLength = 24  # 32
 TestStep = 10000  # number of test() calls
 
 TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
 TestLabelImgFolder = 'val_drone'
-TestUnlabelImgFolder = 'gascola/20180811'
+TestUnlabelImgFolder = 'drone_unlabel_seq'
 
 class TestWF(GeneralWF):
 
@@ -26,8 +28,8 @@ class TestWF(GeneralWF):
 
 class TestLabelSeqWF(TestWF):  # Type 1
 
-    def get_test_dataset(self)
-        return DukeSeqLabelDataset(get_path(TestLabelFile), seg_length=LabelSeqLength, data_aug=True,
+    def get_test_dataset(self):
+        return DukeSeqLabelDataset(get_path(TestLabelFile), seq_length=LabelSeqLength, data_aug=True,
                                    mean=self.mean, std=self.std)
 
 

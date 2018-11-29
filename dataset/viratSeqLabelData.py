@@ -79,8 +79,7 @@ if __name__ == '__main__':
         get_path(label_file), seq_length=24, data_aug=True)
     print len(unlabelset)
 
-    import ipdb
-    ipdb.set_trace()
+    #import ipdb; ipdb.set_trace()
 
     dataloader = DataLoader(unlabelset)
     count = 10
