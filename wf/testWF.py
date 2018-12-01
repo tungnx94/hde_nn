@@ -7,9 +7,7 @@ import config as cnf
 from generalWF import GeneralWF
 from utils.data import unlabel_loss, angle_metric, get_path
 
-from dataset.folderLabelData import FolderLabelDataset
-from dataset.folderUnlabelData import FolderUnlabelDataset
-from dataset.dukeSeqLabelData import DukeSeqLabelDataset
+from dataset import FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
 LabelSeqLength = 24  # 32
 TestStep = 10000  # number of test() calls

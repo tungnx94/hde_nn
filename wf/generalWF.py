@@ -7,7 +7,7 @@ import numpy as np
 
 from workflow import WorkFlow
 from dataset.generalData import DataLoader
-from network.MobileReg import MobileReg
+from network import MobileReg
 
 from utils.data import loadPretrain, unlabel_loss, angle_metric
 from utils.image import seq_show

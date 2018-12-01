@@ -1,8 +1,6 @@
 import config as cnf
 
-from wf.workflow import WFException
-from wf.trainWF import TrainWF
-from wf.testWF import TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
+from wf import WFException, TrainWF, TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
 PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 

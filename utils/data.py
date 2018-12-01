@@ -100,3 +100,12 @@ def accuracy_cls(outputs, labels):
 def angle_metric(outputs, labels):
     """ return angle loss and accuracy"""
     return angle_loss(outputs, labels), angle_cls(outputs, labels)
+
+def groupPlot(data_x, data_y, group=10):
+    def shape_data(data):
+        data = np.array(data)
+        data = data[:len(data)/group * group]
+        data = data.reshape((-1, group)).mean(axis=1)
+        return data
+
+    return shape_data(data_x), shape_data(data_y)

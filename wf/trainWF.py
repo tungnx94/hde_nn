@@ -9,10 +9,8 @@ import config as cnf
 
 from utils.data import unlabel_loss, get_path
 
-from generalWF import GeneralWF, DataLoader
-from dataset.labelData import LabelDataset
-from dataset.unlabelData import UnlabelDataset
-from dataset.dukeSeqLabelData import DukeSeqLabelDataset
+from generalWF import GeneralWF
+from dataset import LabelDataset, UnlabelDataset, DukeSeqLabelDataset, DataLoader
 
 from wf.visdomPlotter import VisdomLinePlotter
 
