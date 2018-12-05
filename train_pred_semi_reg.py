@@ -48,7 +48,7 @@ UnlabelBatch = 32  # sequence length
 ValBatch = 100
 
 TrainStep = 200 # 10000
-ShowIter = 25
+ShowIter = 10
 SnapShot = 50 # 500
 TrainLayers = 0
 
@@ -121,8 +121,8 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
     """ validate on labeled dataset """
     inputImgs = val_sample['img']
     labels = val_sample['label']
-    inputState = new_Variable(inputImgs, requires_grad=False)
-    targetreg = new_Variable(labels, requires_grad=False)
+    inputState = new_variable(inputImgs, requires_grad=False)
+    targetreg = new_variable(labels, requires_grad=False)
 
     output, _, _ = encoderReg(inputState)
     loss = criterion(output, targetreg)
@@ -161,6 +161,7 @@ def main():
     criterion = nn.MSELoss()
 
     # Datasets
+    print "loading datasets"
     imgdataset = TrackingLabelDataset(
         data_file=DukeLabelFile, data_aug=True)  # Duke, 225426
     imgdataset2 = FolderLabelDataset(

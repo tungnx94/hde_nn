@@ -7,7 +7,7 @@ import random
 import numpy as np
 
 from generalData import SingleDataset
-from utils im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
+from utils import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
 
 
 class FolderLabelDataset(SingleDataset):
