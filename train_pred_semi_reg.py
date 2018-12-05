@@ -41,15 +41,16 @@ UnlabelFolder = get_path("dirimg")
 TestLabelFile = get_path("DukeMCMT/test_heading_gt.txt")
 TestLabelFolder = get_path("val_drone")
 
-
 LR = 0.01
-Lamb = 5.0
+Lamb = 0.5
+
 TrainBatch = 32
 UnlabelBatch = 32  # sequence length
 ValBatch = 100
-TrainStep = 10000
-ShowIter = 50
-SnapShot = 2000
+
+TrainStep = 200 # 10000
+ShowIter = 25
+SnapShot = 50 # 500
 TrainLayers = 0
 
 Hiddens = [3, 16, 32, 32, 64, 64, 128, 256]
@@ -107,10 +108,10 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, regOptimizer, criter
     output, _, _ = encoderReg(inputState)
 
     output_unlabel, encode, pred = encoderReg(inputState_unlabel)
-    pred_target = encode[UnlabelBatch / 2:, :].detach() # ?
+    pred_target = encode[UnlabelBatch / 2:, :].detach()  # ?
 
     loss_label = criterion(output, targetreg)
-    loss_pred = criterion(pred, pred_target)
+    loss_pred = criterion(pred, pred_target) # unlabel loss
 
     loss = loss_label + loss_pred * Lamb
 
@@ -138,16 +139,6 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
 
     return loss.item()
 
-"""
-encode the input using pretrained model
-print 'load pretrained...'
-#preTrainModel = 'models_facing/8_13_ed_reg_46000.pkl'
-#preTrainModel = 'models_facing/3_5_ed_cls_10000.pkl'
-#preTrainModel = 'models_facing/1_2_encoder_decoder_facing_leaky_50000.pkl'
-preTrainModel = 'models_facing/13_1_ed_reg_100000.pkl'
-encoderReg=loadPretrain(encoderReg,preTrainModel)
-"""
-
 
 def save_snapshot(model, label_loss, unlabel_loss, total_loss, val_loss):
     torch.save(model.state_dict(), ModelName + '_' + str(ind) + '.pkl')
@@ -164,6 +155,13 @@ def main():
         Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128)
     encoderReg.cuda()
 
+    """
+    # load weights
+    print 'load pretrained...'
+    preTrainModel = 'models_facing/13_1_ed_reg_100000.pkl'
+    encoderReg=loadPretrain(encoderReg,preTrainModel)
+    """
+
     paramlist = list(encoderReg.parameters())
     regOptimizer = optim.SGD(paramlist[-TrainLayers:], lr=LR, momentum=0.9)
     # regOptimizer = optim.Adam(paramlist[-TrainLayers:], lr = lr)
@@ -179,7 +177,7 @@ def main():
     unlabelset = FolderUnlabelDataset(
         img_dir=UnlabelFolder, seq_length=UnlabelBatch, data_aug=True, extend=True)
 
-    valset = FolderLabelDataset(TestLabelFolder, data_aug=False) 
+    valset = FolderLabelDataset(TestLabelFolder, data_aug=False)
     #valset2 = DukeSeqLabelDataset(TestLabelFolder, data_aug=False)
 
     # Dataloaders
@@ -190,7 +188,6 @@ def main():
 
     valloader = DataLoader(valset, batch_size=ValBatch,
                            num_workers=2, shuffle=False)
-    
 
     # Loss history
     lossplot = []
@@ -204,7 +201,8 @@ def main():
         # load next samples
         if ind % 2 == 0:
             sample = dataloader.next_sample()
-        else: sample = dataloader2.next_sample()
+        else:
+            sample = dataloader2.next_sample()
 
         unlabel_sample = unlabelloader.next_sample()
 
@@ -224,8 +222,8 @@ def main():
 
             vallossplot.append(val_loss)
 
-        print('[%s %d] loss: %.5f, label-loss: %.5f, val-loss: %.5f, unlabel-loss: %.5f' %
-              (exp_prefix[:-1], ind, total_loss, label_loss, val_loss, unlabel_loss))
+        print("[%s %d] loss: %.5f, label: %.5f, unlabel: %.5f, val: %.5f "%
+              (exp_prefix[:-1], ind, total_loss, label_loss, unlabel_loss, val_loss))
 
         if ind % SnapShot == 0:  # Save model + loss
             save_shapshot(encoderReg, labellossplot,

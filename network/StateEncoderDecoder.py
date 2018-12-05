@@ -20,6 +20,7 @@ class StateCoder(nn.Module):
     deep ConvNet
     can be used as encoder or decoder
     """
+
     def __init__(self, hiddens, kernels, strides, paddings, actfunc):
         super(StateCoder, self).__init__()
 
@@ -92,6 +93,7 @@ class StateEncoderDecoder(nn.Module):
 
 class EncoderFC(nn.Module):
     """ encoder + fc-layer """
+
     def __init__(self, hiddens, kernels, strides, paddings, actfunc='relu', fc_layer=2):
         super(EncoderFC, self).__init__()
         self.encoder = StateCoder(
@@ -107,6 +109,7 @@ class EncoderFC(nn.Module):
 
 class EncoderCls(EncoderFC):
     """ encoder classificator """
+
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', clsnum=8):
         super(EncoderCls, self).__init__(hiddens, kernels,
                                          strides, paddings, actfunc, fc_layer=clsnum)
@@ -114,6 +117,7 @@ class EncoderCls(EncoderFC):
 
 class EncoderReg(EncoderFC):
     """ encoder regressor """
+
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2):
         super(EncoderCls, self).__init__(hiddens, kernels,
                                          strides, paddings, actfunc, fc_layer=regnum)
@@ -121,6 +125,7 @@ class EncoderReg(EncoderFC):
 
 class EncoderReg_norm(EncoderReg):
     """ normalized version of EncoderReg """
+
     def forward(self, x):
         x_encode = self.encoder(x)
         x = self.fc(x_encode.view(x_encode.size()[0], -1))
@@ -184,15 +189,14 @@ if __name__ == '__main__':
     import torch.optim as optim
     import matplotlib.pyplot as plt
 
-    from torch.utils.data import DataLoader
-    from facingDroneUnlabelData import FacingDroneUnlabelDataset
+    from dataset import DataLoader, FolderUnlabelDataset
+    from utils.data import get_path
 
     hiddens = [3, 16, 32, 32, 64, 64, 128, 256]
     kernels = [4, 4, 4, 4, 4, 4, 3]
     paddings = [1, 1, 1, 1, 1, 1, 0]
     strides = [2, 2, 2, 2, 2, 2, 1]
 
-    datasetdir = '/home/wenshan/datasets'
     unlabel_batch = 4
     lr = 0.005
 
@@ -201,17 +205,15 @@ if __name__ == '__main__':
     if torch.cuda.is_available():
         stateEncoder.cuda()
 
-    print stateEncoder
-
     paramlist = list(stateEncoder.parameters())
-    print len(paramlist)
-    # for par in paramlist:
-    #     print par.size()
 
-    imgdataset = FacingDroneUnlabelDataset(imgdir=os.path.join(datasetdir, 'dirimg'),
-                                           batch=unlabel_batch, data_aug=True, extend=False)
-    dataloader = DataLoader(imgdataset, batch_size=1,
-                            shuffle=True, num_workers=1)
+    print stateEncoder
+    print len(paramlist)
+
+    # data
+    imgdataset = FolderUnlabelDataset(img_dir=get_path(
+        "dirimg"), seq_length=unlabel_batch, data_aug=True, include_all=True)
+    dataloader = DataLoader(imgdataset)
 
     criterion = nn.MSELoss()
     regOptimizer = optim.SGD(stateEncoder.parameters(), lr=lr, momentum=0.9)
@@ -220,17 +222,19 @@ if __name__ == '__main__':
     lossplot = []
     encodesumplot = []
 
-    ind = 1000
+    ind = 200
     for sample in dataloader:
         inputVar = Variable(sample.squeeze()).cuda()
         x, encode, pred = stateEncoder(inputVar)
 
-        # print inputVar.size()
-        # print encode
-        # print encode.size(), x.size(), pred.size()
+        """
+        print inputVar.size()
+        print encode
+        print encode.size(), x.size(), pred.size()
 
-        # # loss = loss_label + loss_pred * lamb #+ normloss * lamb2
-        # # loss.backward()
+        # loss = loss_label + loss_pred * lamb #+ normloss * lamb2
+        # loss.backward()
+        """
 
         pred_target = encode[unlabel_batch / 2:, :].detach()
         loss_pred = criterion(pred, pred_target)
@@ -240,15 +244,15 @@ if __name__ == '__main__':
         loss_pred.backward()
         regOptimizer.step()
 
-        lossplot.append(loss_pred.data[0])
-        encodesumplot.append(encode.mean().data[0])
-        print ind, loss_pred.data[0], encode.mean().data[0]
+        lossplot.append(loss_pred.item())
+        encodesumplot.append(encode.mean().item())
+        print ind, loss_pred.item(), encode.mean().item()
 
         ind -= 1
         if ind < 0:
             break
 
-    import matplotlib.pyplot as plt
+    # plot data
     plt.plot(lossplot)
     plt.plot(encodesumplot)
     plt.grid()
