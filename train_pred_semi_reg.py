@@ -16,7 +16,7 @@ from dataset.generalData import DataLoader
 from utils.data import groupPlot, get_path
 from network import EncoderReg_Pred
 
-from dataset import TrackingLabelDataset, FolderLabelDataset, FolderUnlabelData, DukeSeqLabelDataset
+from dataset import TrackingLabelDataset, FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
 UseGPU = torch.cuda.is_available()
 
@@ -58,7 +58,7 @@ Paddings = [1, 1, 1, 1, 1, 1, 0]
 Strides = [2, 2, 2, 2, 2, 2, 1]
 
 
-def visualize(lossplot, labellossplot, unlabellossplot, vallossplot, unlabellossplot):
+def visualize(lossplot, labellossplot, unlabellossplot, vallossplot):
     labellossplot = np.array(labellossplot).reshape((-1, 1)).mean(axis=1)
     vallossplot = np.array(vallossplot)
 
@@ -119,7 +119,7 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, regOptimizer, criter
     loss.backward()
     regOptimizer.step()
 
-    return loss_label.data[0], loss_pred.data[0], loss.data[0]
+    return loss_label.item(), loss_pred.item(), loss.item()
 
 
 def test_label(val_sample, encoderReg, criterion, batchnum=1):
@@ -136,7 +136,7 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
     output, _, _ = encoderReg(inputState)
     loss = criterion(output, targetreg)
 
-    return loss.data[0]
+    return loss.item()
 
 """
 encode the input using pretrained model
@@ -173,20 +173,21 @@ def main():
     # Datasets
     imgdataset = TrackingLabelDataset(
         data_file=DukeLabelFile, data_aug=True)  # Duke, 225426
-
     imgdataset2 = FolderLabelDataset(
         img_dir=HandLabelFolder, data_aug=True)  # HandLabel, 1201
 
     unlabelset = FolderUnlabelDataset(
         img_dir=UnlabelFolder, seq_length=UnlabelBatch, data_aug=True, extend=True)
 
-    valset = DukeSeqLabelDataset(TestLabelFolder, data_aug=False)
+    valset = FolderLabelDataset(TestLabelFolder, data_aug=False) 
+    #valset2 = DukeSeqLabelDataset(TestLabelFolder, data_aug=False)
 
     # Dataloaders
     dataloader = DataLoader(imgdataset, batch_size=TrainBatch, num_workers=2)
     dataloader2 = DataLoader(imgdataset2, batch_size=TrainBatch, num_workers=2)
+
     unlabelloader = DataLoader(unlabelset, num_workers=2)
-    
+
     valloader = DataLoader(valset, batch_size=ValBatch,
                            num_workers=2, shuffle=False)
     
@@ -203,7 +204,7 @@ def main():
         # load next samples
         if ind % 2 == 0:
             sample = dataloader.next_sample()
-        else sample = dataloader2.next_sample()
+        else: sample = dataloader2.next_sample()
 
         unlabel_sample = unlabelloader.next_sample()
 

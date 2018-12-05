@@ -21,7 +21,7 @@ class StateCoder(nn.Module):
     can be used as encoder or decoder
     """
     def __init__(self, hiddens, kernels, strides, paddings, actfunc):
-        super(StateEncoder, self).__init__()
+        super(StateCoder, self).__init__()
 
         self.coder = nn.Sequential()
         for k in range(len(hiddens) - 1):
@@ -90,7 +90,7 @@ class StateEncoderDecoder(nn.Module):
         return x
 
 
-class EncoderFC(nn.Module)
+class EncoderFC(nn.Module):
     """ encoder + fc-layer """
     def __init__(self, hiddens, kernels, strides, paddings, actfunc='relu', fc_layer=2):
         super(EncoderFC, self).__init__()
@@ -135,7 +135,7 @@ class EncoderReg_Pred(nn.Module):
 
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2, rnnHidNum=128):
         super(EncoderReg_Pred, self).__init__()
-        self.encoder = StateEncoder(
+        self.encoder = StateCoder(
             hiddens, kernels, strides, paddings, actfunc)
         self.reg = nn.Linear(hiddens[-1], regnum)
         self.codenum = hiddens[-1]
