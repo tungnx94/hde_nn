@@ -172,7 +172,7 @@ def main():
     imgdataset = FacingDroneLabelDataset(imgdir=TrainFolder1, data_aug=True)
     imgdataset2 = FacingLabelDataset(annodir=AnnoFolder2, imgdir=TrainFolder2, data_aug=True)
 
-    unlabelset = FolderUnlabelData(imgdir=UnlabelFolder, batch=UnlabelBatch, data_aug=True, extend=True)
+    unlabelset = FolderUnlabelDataset(imgdir=UnlabelFolder, batch=UnlabelBatch, data_aug=True, extend=True)
 
     valset = FacingDroneLabelDataset(imgdir=ValFolder)
     

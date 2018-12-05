@@ -9,27 +9,23 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 
-from os.path import join as joinPathPath
+from os.path import join as joinPath
 from torch.autograd import Variable
 from dataset.generalData import DataLoader
 
-from utils.data import groupPlot
-from network EncoderReg_Pred
+from utils.data import groupPlot, get_path
+from network import EncoderReg_Pred
 
-from dataset import FolderUnlabelData
-
-from facingDroneLabelData import FacingDroneLabelDataset
-from facingLabelData import FacingLabelDataset
+from dataset import TrackingLabelDataset, FolderLabelDataset, FolderUnlabelData, DukeSeqLabelDataset
 
 UseGPU = torch.cuda.is_available()
 
 exp_prefix = '20_2_'
 
 OutDir = 'resimg'
-DataDir = 'data_facing' # save folder for snapshot
-DatasetDir = '/home/wenshan/datasets'
+DataDir = 'data_semi_reg'  # save folder for snapshot
 
-ModelName = 'models_facing/' + exp_prefix + 'pred_reg'
+ModelName = 'models/' + exp_prefix + 'pred_reg'
 ModelFile = joinPath(OutDir, ModelName.split('/')[-1] + '.png')
 
 LossFile = joinPath(DataDir, exp_prefix + 'lossplot.npy')
@@ -37,11 +33,14 @@ ValLossFile = joinPath(DataDir, exp_prefix + 'vallossplot.npy')
 LabelLossFile = joinPath(DataDir, exp_prefix + 'unlabellossplot.npy')
 UnlabelLossFile = joinPath(DataDir, exp_prefix + 'labellossplot.npy')
 
-TrainFolder1 = joinPath(DatasetDir, 'droneData/label') #
-TrainFolder2 = joinPath(DatasetDir, 'facing/facing_img_coco') #
-AnnoFolder2 = joinPath(DatasetDir, 'facing/facing_anno') #
-ValFolder = joinPath(DatasetDir, 'droneData/val') #
-UnlabelFolder = joinPath(DatasetDir, 'dirimg') 
+DukeLabelFile = get_path("DukeMCMT/trainval_duke.txt")
+HandLabelFolder = get_path("label")
+
+UnlabelFolder = get_path("dirimg")
+
+TestLabelFile = get_path("DukeMCMT/test_heading_gt.txt")
+TestLabelFolder = get_path("val_drone")
+
 
 LR = 0.01
 Lamb = 5.0
@@ -106,9 +105,9 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, regOptimizer, criter
 
     # forward pass
     output, _, _ = encoderReg(inputState)
-    
+
     output_unlabel, encode, pred = encoderReg(inputState_unlabel)
-    pred_target = encode[UnlabelBatch / 2:, :].detach()
+    pred_target = encode[UnlabelBatch / 2:, :].detach() # ?
 
     loss_label = criterion(output, targetreg)
     loss_pred = criterion(pred, pred_target)
@@ -148,6 +147,8 @@ print 'load pretrained...'
 preTrainModel = 'models_facing/13_1_ed_reg_100000.pkl'
 encoderReg=loadPretrain(encoderReg,preTrainModel)
 """
+
+
 def save_snapshot(model, label_loss, unlabel_loss, total_loss, val_loss):
     torch.save(model.state_dict(), ModelName + '_' + str(ind) + '.pkl')
 
@@ -155,6 +156,7 @@ def save_snapshot(model, label_loss, unlabel_loss, total_loss, val_loss):
     np.save(ValLossFile, val_loss)
     np.save(LabelLossFile, label_loss)
     np.save(UnlabelLossFile, unlabel_loss)
+
 
 def main():
     # Encoder model
@@ -169,19 +171,25 @@ def main():
     criterion = nn.MSELoss()
 
     # Datasets
-    imgdataset = FacingDroneLabelDataset(imgdir=TrainFolder1, data_aug=True)
-    imgdataset2 = FacingLabelDataset(annodir=AnnoFolder2, imgdir=TrainFolder2, data_aug=True)
+    imgdataset = TrackingLabelDataset(
+        data_file=DukeLabelFile, data_aug=True)  # Duke, 225426
 
-    unlabelset = FolderUnlabelData(imgdir=UnlabelFolder, batch=UnlabelBatch, data_aug=True, extend=True)
+    imgdataset2 = FolderLabelDataset(
+        img_dir=HandLabelFolder, data_aug=True)  # HandLabel, 1201
 
-    valset = FacingDroneLabelDataset(imgdir=ValFolder)
-    
+    unlabelset = FolderUnlabelDataset(
+        img_dir=UnlabelFolder, seq_length=UnlabelBatch, data_aug=True, extend=True)
+
+    valset = DukeSeqLabelDataset(TestLabelFolder, data_aug=False)
+
     # Dataloaders
     dataloader = DataLoader(imgdataset, batch_size=TrainBatch, num_workers=2)
     dataloader2 = DataLoader(imgdataset2, batch_size=TrainBatch, num_workers=2)
+    unlabelloader = DataLoader(unlabelset, num_workers=2)
+    
     valloader = DataLoader(valset, batch_size=ValBatch,
                            num_workers=2, shuffle=False)
-    unlabelloader = DataLoader(unlabelset, num_workers=2)
+    
 
     # Loss history
     lossplot = []
@@ -219,7 +227,8 @@ def main():
               (exp_prefix[:-1], ind, total_loss, label_loss, val_loss, unlabel_loss))
 
         if ind % SnapShot == 0:  # Save model + loss
-            save_shapshot(encoderReg, labellossplot, unlabellossplot, lossplot, vallossplot)
+            save_shapshot(encoderReg, labellossplot,
+                          unlabellossplot, lossplot, vallossplot)
 
     visualize(lossplot, labellossplot, unlabellossplot, vallossplot)
 
