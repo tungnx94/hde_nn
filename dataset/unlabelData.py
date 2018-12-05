@@ -2,7 +2,7 @@
 import sys
 sys.path.insert(0, "..")
 
-from utils.data import get_path
+from utils import get_path
 from generalData import GeneralDataset
 from folderUnlabelData import FolderUnlabelDataset
 
@@ -39,7 +39,7 @@ def main():
     # test
     import cv2
     import numpy as np
-    from utils.image import seq_show, put_arrow
+    from utils import seq_show, put_arrow
     from generalData import DataLoader
 
     np.set_printoptions(precision=4)

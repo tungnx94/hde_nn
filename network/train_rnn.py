@@ -19,7 +19,7 @@ from dataset.generalData import DataLoader
 from dataset.dukeSeqLabelData import DukeSeqLabelDataset
 from dataset.viratSeqLabelData import ViratSeqLabelDataset
 
-from utils.image import img_denormalize, put_arrow
+from utils import img_denormalize, put_arrow
 
 IS_CUDA = torch.cuda.is_available()  # True
 

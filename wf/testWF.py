@@ -5,7 +5,7 @@ import torch
 import config as cnf
 
 from generalWF import GeneralWF
-from utils.data import unlabel_loss, angle_metric, get_path
+from utils import unlabel_loss, angle_metric, get_path
 
 from dataset import FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 

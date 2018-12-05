@@ -8,7 +8,7 @@ import os
 import cv2
 import numpy as np
 
-from utils.data import unlabel_loss, label_from_angle
+from utils import unlabel_loss, label_from_angle
 from generalData import SingleSequenceDataset
 
 
@@ -70,8 +70,7 @@ class ViratSeqLabelDataset(SingleSequenceDataset):
 if __name__ == '__main__':
     # test
     from generalData import DataLoader
-    from utils.image import seq_show
-    from utils.data import get_path
+    from utils import get_path, seq_show
     np.set_printoptions(precision=4)
 
     label_file = 'VIRAT/train/annotations/annotations.csv'

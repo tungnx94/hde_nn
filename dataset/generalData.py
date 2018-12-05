@@ -8,8 +8,7 @@ import torch
 import numpy as np
 
 from torch.utils.data import Dataset
-from utils.image import im_scale_norm_pad, im_crop, im_hsv_augmentation
-from utils.data import label_from_angle
+from utils import label_from_angle, im_scale_norm_pad, im_crop, im_hsv_augmentation
 
 class DataLoader(torch.utils.data.DataLoader):
 

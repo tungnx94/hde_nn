@@ -7,7 +7,7 @@ import random
 import numpy as np
 
 from generalData import SingleDataset
-from utils.image import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
+from utils im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
 
 
 class FolderLabelDataset(SingleDataset):
@@ -58,8 +58,7 @@ class FolderLabelDataset(SingleDataset):
 def main():
     # test
     from generalData import DataLoader
-    from utils.image import seq_show, put_arrow
-    from utils.data import get_path 
+    from utils import get_path, seq_show, put_arrow
 
     np.set_printoptions(precision=4)
 

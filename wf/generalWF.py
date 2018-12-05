@@ -9,9 +9,7 @@ from workflow import WorkFlow
 from dataset.generalData import DataLoader
 from network import MobileReg
 
-from utils.data import loadPretrain, unlabel_loss, angle_metric
-from utils.image import seq_show
-
+from utils import loadPretrain, unlabel_loss, angle_metric, seq_show
 
 Lamb = 0.1
 Thresh = 0.005  # unlabel_loss threshold

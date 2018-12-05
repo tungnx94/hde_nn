@@ -4,15 +4,13 @@ sys.path.append("..")
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
 import config as cnf
 
-from utils.data import unlabel_loss, get_path
+from wf import VisdomLinePlotter
+from utils import unlabel_loss, get_path
 
 from generalWF import GeneralWF
 from dataset import LabelDataset, UnlabelDataset, DukeSeqLabelDataset, DataLoader
-
-from wf.visdomPlotter import VisdomLinePlotter
 
 Batch = 128
 SeqLength = 24  # 32

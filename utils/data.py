@@ -5,10 +5,19 @@ import numpy as np
 
 from math import pi
 
-
 BASE = "/media/mohammad/DATA/icra2019"
+
+
 def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
+
+
+def new_variable(tensor, **kwargs):
+    var = Variable(tensor, kwargs)
+    if torch.nn.is_available():
+        var = var.cuda()
+    return var
+
 
 def loadPretrain(model, preTrainModel):
     """ load the trained parameters from a pickle file """
@@ -101,10 +110,11 @@ def angle_metric(outputs, labels):
     """ return angle loss and accuracy"""
     return angle_loss(outputs, labels), angle_cls(outputs, labels)
 
+
 def groupPlot(data_x, data_y, group=10):
     def shape_data(data):
         data = np.array(data)
-        data = data[:len(data)/group * group]
+        data = data[:len(data) / group * group]
         data = data.reshape((-1, group)).mean(axis=1)
         return data
 

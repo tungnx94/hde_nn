@@ -6,13 +6,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torch.autograd import Variable
+from utils import new_variable
 
-# these are default values of the network
-# if the initial values are not assigned, these values will be used
+# default network parameters
 HiddensDF = [1, 8, 16, 16, 32, 32]  # 14, 7, 4, 2, 1
 KernelsDF = [4, 4, 3, 4, 2]
 PaddingsDF = [1, 1, 1, 1, 0]
 StridesDF = [2, 2, 2, 2, 1]
+
+UseGPU = torch.cuda.is_available()
 
 
 class StateCoder(nn.Module):
@@ -20,7 +22,6 @@ class StateCoder(nn.Module):
     deep ConvNet
     can be used as encoder or decoder
     """
-
     def __init__(self, hiddens, kernels, strides, paddings, actfunc):
         super(StateCoder, self).__init__()
 
@@ -131,7 +132,7 @@ class EncoderReg_norm(EncoderReg):
         x = self.fc(x_encode.view(x_encode.size()[0], -1))
         y = x.abs()  # normalize so |x| + |y| = 1
         y = y.sum(dim=1)
-        # import ipdb; ipdb.set_trace()
+
         x = x / y.unsqueeze(1)
         return x, x_encode
 
@@ -140,57 +141,67 @@ class EncoderReg_Pred(nn.Module):
 
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2, rnnHidNum=128):
         super(EncoderReg_Pred, self).__init__()
+        self.codenum = hiddens[-1]  # input size for LSTM
+        self.rnnHidNum = rnnHidNum  # hidden layer size
+
         self.encoder = StateCoder(
             hiddens, kernels, strides, paddings, actfunc)
-        self.reg = nn.Linear(hiddens[-1], regnum)
-        self.codenum = hiddens[-1]
 
-        self.rnnHidNum = rnnHidNum
-        self.pred_en = nn.LSTM(hiddens[-1], rnnHidNum)
-        self.pred_de = nn.LSTM(hiddens[-1], rnnHidNum)
+        self.reg = nn.Linear(self.codenum, regnum)
+
+        self.pred_en = nn.LSTM(self.codenum, rnnHidNum)
+
+        self.pred_de = nn.LSTM(self.codenum, rnnHidNum)
         self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum)
 
     def init_hidden(self, hidden_size, batch_size):
-        return (Variable(torch.zeros(1, batch_size, hidden_size)).cuda(),
-                Variable(torch.zeros(1, batch_size, hidden_size)).cuda())
+        h1 = new_variable(torch.zeros(1, batch_size, hidden_size))
+        h2 = new_variable(torch.zeros(1, batch_size, hidden_size))
+
+        if UseGPU:
+            return h1.cuda(), h2.cuda()
+        else:
+            return h1, h2
 
     def forward(self, x):
         x_encode = self.encoder(x)
         batchsize = x_encode.size()[0]
         x_encode = x_encode.view(batchsize, -1)
-        # regression the direction
-        x = self.reg(x_encode)
-        # y = x.abs() # normalize so |x| + |y| = 1
-        # y = y.sum(dim=1)
-        # x = x/y.unsqueeze(1)
+
+        # regression (sin, cosin)
+        x_reg = self.reg(x_encode)
 
         # rnn predictor
         innum = batchsize / 2  # use first half as input, last half as target
+
         # input of LSTM should be T x batch x InLen
         pred_in = x_encode[0:innum, :].unsqueeze(1)
         hidden = self.init_hidden(self.rnnHidNum, 1)
         pred_en_out, hidden = self.pred_en(pred_in, hidden)
 
         # import ipdb; ipdb.set_trace()
-        pred_de_in = Variable(torch.zeros(1, 1, self.codenum)).cuda()
+        pred_de_in = new_variable(torch.zeros(1, 1, self.codenum))
+
         pred_out = []
         for k in range(innum, batchsize):  # input the decoder one by one cause there's a loop
             pred_de_out, hidden = self.pred_de(pred_de_in, hidden)
             pred_de_out = self.pred_de_linear(
                 pred_de_out.view(1, self.rnnHidNum))
+
             pred_out.append(pred_de_out)
             pred_de_in = pred_de_out.detach().unsqueeze(1)
 
         pred_out = torch.cat(tuple(pred_out), dim=0)
-        return x, x_encode, pred_out
+
+        return x_reg, x_encode, pred_out
 
 if __name__ == '__main__':
 
     import torch.optim as optim
     import matplotlib.pyplot as plt
 
+    from utils import get_path
     from dataset import DataLoader, FolderUnlabelDataset
-    from utils.data import get_path
 
     hiddens = [3, 16, 32, 32, 64, 64, 128, 256]
     kernels = [4, 4, 4, 4, 4, 4, 3]
@@ -200,9 +211,8 @@ if __name__ == '__main__':
     unlabel_batch = 4
     lr = 0.005
 
-    stateEncoder = EncoderReg_Pred(
-        hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
-    if torch.cuda.is_available():
+    stateEncoder = EncoderReg_Pred(hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
+    if UseGPU:
         stateEncoder.cuda()
 
     paramlist = list(stateEncoder.parameters())
@@ -224,20 +234,12 @@ if __name__ == '__main__':
 
     ind = 200
     for sample in dataloader:
-        inputVar = Variable(sample.squeeze()).cuda()
+        inputVar = new_variable(sample.squeeze())
+
         x, encode, pred = stateEncoder(inputVar)
 
-        """
-        print inputVar.size()
-        print encode
-        print encode.size(), x.size(), pred.size()
-
-        # loss = loss_label + loss_pred * lamb #+ normloss * lamb2
-        # loss.backward()
-        """
-
         pred_target = encode[unlabel_batch / 2:, :].detach()
-        loss_pred = criterion(pred, pred_target)
+        loss_pred = criterion(pred, pred_target)  # unlabel
 
         # back propagate
         regOptimizer.zero_grad()

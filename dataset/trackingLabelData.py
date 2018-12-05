@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import config as cnf
 
-from utils.data import label_from_angle
+from utils import label_from_angle
 from generalData import SingleDataset
 
 
@@ -70,8 +70,7 @@ class TrackingLabelDataset(SingleDataset):
 
 def main():
     # test
-    from utils.image import seq_show, put_arrow
-    from utils.data import get_path
+    from utils import get_path, seq_show, put_arrow
     from generalData import DataLoader
 
     np.set_printoptions(precision=4)

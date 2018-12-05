@@ -13,9 +13,8 @@ from os.path import join as joinPath
 from torch.autograd import Variable
 from dataset.generalData import DataLoader
 
-from utils.data import groupPlot, get_path
+from utils import get_path, groupPlot, new_variable
 from network import EncoderReg_Pred
-
 from dataset import TrackingLabelDataset, FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
 UseGPU = torch.cuda.is_available()
@@ -92,17 +91,12 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, regOptimizer, criter
     inputImgs = sample['img']
     labels = sample['label']
 
-    inputState = Variable(inputImgs, requires_grad=True)
-    targetreg = Variable(labels, requires_grad=False)
+    inputState = new_variable(inputImgs, requires_grad=True)
+    targetreg = new_variable(labels, requires_grad=False)
 
     # unlabel
     imgseq = unlabel_sample.squeeze()
-    inputState_unlabel = Variable(imgseq, requires_grad=True)
-
-    if UseGPU:
-        inputState = inputState.cuda()
-        targetreg = targetreg.cuda()
-        inputState_unlabel = inputState_unlabel.cuda()
+    inputState_unlabel = new_variable(imgseq, requires_grad=True)
 
     # forward pass
     output, _, _ = encoderReg(inputState)
@@ -127,12 +121,8 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
     """ validate on labeled dataset """
     inputImgs = val_sample['img']
     labels = val_sample['label']
-    inputState = Variable(inputImgs, requires_grad=False)
-    targetreg = Variable(labels, requires_grad=False)
-
-    if UseGPU:
-        inputState = inputState.cuda()
-        targetreg = targetreg.cuda()
+    inputState = new_Variable(inputImgs, requires_grad=False)
+    targetreg = new_Variable(labels, requires_grad=False)
 
     output, _, _ = encoderReg(inputState)
     loss = criterion(output, targetreg)
@@ -153,7 +143,9 @@ def main():
     # Encoder model
     encoderReg = EncoderReg_Pred(
         Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128)
-    encoderReg.cuda()
+
+    if UseGPU:
+        encoderReg.cuda()
 
     """
     # load weights

@@ -119,8 +119,7 @@ class FolderUnlabelDataset(SequenceDataset):
 def main():
     # test
     from generalData import DataLoader
-    from utils.image import seq_show
-    from utils.data import get_path
+    from utils import get_path, seq_show
 
     np.set_printoptions(precision=4)
     
