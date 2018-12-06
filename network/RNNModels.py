@@ -4,9 +4,9 @@ import torch.nn.functional as F
 
 import torchvision.models as models 
 
-from mobilenet import mobilenet_v1_050
+from mobilenet import mobilenet_v1
 
-MobileNetPretrained = 'pretrained_models/mobilenet_v1_0.50_224.pth'
+MobileNetPretrained = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 
 class GRUBaseline(nn.Module):
 
@@ -64,7 +64,7 @@ class MobilenetGRU(nn.Module):
         self.batch_size = batch_size
 
         # self.base_model = models.vgg16().features
-        self.base_model = mobilenet_v1_050()
+        self.base_model = mobilenet_v1(0.50)
 
         self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  # conv to 1 by 1
 

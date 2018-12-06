@@ -9,3 +9,4 @@ from folderLabelData import FolderLabelDataset
 from folderUnlabelData import FolderUnlabelDataset
 
 from dukeSeqLabelData import DukeSeqLabelDataset
+from viratSeqLabelData import ViratSeqLabelDataset
