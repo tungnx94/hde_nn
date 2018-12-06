@@ -26,10 +26,10 @@ class UnlabelDataset(GeneralDataset):
         if self.factors is None:
             self.factors = Factors
 
-        ucf = FolderUnlabelDataset(
+        ucf = FolderUnlabelDataset("ucf-unlabel-train",
             seq_length=self.seq_length, data_aug=True, data_file=UcfPath, mean=self.mean, std=self.std)  # 940
         
-        duke = FolderUnlabelDataset(
+        duke = FolderUnlabelDataset("duke-unlabel-train",
             seq_length=self.seq_length, data_aug=True, data_file=DukePath, mean=self.mean, std=self.std)  # 3997
 
         self.datasets = [ucf, duke]

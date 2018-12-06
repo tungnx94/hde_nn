@@ -12,10 +12,10 @@ from utils import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentati
 
 class FolderLabelDataset(SingleDataset):
 
-    def __init__(self, img_dir,
+    def __init__(self, name, img_dir,
                  img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
 
-        super(FolderLabelDataset, self).__init__(img_size, data_aug, maxscale, mean, std)
+        super(FolderLabelDataset, self).__init__(name, img_size, data_aug, maxscale, mean, std)
 
         # self.dir2ind = {'n': 0,'ne': 1,'e': 2, 'se': 3,'s': 4,'sw': 5,'w': 6,'nw': 7}
         self.dir2val = {'n':  [1., 0.],
@@ -43,7 +43,7 @@ class FolderLabelDataset(SingleDataset):
 
         self.N = len(self.img_names)
 
-        print 'Read #images: ', self.__len__()
+        self.read_debug()
 
     def __getitem__(self, idx):
         img = cv2.imread(self.img_names[idx])  # in bgr

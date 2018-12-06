@@ -15,10 +15,10 @@ from generalData import SingleDataset
 
 class TrackingLabelDataset(SingleDataset):
 
-    def __init__(self, data_file, img_size=192, data_aug=False, maxscale=0.1,
+    def __init__(self, name, data_file, img_size=192, data_aug=False, maxscale=0.1,
                  mean=[0, 0, 0], std=[1, 1, 1]):
 
-        super(TrackingLabelDataset, self).__init__(img_size, data_aug, maxscale, mean, std)
+        super(TrackingLabelDataset, self).__init__(name, img_size, data_aug, maxscale, mean, std)
 
         self.data_file = data_file
 
@@ -41,8 +41,7 @@ class TrackingLabelDataset(SingleDataset):
 
         self.N = len(self.items)
 
-        # debug
-        print 'Read #images: ', len(self.items)
+        self.read_debug()
 
     def __getitem__(self, idx):
         if self.data_file.endswith('csv'):

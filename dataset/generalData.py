@@ -10,6 +10,7 @@ import numpy as np
 from torch.utils.data import Dataset
 from utils import label_from_angle, im_scale_norm_pad, im_crop, im_hsv_augmentation
 
+
 class DataLoader(torch.utils.data.DataLoader):
 
     def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1):
@@ -36,6 +37,8 @@ class DataLoader(torch.utils.data.DataLoader):
 class GeneralDataset(Dataset):
 
     def __init__(self, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
+        super(GeneralDataset, self).__init__()
+
         self.mean = mean
         self.std = std
         self.datasets = []
@@ -73,7 +76,9 @@ class GeneralDataset(Dataset):
 
 class SingleDataset(Dataset):
 
-    def __init__(self, img_size, data_aug, maxscale, mean, std):
+    def __init__(self, name, img_size, data_aug, maxscale, mean, std):
+        super(SingleDataset, self).__init__()
+
         self.img_size = img_size
         self.aug = data_aug
         self.maxscale = maxscale
@@ -82,9 +87,16 @@ class SingleDataset(Dataset):
         self.std = std
 
         self.N = 0
+        self.name = name
+
+    def __str__(self):
+        return self.name
 
     def __len__(self):
         return self.N
+
+    def read_debug(self):
+        print "{}: {} images".format(self, self.N) 
 
     def get_flipping(self):
         """ random fliping with probability 0.5 """
@@ -109,8 +121,9 @@ class SingleDataset(Dataset):
 
 class SequenceDataset(SingleDataset):
 
-    def __init__(self, img_size, data_aug, maxscale, mean, std, seq_length):
-        super(SequenceDataset, self).__init__(img_size, data_aug, 0, mean, std)
+    def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length):
+        super(SequenceDataset, self).__init__(
+            name, img_size, data_aug, 0, mean, std)
         self.seq_length = seq_length
         self.img_seqs = []
         self.episodes = []
@@ -124,8 +137,9 @@ class SequenceDataset(SingleDataset):
             self.episodes.append(self.N)
 
     def read_debug(self):
-        print 'Read #sequences: ', len(self.img_seqs)
-        print 'Read #images: ', sum([len(sequence) for sequence in self.img_seqs])
+        imgsN = sum([len(sequence) for sequence in self.img_seqs])
+
+        print '{}: {} episodes, {} sequences, {} images'.format(self, len(self.img_seqs), self.N, imgsN)
 
     def load_image_sequences(self):
         # for Duke and VIRAT
@@ -156,9 +170,9 @@ class SequenceDataset(SingleDataset):
 
 class SingleSequenceDataset(SequenceDataset):
 
-    def __init__(self, img_size, data_aug, maxscale, mean, std, seq_length):
+    def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length):
         super(SingleSequenceDataset, self).__init__(
-            img_size, data_aug, maxscale, mean, std, seq_length)
+            name, img_size, data_aug, maxscale, mean, std, seq_length)
 
     def __getitem__(self, idx):
         ep_idx, idx = self.get_indexes(idx)

@@ -15,17 +15,18 @@ from generalData import SingleDataset, SequenceDataset
 
 DataFolder = "/home/mohammad/projects/facing_icra/data"
 
+
 class FolderUnlabelDataset(SequenceDataset):
 
-    def __init__(self, img_dir='', data_file=None,
+    def __init__(self, name, img_dir='', data_file=None,
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
                  seq_length=32, extend=False, include_all=False):
-        
+
         if data_file != None:
             # load from saved pickle file, priority
             # grandparent
             super(SequenceDataset, self).__init__(
-                img_size, data_aug, 0, mean, std)
+                name, img_size, data_aug, 0, mean, std)
             self.seq_length = seq_length
 
             with open(data_file, 'rb') as f:
@@ -40,12 +41,12 @@ class FolderUnlabelDataset(SequenceDataset):
             self.img_dir = img_dir
             # parent
             super(FolderUnlabelDataset, self).__init__(
-                img_size, data_aug, 0, mean, std, seq_length)
+                name, img_size, data_aug, 0, mean, std, seq_length)
 
             # Save loaded data for future use
             with open(os.path.join(DataFolder, self.saveName), 'wb') as f:
                 pickle.dump({'N': self.N, 'episodeNum': self.episodes,
-                    'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
+                             'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
 
         self.read_debug()
 
@@ -55,7 +56,7 @@ class FolderUnlabelDataset(SequenceDataset):
             img_folders = os.listdir(self.img_dir)
             self.saveName = "duke_unlabeldata.pkl"
 
-        elif self.extend: # UCF
+        elif self.extend:  # UCF
             img_folders = [str(k) for k in range(101, 1040)]
             self.saveName = "ucf_unlabeldata.pkl"
 
@@ -122,15 +123,16 @@ def main():
     from utils import get_path, seq_show
 
     np.set_printoptions(precision=4)
-    
+
     duke_img_dir = "DukeMCMT/heading"
     ucf_img_dir = "dirimg"
 
     unlabelset = FolderUnlabelDataset(
         img_dir=get_path(duke_img_dir), seq_length=24, data_aug=True, include_all=True)
 
-    #unlabelset = FolderUnlabelDataset(
-    #    img_dir=get_path(ucf_img_dir), seq_length=24, data_aug=True, extend=True)    
+    # unlabelset = FolderUnlabelDataset(
+    # img_dir=get_path(ucf_img_dir), seq_length=24, data_aug=True,
+    # extend=True)
 
     dataloader = DataLoader(unlabelset)
     count = 5

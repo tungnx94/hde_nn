@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import config as cnf
 
-from wf import VisdomLinePlotter
+from visdomPlotter import VisdomLinePlotter
 from utils import unlabel_loss, get_path
 
 from generalWF import GeneralWF
@@ -75,7 +75,7 @@ class TrainWF(GeneralWF):
                         'unlabel_loss', 'test_unlabel'], [True, True]))
 
     def get_test_dataset(self):
-        return DukeSeqLabelDataset(get_path(TestLabelFile),
+        return DukeSeqLabelDataset("duke-test", get_path(TestLabelFile),
                                    seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
 
     def finalize(self):

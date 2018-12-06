@@ -13,13 +13,14 @@ from generalData import SingleSequenceDataset
 
 class DukeSeqLabelDataset(SingleSequenceDataset):
 
-    def __init__(self, label_file,
+    def __init__(self, name, label_file,
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=32):
 
         self.label_file = label_file
 
         super(DukeSeqLabelDataset, self).__init__(
-            img_size, data_aug, 0, mean, std, seq_length)
+            name, img_size, data_aug, 0, mean, std, seq_length)
+
         self.read_debug()
 
     def load_image_sequences(self):
