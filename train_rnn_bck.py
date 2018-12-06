@@ -15,11 +15,8 @@ from logger import Logger
 from torch.autograd import Variable
 from RNNModels import MobilenetGRU
 
-from dataset.generalData import DataLoader
-from dataset.dukeSeqLabelData import DukeSeqLabelDataset
-from dataset.viratSeqLabelData import ViratSeqLabelDataset
-
 from utils import img_denormalize, put_arrow
+from dataset import DataLoader, DukeSeqLabelDataset, ViratSeqLabelDataset
 
 IS_CUDA = torch.cuda.is_available()  # True
 

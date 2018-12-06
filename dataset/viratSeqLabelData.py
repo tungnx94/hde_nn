@@ -68,7 +68,6 @@ class ViratSeqLabelDataset(SingleSequenceDataset):
                     self.img_seqs.append(subsampled_arr)
 
 if __name__ == '__main__':
-    # test
     from generalData import DataLoader
     from utils import get_path, seq_show
     np.set_printoptions(precision=4)
@@ -77,8 +76,6 @@ if __name__ == '__main__':
     unlabelset = ViratSeqLabelDataset(
         get_path(label_file), seq_length=24, data_aug=True)
     print len(unlabelset)
-
-    #import ipdb; ipdb.set_trace()
 
     dataloader = DataLoader(unlabelset)
     count = 10

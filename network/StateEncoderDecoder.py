@@ -155,44 +155,43 @@ class EncoderReg_Pred(nn.Module):
         self.pred_en = nn.LSTM(self.codenum, rnnHidNum)
 
         self.pred_de = nn.LSTM(self.codenum, rnnHidNum)
-        self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum)
+        self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum) # FC 
 
-    def init_hidden(self, hidden_size, batch_size):
-        h1 = new_variable(torch.zeros(1, batch_size, hidden_size))
-        h2 = new_variable(torch.zeros(1, batch_size, hidden_size))
+    def init_hidden(self, hidden_size, batch_size=1):
+        h1 = new_variable(torch.zeros(1, batch_size, hidden_size)) # hidden state
+        h2 = new_variable(torch.zeros(1, batch_size, hidden_size)) # cell state
 
-        if UseGPU:
-            return h1.cuda(), h2.cuda()
-        else:
-            return h1, h2
+        return (h1, h2)
 
     def forward(self, x):
         x_encode = self.encoder(x)
-        batchsize = x_encode.size()[0]
-        x_encode = x_encode.view(batchsize, -1)
+        seq_length = x_encode.size()[0]
+
+        x_encode = x_encode.view(seq_legth, -1)
 
         # regression (sin, cosin)
         x_reg = self.reg(x_encode)
 
         # rnn predictor
-        innum = batchsize / 2  # use first half as input, last half as target
+        innum = seq_length / 2  # use first half as input, last half as target (why though ?)
 
-        # input of LSTM should be T x batch x InLen
-        pred_in = x_encode[0:innum, :].unsqueeze(1)
-        hidden = self.init_hidden(self.rnnHidNum, 1)
-        pred_en_out, hidden = self.pred_en(pred_in, hidden)
+        # input of LSTM is [SeqLength x Batch x InputSize] with SeqLength varible 
+        pred_in = x_encode[:innum].unsqueeze(1) # add batch dimension (=1)
+        hidden = self.init_hidden(self.rnnHidNum, 1) # batch = 1 
 
-        # import ipdb; ipdb.set_trace()
+        pred_en_out, hidden = self.pred_en(pred_in, hidden) # output = [SeqLength x Batch x HiddenSize] 
+
         pred_de_in = new_variable(torch.zeros(1, 1, self.codenum))
 
         pred_out = []
-        for k in range(innum, batchsize):  # input the decoder one by one cause there's a loop
+        for k in range(innum, seq_length):  # input the decoder one by one cause there's a loop
             pred_de_out, hidden = self.pred_de(pred_de_in, hidden)
-            pred_de_out = self.pred_de_linear(
-                pred_de_out.view(1, self.rnnHidNum))
+
+            pred_de_out = self.pred_de_linear(pred_de_out.view(1, self.rnnHidNum))
+            pred_de_in = pred_de_out.detach().unsqueeze(1)
 
             pred_out.append(pred_de_out)
-            pred_de_in = pred_de_out.detach().unsqueeze(1)
+            
 
         pred_out = torch.cat(tuple(pred_out), dim=0)
 
@@ -211,7 +210,7 @@ if __name__ == '__main__':
     paddings = [1, 1, 1, 1, 1, 1, 0]
     strides = [2, 2, 2, 2, 2, 2, 1]
 
-    unlabel_batch = 4
+    seq_length = 16
     lr = 0.005
 
     stateEncoder = EncoderReg_Pred(hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
@@ -225,8 +224,8 @@ if __name__ == '__main__':
 
     # data
     imgdataset = FolderUnlabelDataset(img_dir=get_path(
-        "dirimg"), seq_length=unlabel_batch, data_aug=True, include_all=True)
-    dataloader = DataLoader(imgdataset)
+        "dirimg"), seq_length=seq_length, data_aug=True, include_all=True)
+    dataloader = DataLoader(imgdataset) # batch_size = 1
 
     criterion = nn.MSELoss()
     regOptimizer = optim.SGD(stateEncoder.parameters(), lr=lr, momentum=0.9)
@@ -241,7 +240,7 @@ if __name__ == '__main__':
 
         x, encode, pred = stateEncoder(inputVar)
 
-        pred_target = encode[unlabel_batch / 2:, :].detach()
+        pred_target = encode[seq_length / 2:, :].detach()
         loss_pred = criterion(pred, pred_target)  # unlabel
 
         # back propagate
