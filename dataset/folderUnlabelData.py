@@ -34,6 +34,8 @@ class FolderUnlabelDataset(SequenceDataset):
             self.N = data['N']
             self.episodes = data['episodeNum']
             self.img_seqs = data['img_seqs']
+
+            print "{} loaded from saved file".format(self)
         else:
             # load from folder
             self.include_all = include_all
@@ -47,6 +49,8 @@ class FolderUnlabelDataset(SequenceDataset):
             with open(os.path.join(DataFolder, self.saveName), 'wb') as f:
                 pickle.dump({'N': self.N, 'episodeNum': self.episodes,
                              'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
+
+            print "{} loaded new".format(self)
 
         self.read_debug()
 
@@ -102,7 +106,6 @@ class FolderUnlabelDataset(SequenceDataset):
 
     def __getitem__(self, idx):
         ep_idx, idx = self.get_indexes(idx)
-
         # random flip all images in seq_length
         flipping = self.get_flipping()
 
@@ -127,12 +130,11 @@ def main():
     duke_img_dir = "DukeMCMT/heading"
     ucf_img_dir = "dirimg"
 
-    unlabelset = FolderUnlabelDataset(
-        img_dir=get_path(duke_img_dir), seq_length=24, data_aug=True, include_all=True)
+    #unlabelset = FolderUnlabelDataset("duke-unlabel", img_dir=get_path(duke_img_dir),
+    #                                  seq_length=24, data_aug=True, include_all=True)
 
-    # unlabelset = FolderUnlabelDataset(
-    # img_dir=get_path(ucf_img_dir), seq_length=24, data_aug=True,
-    # extend=True)
+    unlabelset = FolderUnlabelDataset("ucf-unlabel", img_dir=get_path(ucf_img_dir),
+                                      seq_length=24, data_aug=True, extend=True)
 
     dataloader = DataLoader(unlabelset)
     count = 5

@@ -30,23 +30,13 @@ class AccumulatedValuePlotter(object):
 
         self.avAvgFlagDict = dict(zip(self.avNameList, avAvgFlagList))
 
+        # plot name & axes
         self.title = self.name
-        self.xlabel = "xlabel"
-        self.ylabel = "ylabel"
+        self.xlabel = "steps"
+        self.ylabel = "loss"
 
-    def initialize(self):
-        # The method of the base class cannot be invoked.
-        exp = WFException(
-            "initialize() of AccumulatedValuedPlotter base class could no be invoked directly.", "AccumulatedValuePlotter")
-        raise(exp)
-
-    def update(self):
-        # The method of the base class cannot be invoked.
-        exp = WFException(
-            "update() of AccumulatedValuedPlotter base class could no be invoked directly.", "AccumulatedValuePlotter")
-        raise(exp)
-
-    def write_image(self, outDir, prefix="", suffix=""):
+    def write_image(self, outDir, prefix=""):
+        """ """
         fig, ax = plt.subplots(nrows=1, ncols=1)
         legend = []
 
@@ -56,12 +46,8 @@ class AccumulatedValuePlotter(object):
             ax.plot(av.get_stamps(), av.get_values())
             legend.append(name)
 
-        for name in self.avNameList:
-            if (True == self.avAvgFlagDict[name]):
-                av = self.AV[name]
-
+            if self.avAvgFlagDict[name]:
                 ax.plot(av.get_stamps(), av.get_avg())
-
                 legend.append(name + "_avg")
 
         ax.legend(legend)
@@ -70,5 +56,5 @@ class AccumulatedValuePlotter(object):
         ax.set_xlabel(self.xlabel)
         ax.set_ylabel(self.ylabel)
 
-        fig.savefig(outDir + "/" + self.title + suffix + ".png")
+        fig.savefig(outDir + "/" + self.title + ".png")
         plt.close(fig)

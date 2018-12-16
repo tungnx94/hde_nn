@@ -1,16 +1,17 @@
 import sys
 sys.path.append("..")
+import os
+import random
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import config as cnf
 
-from visdomPlotter import VisdomLinePlotter
-from utils import unlabel_loss, get_path
-
+from utils import get_path
 from generalWF import GeneralWF
 from dataset import LabelDataset, UnlabelDataset, DukeSeqLabelDataset, DataLoader
+
+from visdomPlotter import VisdomLinePlotter
 
 Batch = 128
 SeqLength = 24  # 32
@@ -19,26 +20,27 @@ LearningRate = 0.0005  # to tune
 Trainstep = 20000  # number of train() calls
 Thresh = 0.005  # unlabel_loss threshold
 
-Snapshot = 500  # do a snapshot every Snapshot steps (save period)
+Snapshot = 20  # 500 do a snapshot every Snapshot steps (save period)
 TestIter = 10  # do a testing every TestIter steps
-ShowIter = 1  # print to screen
+ShowIter = 5  # print to screen
 
 SaveModelName = 'facing'
 TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
 
-AccumulateValues = {"label_loss": 100,
-                    "unlabel_loss": 100,
-                    "test_loss": 10,
+AccumulateValues = {"train_total": 100,
+                    "train_label": 100,
+                    "train_unlabel": 100,
+                    "test_total": 10,
                     "test_label": 10,
                     "test_unlabel": 10}
 
 
 class TrainWF(GeneralWF):
 
-    def __init__(self, workingDir, prefix="", suffix="",
+    def __init__(self, workingDir, prefix,
                  device=None, mobile_model=None, trained_model=None):
         super(TrainWF, self).__init__(workingDir, prefix,
-                                      suffix, device, mobile_model, trained_model)
+                                      device, mobile_model, trained_model)
 
         self.visualize = False
         self.labelBatch = Batch
@@ -60,19 +62,17 @@ class TrainWF(GeneralWF):
         self.train_unlabel_loader = DataLoader(
             unlabel_dataset, batch_size=self.unlabelBatch, num_workers=4)
 
-        # self.AV, self.AVP ?
-        self.AV['loss'].avgWidth = 100  # there's a default plotter for 'loss'
-
+        self.AV = {}
         # second param is the number of average data
         for key, val in AccumulateValues.items():
             self.add_accumulated_value(key, val)
 
         self.AVP.append(VisdomLinePlotter(
-            "total_loss", self.AV, ['loss', 'test_loss'], [True, True]))
+            "total_loss", self.AV, ['train_total', 'test_total'], [True, True]))
         self.AVP.append(VisdomLinePlotter(
-            "label_loss", self.AV, ['label_loss', 'test_label'], [True, True]))
-        self.AVP.append(VisdomLinePlotter("unlabel_loss", self.AV, [
-                        'unlabel_loss', 'test_unlabel'], [True, True]))
+            "label_loss", self.AV, ['train_label', 'test_label'], [True, True]))
+        self.AVP.append(VisdomLinePlotter(
+            "unlabel_loss", self.AV, ['train_unlabel', 'test_unlabel'], [True, True]))
 
     def get_test_dataset(self):
         return DukeSeqLabelDataset("duke-test", get_path(TestLabelFile),
@@ -83,19 +83,44 @@ class TrainWF(GeneralWF):
         super(TrainWF, self).finalize()
         self.save_snapshot()
 
-        print "Saved snapshot"
+        self.logger.info("Saved snapshot")
 
     def save_model(self, model, name):
         """ Save :param: model to pickle file """
-        model_name = self.prefix + name + self.suffix + '.pkl'
-        torch.save(model.state_dict(), self.modeldir + '/' + model_name)
+        model_path = os.path.join(self.modeldir, name + ".pkl")
+        torch.save(model.state_dict(), model_path)
 
     def save_snapshot(self):
         """ write accumulated values and save temporal model """
         self.write_accumulated_values()
         self.draw_accumulated_values()
-        self.save_model(self.model, SaveModelName +
-                        '_' + str(self.countTrain))
+        self.plot_accumulated_values()
+        self.save_model(self.model, SaveModelName + '_' + str(self.countTrain))
+
+    def unlabel_loss(self, output, threshold):
+        """
+        :param output: network unlabel output tensor
+        :return: unlabel loss tensor
+        """
+        unlabel_batch = output.shape[0]
+        loss_unlabel = torch.Tensor([0]).to(self.device).float()
+        threshold = torch.tensor(threshold).to(self.device).float()
+
+        for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
+            # randomly pick two other samples
+            ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
+            ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
+
+            diff_big = torch.sum(
+                (output[ind1] - output[ind2]) ** 2).float() / 2.0
+            diff_small = torch.sum(
+                (output[ind1] - output[ind3]) ** 2).float() / 2.0
+
+            cost = torch.max(diff_small - diff_big - threshold,
+                             torch.tensor(0).to(self.device).float())
+            loss_unlabel += cost
+
+        return loss_unlabel
 
     def forward_unlabel(self, sample):
         """
@@ -105,8 +130,8 @@ class TrainWF(GeneralWF):
         inputValue = sample.squeeze().to(self.device)
         output = self.model(inputValue)
 
-        loss = unlabel_loss(output.detach().cpu().numpy(), Thresh)
-        return torch.tensor([loss]).to(self.device).float()
+        loss = self.unlabel_loss(output, Thresh)
+        return loss.to(self.device).float()
 
     def forward_label(self, sample):
         """
@@ -144,35 +169,34 @@ class TrainWF(GeneralWF):
         self.optimizer.step()
 
         # update training loss history
-        # convert loss to numeric value ?
-        self.AV['loss'].push_back(loss.item())
-        self.AV['label_loss'].push_back(label_loss.item())
-        self.AV['unlabel_loss'].push_back(unlabel_loss.item())
+        # convert to numeric value ?
+        self.AV['train_total'].push_back(loss.item(), self.countTrain)
+        self.AV['train_label'].push_back(label_loss.item(), self.countTrain)
+        self.AV['train_unlabel'].push_back(unlabel_loss.item(), self.countTrain)
 
         # record current params
         if self.countTrain % ShowIter == 0:
-            loss_str = self.get_log_str()
-            self.logger.info("%s #%d - (%d %d) %s" % (self.prefix[:-1],
-                                                      self.countTrain, self.train_loader.epoch, self.train_unlabel_loader.epoch, loss_str))
+            self.logger.info("#%d %s" % (self.countTrain, self.get_log_str()))
+
         # save temporary model
         if (self.countTrain % Snapshot == 0):
             self.save_snapshot()
 
     def test(self):
         """ update test loss history """
-        print "validation"
-        loss = GeneralWF.test(self)
+        self.logger.info("validation")
 
-        self.AV['test_loss'].push_back(loss["total"], self.countTrain)
+        loss = GeneralWF.test(self)
+        self.AV['test_total'].push_back(loss["total"], self.countTrain)
         self.AV['test_label'].push_back(loss["label"], self.countTrain)
         self.AV['test_unlabel'].push_back(loss["unlabel"], self.countTrain)
 
     def run(self):
         """ train on all samples """
-        for iteration in range(1, Trainstep+1):
+        for iteration in range(1, Trainstep + 1):
             self.train()
 
             if iteration % TestIter == 0:
                 self.test()
 
-        print "Finished training"
+        self.logger.info("Finished training")

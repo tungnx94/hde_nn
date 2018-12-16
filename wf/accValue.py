@@ -1,28 +1,24 @@
-import time
+import os
 import numpy as np
-
+import pandas as pd
 import workflow as wf
-#from workflow import wf.WFException
+
 
 class AccumulatedValue(object):
 
     def __init__(self, name, avgWidth=2):
-        self.name = name
-
-        self.acc = []
-        self.stamp = []
-
         if (avgWidth <= 0):
             exp = wf.WFException(
                 "Averaging width must be a positive integer.", "AccumulatedValue")
             raise(exp)
 
-        self.avg = []
-        self.avgWidth = avgWidth
+        self.name = name
+        self.avgWidth = avgWidth  # average window size
         self.avgCount = 0
 
-        self.xLabel = "Stamp"
-        self.yLabel = "Value"
+        self.acc = []   # values
+        self.avg = []   # average values
+        self.stamp = []  # time stamps
 
     def push_back(self, v, stamp=None):
         self.acc.append(v)
@@ -35,7 +31,7 @@ class AccumulatedValue(object):
             else:
                 self.stamp.append(self.stamp[-1] + 1)
 
-        # Calculate the average.
+        # Calculate new average.
         if (0 == len(self.avg)):
             self.avg.append(v)
             self.avgCount = 1
@@ -50,32 +46,14 @@ class AccumulatedValue(object):
                                                              self.avgCount] + self.acc[-1]) / self.avgCount
                 )
 
-    def push_back_array(self, a, stamp=None):
-        nA = len(a)
-        nS = 0
-
-        if (stamp is not None):
-            nS = len(stamp)
-
-            if (nA != nS):
-                # This is an error.
-                desc = """Lengh of values should be the same with the length of the stamps.
-                len(a) = %d, len(stamp) = %d.""" % (nA, nS)
-                exp = wf.WFException(desc, "push_back_array")
-                raise(exp)
-
-            for i in range(nA):
-                self.push_back(a[i], stamp[i])
-        else:
-            for i in range(nA):
-                self.push_back(a[i])
-
     def clear(self):
+        """ reset all values """
         self.acc = []
         self.stamp = []
         self.avg = []
 
     def last(self):
+        """ return last value """
         if (0 == len(self.acc)):
             # This is an error.
             desc = "The length of the current accumulated values is zero"
@@ -85,6 +63,7 @@ class AccumulatedValue(object):
         return self.acc[-1]
 
     def last_avg(self):
+        """ return last average value """
         if (0 == len(self.avg)):
             # This is an error.
             desc = "The length of the current accumulated values is zero"
@@ -107,21 +86,12 @@ class AccumulatedValue(object):
 
     def show_raw_data(self):
         print("%s" % (self.name))
-        print("acc: ")
-        print(self.acc)
-        print("stamp: ")
-        print(self.stamp)
+        print("acc: ", self.acc)
+        print("stamp: ", self.stamp)
 
-    def dump(self, outDir, prefix="", suffix=""):
-        # Convert acc and avg into NumPy arrays.
-        acc = np.column_stack((np.array(self.stamp).astype(
-            np.float), np.array(self.acc).astype(np.float)))
-        avg = np.column_stack((np.array(self.stamp).astype(
-            np.float), np.array(self.avg).astype(np.float)))
+    def save_csv(self, outDir):
+        data_dict = {"stamp": self.stamp, "val": self.acc, "avg": self.avg}
+        df = pd.DataFrame.from_dict(data_dict)
 
-        # Dump the files.
-        np.save(outDir + "/" + prefix + self.name + suffix + ".npy", acc)
-        np.savetxt(outDir + "/" + prefix + self.name + suffix + ".txt", acc)
-
-        # np.save(    outDir + "/" + prefix + self.name + suffix + "_avg.npy", avg )
-        # np.savetxt( outDir + "/" + prefix + self.name + suffix + "_avg.txt", avg )
+        save_path = os.path.join(outDir, self.name + ".csv")
+        df.to_csv(save_path)

@@ -68,10 +68,13 @@ class GeneralDataset(Dataset):
                 idx -= dsize
             else:  # fidx the value
                 idx = idx % len(dataset)
-                return dataset[idx]
+                dset = dataset
 
-        print 'Error index:', idx
-        return None
+        try:
+            return dset[idx]
+        except:
+            print 'Error dataset {} index {}'.format(dset, idx)
+            return None
 
 
 class SingleDataset(Dataset):

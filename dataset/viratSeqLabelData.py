@@ -8,7 +8,6 @@ import os
 import cv2
 import numpy as np
 
-from utils import unlabel_loss, label_from_angle
 from generalData import SingleSequenceDataset
 
 
@@ -67,7 +66,7 @@ class ViratSeqLabelDataset(SingleSequenceDataset):
                                        0].strip().split(' ')[1]) for x in subsampled_arr]
                     self.img_seqs.append(subsampled_arr)
 
-if __name__ == '__main__':
+def main():
     from generalData import DataLoader
     from utils import get_path, seq_show
     np.set_printoptions(precision=4)
@@ -89,3 +88,6 @@ if __name__ == '__main__':
         count -= 1
         if count < 0:
             break
+
+if __name__ == '__main__':
+    main()

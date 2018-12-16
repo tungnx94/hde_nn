@@ -1,4 +1,5 @@
 import time
+import numpy as np 
 
 from visdom import Visdom
 from workflow import WFException

@@ -9,23 +9,20 @@ PreModel = None
 
 # 0: none(train), 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
 TestType = 0
-ExpPrefix = 'vis_1_3_'
+ExpPrefix = 'vis_1_3'  # model name, should be unique
 
 
 def select_WF(TestType):
     """ choose WF from test type """
     # ugly code to avoid multiple instance of logger in WorkFlow
     if TestType == 0:
-        return TrainWF(".", prefix=ExpPrefix, mobile_model=PreMobileModel, trained_model=PreModel)
+        return TrainWF("./log", ExpPrefix, mobile_model=PreMobileModel, trained_model=PreModel)
     elif TestType == 1:
-        return TestLabelSeqWF(".", prefix=ExpPrefix,
-                              mobile_model=PreMobileModel, trained_model=PreModel)
+        return TestLabelSeqWF("./log", ExpPrefix, mobile_model=PreMobileModel, trained_model=PreModel)
     elif TestType == 2:
-        return TestFolderWF(".", prefix=ExpPrefix,
-                            mobile_model=PreMobileModel, trained_model=PreModel)
+        return TestFolderWF("./log", ExpPrefix, mobile_model=PreMobileModel, trained_model=PreModel)
     else:  # 3
-        return TestUnlabelSeqWF(".", prefix=ExpPrefix,
-                                mobile_model=PreMobileModel, trained_model=PreModel)
+        return TestUnlabelSeqWF("./log", ExpPrefix, mobile_model=PreMobileModel, trained_model=PreModel)
 
 
 def main():

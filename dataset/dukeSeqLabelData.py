@@ -7,7 +7,7 @@ import os
 import cv2
 import numpy as np
 
-from utils import unlabel_loss, label_from_angle
+from utils import unlabel_loss_np, label_from_angle
 from generalData import SingleSequenceDataset
 
 
@@ -75,10 +75,10 @@ def main():
     for sample in dataloader:
         imgseq, labelseq = sample['imgseq'].squeeze().numpy(), sample[
             'labelseq'].squeeze().numpy()
-        print "unlabel loss: ", unlabel_loss(labelseq, 0.005)
+        print "unlabel loss: ", unlabel_loss_np(labelseq, 0.005)
 
         fakelabel = np.random.rand(24, 2)
-        print "fake loss: ", unlabel_loss(fakelabel, 0.005)
+        print "fake loss: ", unlabel_loss_np(fakelabel, 0.005)
 
         seq_show(imgseq, dir_seq=labelseq)
 

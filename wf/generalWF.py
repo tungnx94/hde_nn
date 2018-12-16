@@ -6,10 +6,10 @@ import torch.nn as nn
 import numpy as np
 
 from workflow import WorkFlow
-from dataset.generalData import DataLoader
+from dataset import DataLoader
 from network import MobileReg
 
-from utils import loadPretrain, unlabel_loss, angle_metric, seq_show
+from utils import loadPretrain, unlabel_loss_np, angle_metric, seq_show
 
 Lamb = 0.1
 Thresh = 0.005  # unlabel_loss threshold
@@ -21,9 +21,9 @@ LogParamList = ['Batch', 'SeqLength', 'LearningRate', 'Trainstep',
 
 class GeneralWF(WorkFlow):
 
-    def __init__(self, workingDir, prefix="", suffix="",
+    def __init__(self, workingDir, prefix,
                  device=None, mobile_model=None, trained_model=None):
-        super(GeneralWF, self).__init__(workingDir, prefix, suffix)
+        super(GeneralWF, self).__init__(workingDir, prefix)
 
         self.device = device
         # select default device if not specified
@@ -42,26 +42,19 @@ class GeneralWF(WorkFlow):
         self.model = MobileReg()
         if mobile_model is not None:
             self.model.load_pretrained_pth(mobile_model)
+            self.logger.info("Load MobileNet model: ", mobile_model)
 
         self.model.to(self.device)
 
         if trained_model is not None:  # load trained params
-            loadPretrain(self.model, trained_model)
+            self.model = loadPretrain(self.model, trained_model)
+            self.logger.info("Load trained model: ", trained_model)
 
         # Test dataset & loader
         self.test_dataset = self.get_test_dataset()
-        self.test_loader = DataLoader(
-            self.test_dataset, batch_size=self.testBatch)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=self.testBatch)
 
         self.criterion = nn.MSELoss()  # loss function
-
-        # Record useful params in logfile
-        """
-        logstr = ''
-        for param in LogParamList:
-            logstr += param + ': ' + str(globals()[param]) + ', '
-        self.logger.info(logstr)
-        """
 
     def get_test_dataset(self):
         pass
@@ -78,8 +71,8 @@ class GeneralWF(WorkFlow):
         output = self.model(inputImgs)
         loss_label = self.criterion(output, labels)
 
-        loss_unlabel = unlabel_loss(output.detach().cpu().numpy(), Thresh)
-        loss_unlabel = torch.tensor([loss_unlabel]).to(self.device)
+        loss_unlabel = unlabel_loss_np(output.detach().cpu().numpy(), Thresh)
+        loss_unlabel = torch.tensor([loss_unlabel]).to(self.device).float()
 
         loss_total = loss_label + self.lamb * loss_unlabel
 

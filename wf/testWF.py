@@ -5,7 +5,7 @@ import torch
 import config as cnf
 
 from generalWF import GeneralWF
-from utils import unlabel_loss, angle_metric, get_path
+from utils import unlabel_loss_np, angle_metric, get_path
 
 from dataset import FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
@@ -66,7 +66,7 @@ class TestUnlabelSeqWF(TestWF):  # Type 3
         inputImgs = val_sample.squeeze().to(self.device)
         output = self.model(inputImgs)
 
-        loss_unlabel = unlabel_loss(output.numpy(), Thresh)
+        loss_unlabel = unlabel_loss_np(output.numpy(), Thresh)
 
         # import ipdb;ipdb.set_trace()
         if self.visualize:

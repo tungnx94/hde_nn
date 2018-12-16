@@ -1,4 +1,6 @@
 *.pyc
+log
+old_logs
 logdata
 models
 resimg

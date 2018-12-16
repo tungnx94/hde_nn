@@ -30,18 +30,19 @@ class WorkFlow(object):
     SIG_INT = False
     IS_FINALISING = False
 
-    def __init__(self, workingDir, prefix="", suffix="", logFilename=None):
-        # Add the current path to system path
-        self.workingDir = workingDir  # The working directory.
-        self.prefix = prefix
-        self.suffix = suffix
+    def __init__(self, workingDir, prefix, logFilename=None, verbose=False):
+        # True to enable debug_print
+        self.verbose = verbose
 
+        # Add the current path to system path
+        self.prefix = prefix
+        self.workingDir = os.path.join(workingDir, prefix)
+
+        # create log folders
         self.logdir = os.path.join(self.workingDir, 'logdata')
-        self.imgdir = os.path.join(self.workingDir, 'resimg')
         self.modeldir = os.path.join(self.workingDir, 'models')
 
-        folders = [self.workingDir, self.logdir, self.imgdir, self.modeldir]
-        for folder in folders:
+        for folder in [self.workingDir, self.logdir, self.modeldir]:
             if not os.path.isdir(folder):
                 os.makedirs(folder)
 
@@ -51,37 +52,34 @@ class WorkFlow(object):
         self.AV = {"loss": accValue.AccumulatedValue("loss")}
 
         # Accumulated value Plotter.
-        # self.AVP should be an object of class AccumulatedValuePlotter.
-        # The child class is responsible to populate this member.
         self.AVP = []
 
-        self.verbose = False
+        ### Log handlers
 
+        # logging.basicConfig(datefmt = '%m/%d/%Y %I:%M:%S')
+        # Console log
+        streamHandler = logging.StreamHandler()
+        streamHandler.setLevel(logging.DEBUG)
+        streamHandler.setFormatter(
+            logging.Formatter('%(levelname)s: %(message)s'))
+
+        # File log
         if (logFilename is not None):
             self.logFilename = logFilename
         else:
-            self.logFilename = self.prefix + "wf" + self.suffix + ".log"
+            self.logFilename = self.prefix + "_train" + ".log"
+        logFilePath = os.path.join(self.logdir, self.logFilename)
 
-        # Logger.
-        # logging.basicConfig(datefmt = '%m/%d/%Y %I:%M:%S')
+        fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
+        fileHandler.setLevel(logging.DEBUG)
+        fileHandler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s'))
+
+        # Logger
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.DEBUG)
 
-        formatter = logging.Formatter('%(levelname)s: %(message)s')
-        streamHandler = logging.StreamHandler()
-        streamHandler.setLevel(logging.DEBUG)
-        streamHandler.setFormatter(formatter)
-
         self.logger.addHandler(streamHandler)
-
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-        logFilePathPlusName = os.path.join(self.logdir, self.logFilename)
-
-        fileHandler = logging.FileHandler(
-            filename=logFilePathPlusName, mode="w")
-        fileHandler.setLevel(logging.DEBUG)
-        fileHandler.setFormatter(formatter)
-
         self.logger.addHandler(fileHandler)
 
         self.logger.info("WorkFlow created.")
@@ -117,11 +115,6 @@ class WorkFlow(object):
         # Check the system-wide signal.
         self.check_signal()
 
-        # Check whether the working directory exists.
-        if not os.path.isdir(self.workingDir):
-            # Directory does not exist, create the directory.
-            os.mkdir(self.workingDir)
-
         if self.isInitialized:
             # This should be an error.
             desc = "The work flow is already initialized."
@@ -133,20 +126,17 @@ class WorkFlow(object):
             self.AVP[0].initialize()
             self.logger.info("AVP initialized.")
 
-        # add prefix to AVP
-        for avp in self.AVP:
-            avp.title = self.prefix + avp.title
-
         self.isInitialized = True
+        self.logger.info("WF initialized.")
 
         self.debug_print("initialize() get called.")
-        self.logger.info("WF initialized.")
+        
 
     def train(self):
         # Check the system-wide signal.
         self.check_signal()
 
-        if (False == self.isInitialized):
+        if (False == self.isInitialized):  # only train after initilized
             # This should be an error.
             desc = "The work flow is not initialized yet."
             exp = WFException(desc, "tain")
@@ -158,7 +148,7 @@ class WorkFlow(object):
         # Check the system-wide signal.
         self.check_signal()
 
-        if (False == self.isInitialized):
+        if (False == self.isInitialized):  # only test after initialized
             # This should be an error.
             desc = "The work flow is not initialized yet."
             exp = WFException(desc, "test")
@@ -202,32 +192,28 @@ class WorkFlow(object):
         if (False == os.path.isdir(outDir)):
             os.makedirs(outDir)
 
-        if (sys.version_info[0] < 3):
-            for av in self.AV.itervalues():
-                av.dump(outDir, self.prefix, self.suffix)
-        else:
-            for av in self.AV.values():
-                av.dump(outDir, self.prefix, self.suffix)
+        for av in self.AV.itervalues():
+            av.save_csv(outDir) 
 
     def draw_accumulated_values(self, outDir=None):
         if (outDir is None):
-            outDir = self.imgdir
+            outDir = self.workingDir
 
-        if (False == os.path.isdir(outDir)):
+        if not os.path.isdir(outDir):
             os.makedirs(outDir)
 
         for avp in self.AVP:
-            avp.write_image(outDir, self.prefix, self.suffix)
+            avp.write_image(outDir, self.prefix)
 
     def is_initialized(self):
         return self.isInitialized
 
     def debug_print(self, msg):
-        if (True == self.verbose):
+        if self.verbose:
             print(msg)
 
     def compose_file_name(self, fn, ext=""):
-        return self.workingDir + "/" + self.prefix + fn + self.suffix + "." + ext
+        return self.workingDir + "/" + self.prefix + fn + "." + ext
 
     def check_signal(self):
         if (True == WorkFlow.SIG_INT):
@@ -245,7 +231,7 @@ class WorkFlow(object):
 
     def get_log_str(self):
         logstr = ""
-        for key in self.AV.keys():
+        for key in sorted(self.AV.keys()):
             try:
                 logstr += '%s: %.5f ' % (key, self.AV[key].last_avg())
             except WFException as e:

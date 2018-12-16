@@ -27,15 +27,15 @@ def loadPretrain(model, preTrainModel):
     preTrainDict = {k: v for k, v in preTrainDict.items() if k in model_dict}
 
     # debug
-    for item in preTrainDict:
-        print '  Load pretrained layer: ', item
+    # for item in preTrainDict:
+    #    print '  Load pretrained layer: ', item
 
     model_dict.update(preTrainDict)
     model.load_state_dict(model_dict)
     return model
 
 
-def unlabel_loss(output, threshold):
+def unlabel_loss_np(output, threshold):
     """
     :param output: network unlabel output (converted to numpy)
     :return: unlabel loss
@@ -47,11 +47,6 @@ def unlabel_loss(output, threshold):
         # randomly pick two other samples
         ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
         ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
-
-        # target1 = Variable(x_encode[ind2,:].data, requires_grad=False).cuda()
-        # target2 = Variable(x_encode[ind3,:].data, requires_grad=False).cuda()
-        # diff_big = criterion(x_encode[ind1,:], target1)
-        # diff_small = criterion(x_encode[ind1,:], target2)
 
         diff_big = np.sum((output[ind1] - output[ind2]) ** 2) / 2.0
         diff_small = np.sum((output[ind1] - output[ind3]) ** 2) / 2.0
