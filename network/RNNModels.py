@@ -4,11 +4,12 @@ import torch.nn.functional as F
 
 import torchvision.models as models 
 
+from hdenet import HDENet
 from mobilenet import mobilenet_v1
 
 MobileNetPretrained = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 
-class GRUBaseline(nn.Module):
+class GRUBaseline(HDENet):
 
     def __init__(self, init_weights=True):
         super(GRUBaseline, self).__init__()
@@ -55,7 +56,7 @@ class GRUBaseline(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 
-class MobilenetGRU(nn.Module):
+class MobilenetGRU(HDENet):
 
     def __init__(self, init_weights=True, hidnum=256, regnum=2,
                  pretrain_model=MobileNetPretrained,
@@ -83,8 +84,7 @@ class MobilenetGRU(nn.Module):
             self.load_pretrained_pth(pretrain_model)
 
     def load_pretrained_pth(self, fname):  # load mobilenet-from-tf - amigo
-        params = torch.load(fname)
-        self.base_model.load_from_npz(params)
+        self.base_model.load_from_npz(fname)
 
     def forward(self, x):
         # ipdb.set_trace()

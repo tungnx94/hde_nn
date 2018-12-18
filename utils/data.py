@@ -17,23 +17,7 @@ def new_variable(tensor, **kwargs):
     if torch.cuda.is_available():
         var = var.cuda()
     return var
-
-
-def loadPretrain(model, preTrainModel):
-    """ load the trained parameters from a pickle file """
-    model_dict = model.state_dict()
-
-    preTrainDict = torch.load(preTrainModel)
-    preTrainDict = {k: v for k, v in preTrainDict.items() if k in model_dict}
-
-    # debug
-    # for item in preTrainDict:
-    #    print '  Load pretrained layer: ', item
-
-    model_dict.update(preTrainDict)
-    model.load_state_dict(model_dict)
-    return model
-
+    
 
 def unlabel_loss_np(output, threshold):
     """

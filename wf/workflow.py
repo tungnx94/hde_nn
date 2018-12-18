@@ -4,9 +4,9 @@ import time
 import signal
 import logging
 import numpy as np
+from datetime import datetime
 
-#import accValue.AccumulatedValue as AccumulatedValue
-import accValue
+from accValue import AccumulatedValue
 
 
 class WFException(Exception):
@@ -36,7 +36,9 @@ class WorkFlow(object):
 
         # Add the current path to system path
         self.prefix = prefix
-        self.workingDir = os.path.join(workingDir, prefix)
+
+        t = datetime.now().strftime('%m-%d_%H:%M')
+        self.workingDir = os.path.join(workingDir, prefix + "_" + t)
 
         # create log folders
         self.logdir = os.path.join(self.workingDir, 'logdata')
@@ -49,12 +51,12 @@ class WorkFlow(object):
         self.isInitialized = False
 
         # Accumulated value dictionary.
-        self.AV = {"loss": accValue.AccumulatedValue("loss")}
+        self.AV = {"loss": AccumulatedValue("loss")}
 
         # Accumulated value Plotter.
         self.AVP = []
 
-        ### Log handlers
+        # Log handlers
 
         # logging.basicConfig(datefmt = '%m/%d/%Y %I:%M:%S')
         # Console log
@@ -67,7 +69,7 @@ class WorkFlow(object):
         if (logFilename is not None):
             self.logFilename = logFilename
         else:
-            self.logFilename = self.prefix + "_train" + ".log"
+            self.logFilename = "train.log"
         logFilePath = os.path.join(self.logdir, self.logFilename)
 
         fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
@@ -85,7 +87,7 @@ class WorkFlow(object):
         self.logger.info("WorkFlow created.")
 
     def add_accumulated_value(self, name, avgWidth=2):
-        # Check if there is alread an ojbect which has the same name.
+        # Check if there is alread an ojbect whifch has the same name.
         if (name in self.AV.keys()):
             # This is an error.
             desc = "There is already an object registered as \"%s\"." % (name)
@@ -93,7 +95,7 @@ class WorkFlow(object):
             raise(exp)
 
         # Name is new. Create a new AccumulatedValue object.
-        self.AV[name] = accValue.AccumulatedValue(name, avgWidth)
+        self.AV[name] = AccumulatedValue(name, avgWidth)
 
     def have_accumulated_value(self, name):
         return (name in self.AV.keys())
@@ -127,10 +129,10 @@ class WorkFlow(object):
             self.logger.info("AVP initialized.")
 
         self.isInitialized = True
-        self.logger.info("WF initialized.")
+        self.startTime = datetime.now()
 
+        self.logger.info("WF initialized.")
         self.debug_print("initialize() get called.")
-        
 
     def train(self):
         # Check the system-wide signal.
@@ -166,17 +168,12 @@ class WorkFlow(object):
             raise(exp)
 
         # Write the accumulated values.
-        self.write_accumulated_values()
-        self.draw_accumulated_values()
-
-        self.logger.info("Accumulated values are written to %s." %
-                         (self.workingDir + "/AccumulatedValues"))
+        self.save_accumulated_values()
 
         self.isInitialized = False
+        WorkFlow.IS_FINALISING = False
 
         self.debug_print("finalize() get called.")
-
-        WorkFlow.IS_FINALISING = False
 
     def plot_accumulated_values(self):
         if len(self.AVP) == 0:
@@ -193,7 +190,7 @@ class WorkFlow(object):
             os.makedirs(outDir)
 
         for av in self.AV.itervalues():
-            av.save_csv(outDir) 
+            av.save_csv(outDir)
 
     def draw_accumulated_values(self, outDir=None):
         if (outDir is None):
@@ -204,6 +201,11 @@ class WorkFlow(object):
 
         for avp in self.AVP:
             avp.write_image(outDir, self.prefix)
+
+    def save_accumulated_values(self, outDir=None):
+        self.write_accumulated_values(outDir)
+        self.draw_accumulated_values(outDir)
+        self.plot_accumulated_values()
 
     def is_initialized(self):
         return self.isInitialized

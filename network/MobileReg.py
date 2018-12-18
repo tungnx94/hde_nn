@@ -3,11 +3,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch.autograd import Variable
+from hdenet import HDENet
 from mobilenet import mobilenet_v1
 
 
-class MobileReg(nn.Module):
+class MobileReg(HDENet):
 
     def __init__(self, hidnum=256, regnum=2):  
         # input size should be 112
@@ -35,7 +35,7 @@ class MobileReg(nn.Module):
 
     def _initialize_weights(self):
         for m in self.modules():
-            print type(m)
+            # print type(m)
             if isinstance(m, nn.Conv2d):
                 # print 'conv2d'
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -52,17 +52,17 @@ class MobileReg(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-    def load_pretrained_pth(self, fname):  
-        """ load mobilenet-from-tf - amigo """
-        params = torch.load(fname)
-        self.feature.load_from_npz(params)
+    def load_mobilenet(self, fname):
+        self.feature.load_from_npz(fname)
 
 
 def main():
+    from torch.autograd import Variable
+
     inputVar = Variable(torch.rand((10, 3, 192, 192)))
 
     net = MobileReg()
-    net.load_pretrained_pth('pretrained_models/mobilenet_v1_0.50_224.pth')
+    net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
     outputVar = net(inputVar)
     

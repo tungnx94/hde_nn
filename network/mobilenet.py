@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from hdenet import HDENet 
 from collections import namedtuple, OrderedDict
 
 # Conv and DepthSepConv namedtuple define layers of the MobileNet architecture
@@ -164,7 +165,7 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
     raise ValueError('Unknown final endpoint %s' % final_endpoint)
 
 
-class MobileNet_v1(nn.Module):
+class MobileNet_v1(HDENet):
 
     def __init__(self, num_classes=1001,
                  dropout_keep_prob=0.999,
@@ -225,22 +226,6 @@ class MobileNet_v1(nn.Module):
         # if self.spatial_squeeze:
         #     x = x.squeeze(3).squeeze(2)
         return x
-
-    def load_from_npz(self, params):
-
-        # preTrainDict = torch.load(preTrainModel)
-        # preTrainDict = preTrainDict['state_dict']
-        model_dict = self.state_dict()
-        # print 'preTrainDict:',preTrainDict.keys()
-        # print 'modelDict:',model_dict.keys()
-        preTrainDict = {k: v for k, v in params.items() if k in model_dict}
-        for item in preTrainDict:
-            print '  Load pretrained layer: ', item
-        model_dict.update(preTrainDict)
-        # for item in model_dict:
-        #   print '  Model layer: ',item
-        self.load_state_dict(model_dict)
-
 
 def mobilenet_v1(multiplier, pretrained=False, **kwargs):
     return MobileNet_v1(depth_multiplier=multiplier, **kwargs)

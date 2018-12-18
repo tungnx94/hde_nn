@@ -9,7 +9,7 @@ PreModel = None
 
 # 0: none(train), 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
 TestType = 0
-ExpPrefix = 'vis_1_3'  # model name, should be unique
+ExpPrefix = 'sample'  # model name, should be unique
 
 
 def select_WF(TestType):

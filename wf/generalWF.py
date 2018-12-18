@@ -9,7 +9,7 @@ from workflow import WorkFlow
 from dataset import DataLoader
 from network import MobileReg
 
-from utils import loadPretrain, unlabel_loss_np, angle_metric, seq_show
+from utils import unlabel_loss_np, angle_metric, seq_show
 
 Lamb = 0.1
 Thresh = 0.005  # unlabel_loss threshold
@@ -41,14 +41,14 @@ class GeneralWF(WorkFlow):
         # Model
         self.model = MobileReg()
         if mobile_model is not None:
-            self.model.load_pretrained_pth(mobile_model)
-            self.logger.info("Load MobileNet model: ", mobile_model)
+            self.model.load_mobilenet(mobile_model) 
+            self.logger.info("Load MobileNet model: {}".format(mobile_model))
 
         self.model.to(self.device)
 
         if trained_model is not None:  # load trained params
-            self.model = loadPretrain(self.model, trained_model)
-            self.logger.info("Load trained model: ", trained_model)
+            self.model.load_from_npz(train_model) 
+            self.logger.info("Load trained model: ".format(trained_model))
 
         # Test dataset & loader
         self.test_dataset = self.get_test_dataset()

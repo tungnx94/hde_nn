@@ -17,7 +17,7 @@ Batch = 128
 SeqLength = 24  # 32
 UnlabelBatch = 1
 LearningRate = 0.0005  # to tune
-Trainstep = 20000  # number of train() calls
+Trainstep = 100  # number of train() calls 20000
 Thresh = 0.005  # unlabel_loss threshold
 
 Snapshot = 20  # 500 do a snapshot every Snapshot steps (save period)
@@ -78,24 +78,22 @@ class TrainWF(GeneralWF):
         return DukeSeqLabelDataset("duke-test", get_path(TestLabelFile),
                                    seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
 
+    def save_model(self):
+        """ Save :param: model to pickle file """
+        model_path = os.path.join(self.modeldir, SaveModelName + '_' + str(self.countTrain) + ".pkl")
+        torch.save(self.model.state_dict(), model_path)
+
     def finalize(self):
         """ save model and values after training """
         super(TrainWF, self).finalize()
-        self.save_snapshot()
-
-        self.logger.info("Saved snapshot")
-
-    def save_model(self, model, name):
-        """ Save :param: model to pickle file """
-        model_path = os.path.join(self.modeldir, name + ".pkl")
-        torch.save(model.state_dict(), model_path)
+        self.save_model()
 
     def save_snapshot(self):
         """ write accumulated values and save temporal model """
-        self.write_accumulated_values()
-        self.draw_accumulated_values()
-        self.plot_accumulated_values()
-        self.save_model(self.model, SaveModelName + '_' + str(self.countTrain))
+        self.save_accumulated_values()
+        self.save_model()
+
+        self.logger.info("Saved snapshot")
 
     def unlabel_loss(self, output, threshold):
         """
