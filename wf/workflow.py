@@ -167,8 +167,15 @@ class WorkFlow(object):
             exp = WFException(desc, "finalize")
             raise(exp)
 
+        self.logger.info("FINISHED")
+
+        self.endTime = datetime.now()
+        self.logger.info("Total time: {}".format(self.endTime - self.startTime))
+
         # Write the accumulated values.
         self.save_accumulated_values()
+
+
 
         self.isInitialized = False
         WorkFlow.IS_FINALISING = False
