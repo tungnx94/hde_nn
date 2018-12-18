@@ -86,11 +86,11 @@ class TrainWF(GeneralWF):
     def finalize(self):
         """ save model and values after training """
         super(TrainWF, self).finalize()
-        self.save_model()
+        self.save_snapshot()
 
     def save_snapshot(self):
         """ write accumulated values and save temporal model """
-        self.save_accumulated_values()
+        self.save_accumulated_values(self.traindir)
         self.save_model()
 
         self.logger.info("Saved snapshot")

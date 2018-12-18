@@ -41,10 +41,11 @@ class WorkFlow(object):
         self.workingDir = os.path.join(workingDir, prefix + "_" + t)
 
         # create log folders
-        self.logdir = os.path.join(self.workingDir, 'logdata')
+        self.traindir = os.path.join(self.workingDir, 'train')
         self.modeldir = os.path.join(self.workingDir, 'models')
+        self.testdir = os.path.join(self.workingDir, 'validation')
 
-        for folder in [self.workingDir, self.logdir, self.modeldir]:
+        for folder in [self.workingDir, self.traindir, self.testdir]:
             if not os.path.isdir(folder):
                 os.makedirs(folder)
 
@@ -172,11 +173,6 @@ class WorkFlow(object):
         self.endTime = datetime.now()
         self.logger.info("Total time: {}".format(self.endTime - self.startTime))
 
-        # Write the accumulated values.
-        self.save_accumulated_values()
-
-
-
         self.isInitialized = False
         WorkFlow.IS_FINALISING = False
 
@@ -189,27 +185,18 @@ class WorkFlow(object):
         for avp in self.AVP:
             avp.update()
 
-    def write_accumulated_values(self, outDir=None):
-        if (outDir is None):
-            outDir = self.logdir
-
-        if (False == os.path.isdir(outDir)):
-            os.makedirs(outDir)
-
+    def write_accumulated_values(self, outDir):
         for av in self.AV.itervalues():
             av.save_csv(outDir)
 
-    def draw_accumulated_values(self, outDir=None):
-        if (outDir is None):
-            outDir = self.workingDir
-
-        if not os.path.isdir(outDir):
-            os.makedirs(outDir)
-
+    def draw_accumulated_values(self, outDir):
         for avp in self.AVP:
             avp.write_image(outDir, self.prefix)
 
-    def save_accumulated_values(self, outDir=None):
+    def save_accumulated_values(self, outDir):
+        if not os.path.isdir(outDir):
+            os.makedirs(outDir)
+
         self.write_accumulated_values(outDir)
         self.draw_accumulated_values(outDir)
         self.plot_accumulated_values()
