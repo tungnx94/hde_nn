@@ -1,5 +1,4 @@
 import math
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -10,7 +9,7 @@ from mobilenet import mobilenet_v1
 class MobileReg(HDENet):
 
     def __init__(self, hidnum=256, regnum=2):  
-        # input size should be 112
+        # input size should be 112 ?
 
         super(MobileReg, self).__init__()
 
@@ -20,14 +19,10 @@ class MobileReg(HDENet):
         
         self._initialize_weights()
 
-    def forward(self, x):
-        #import ipdb; ipdb.set_trace()
-        
+    def forward(self, x):    
         x = self.feature(x)
-        # print x.size()
 
         x = F.relu(self.conv7(x), inplace=True)
-        # print x.size()
 
         x = self.reg(x.view(x.size()[0], -1))
 
@@ -57,6 +52,7 @@ class MobileReg(HDENet):
 
 
 def main():
+    import torch
     from torch.autograd import Variable
 
     inputVar = Variable(torch.rand((10, 3, 192, 192)))
@@ -65,7 +61,6 @@ def main():
     net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
     outputVar = net(inputVar)
-    
     print outputVar
 
 if __name__ == '__main__':
