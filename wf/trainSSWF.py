@@ -4,11 +4,11 @@ import os
 import random
 
 import torch
-import torch.nn as nn
 import torch.optim as optim
 
 from utils import get_path
-from generalWF import GeneralWF
+from ssWF import SSWF
+from netWF import TrainWF
 from dataset import LabelDataset, UnlabelDataset, DukeSeqLabelDataset, DataLoader
 
 from visdomPlotter import VisdomLinePlotter
@@ -17,40 +17,57 @@ Batch = 128
 SeqLength = 24  # 32
 UnlabelBatch = 1
 LearningRate = 0.0005  # to tune
-Trainstep = 100  # number of train() calls 20000
+TrainStep = 100  # number of train() calls 20000
 Thresh = 0.005  # unlabel_loss threshold
 
 Snapshot = 20  # 500 do a snapshot every Snapshot steps (save period)
 TestIter = 10  # do a testing every TestIter steps
 ShowIter = 5  # print to screen
 
-SaveModelName = 'facing'
+ModelName = 'facing'
 TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
 
 AccumulateValues = {"train_total": 100,
                     "train_label": 100,
                     "train_unlabel": 100,
-                    "test_total": 10,
-                    "test_label": 10,
-                    "test_unlabel": 10}
+                    "test_total": 20,
+                    "test_label": 20,
+                    "test_unlabel": 20}
 
 
-class TrainWF(GeneralWF):
+class TrainSSWF(TrainWF, SSWF):
 
     def __init__(self, workingDir, prefix,
                  device=None, mobile_model=None, trained_model=None):
-        super(TrainWF, self).__init__(workingDir, prefix,
-                                      device, mobile_model, trained_model)
 
-        self.visualize = False
         self.labelBatch = Batch
         self.unlabelBatch = UnlabelBatch
         self.seqLength = SeqLength
-        self.lr = LearningRate
+
+        self.acvs = {"train_total": 100,
+                    "train_label": 100,
+                    "train_unlabel": 100,
+                    "test_total": 20,
+                    "test_label": 20,
+                    "test_unlabel": 20}
+
+        SSWF.__init__(self, mobile_model)
+        TrainWF.__init__(self, workingDir, prefix, ModelName, device,
+                         trained_model, trainStep=TrainStep, testIter=TestIter, lr=LearningRate)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
-        self.countTrain = 0
 
+        self.AVP.append(VisdomLinePlotter(
+            "total_loss", self.AV, ['train_total', 'test_total'], [True, True]))
+        self.AVP.append(VisdomLinePlotter(
+            "label_loss", self.AV, ['train_label', 'test_label'], [True, True]))
+        self.AVP.append(VisdomLinePlotter(
+            "unlabel_loss", self.AV, ['train_unlabel', 'test_unlabel'], [True, True]))
+
+    def load_model(self):
+        return SSWF.load_model(self)
+
+    def load_dataset(self):
         # Train dataset & loader
         label_dataset = LabelDataset(
             balance=True, mean=self.mean, std=self.std)
@@ -62,38 +79,9 @@ class TrainWF(GeneralWF):
         self.train_unlabel_loader = DataLoader(
             unlabel_dataset, batch_size=self.unlabelBatch, num_workers=4)
 
-        self.AV = {}
-        # second param is the number of average data
-        for key, val in AccumulateValues.items():
-            self.add_accumulated_value(key, val)
-
-        self.AVP.append(VisdomLinePlotter(
-            "total_loss", self.AV, ['train_total', 'test_total'], [True, True]))
-        self.AVP.append(VisdomLinePlotter(
-            "label_loss", self.AV, ['train_label', 'test_label'], [True, True]))
-        self.AVP.append(VisdomLinePlotter(
-            "unlabel_loss", self.AV, ['train_unlabel', 'test_unlabel'], [True, True]))
-
     def get_test_dataset(self):
         return DukeSeqLabelDataset("duke-test", get_path(TestLabelFile),
                                    seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
-
-    def save_model(self):
-        """ Save :param: model to pickle file """
-        model_path = os.path.join(self.modeldir, SaveModelName + '_' + str(self.countTrain) + ".pkl")
-        torch.save(self.model.state_dict(), model_path)
-
-    def finalize(self):
-        """ save model and values after training """
-        super(TrainWF, self).finalize()
-        self.save_snapshot()
-
-    def save_snapshot(self):
-        """ write accumulated values and save temporal model """
-        self.save_accumulated_values(self.traindir)
-        self.save_model()
-
-        self.logger.info("Saved snapshot")
 
     def unlabel_loss(self, output, threshold):
         """
@@ -183,18 +171,11 @@ class TrainWF(GeneralWF):
     def test(self):
         """ update test loss history """
         self.logger.info("validation")
+        loss = SSWF.test(self)
 
-        loss = GeneralWF.test(self)
         self.AV['test_total'].push_back(loss["total"], self.countTrain)
         self.AV['test_label'].push_back(loss["label"], self.countTrain)
         self.AV['test_unlabel'].push_back(loss["unlabel"], self.countTrain)
 
     def run(self):
-        """ train on all samples """
-        for iteration in range(1, Trainstep + 1):
-            self.train()
-
-            if iteration % TestIter == 0:
-                self.test()
-
-        self.logger.info("Finished training")
+        TrainWF.run(self)

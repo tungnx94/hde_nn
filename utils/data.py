@@ -87,7 +87,7 @@ def accuracy_cls(outputs, labels):
 
 def angle_metric(outputs, labels):
     """ return angle loss and accuracy"""
-    return angle_loss(outputs, labels), angle_cls(outputs, labels)
+    return angle_loss(outputs, labels), accuracy_cls(outputs, labels)
 
 
 def groupPlot(data_x, data_y, group=10):

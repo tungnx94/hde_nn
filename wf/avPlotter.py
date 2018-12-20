@@ -35,7 +35,7 @@ class AccumulatedValuePlotter(object):
         self.xlabel = "steps"
         self.ylabel = "loss"
 
-    def write_image(self, outDir, prefix=""):
+    def write_image(self, outDir):
         """ """
         fig, ax = plt.subplots(nrows=1, ncols=1)
         legend = []

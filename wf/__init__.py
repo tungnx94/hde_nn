@@ -1,6 +1,6 @@
 from workflow import WFException
 
-from trainWF import TrainWF
+from trainSSWF import TrainSSWF
 from testWF import TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
 from visdomPlotter import VisdomLinePlotter

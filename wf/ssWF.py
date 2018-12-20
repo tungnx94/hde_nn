@@ -3,7 +3,6 @@ sys.path.append("..")
 
 import torch
 import torch.nn as nn
-import numpy as np
 
 from workflow import WorkFlow
 from dataset import DataLoader
@@ -13,48 +12,32 @@ from utils import unlabel_loss_np, angle_metric, seq_show
 
 Lamb = 0.1
 Thresh = 0.005  # unlabel_loss threshold
-
 TestBatch = 1
-LogParamList = ['Batch', 'SeqLength', 'LearningRate', 'Trainstep',
-                'Lamb', 'Thresh']  # these params will be log into the file
 
 
-class GeneralWF(WorkFlow):
+class SSWF(WorkFlow):
 
-    def __init__(self, workingDir, prefix,
-                 device=None, mobile_model=None, trained_model=None):
-        super(GeneralWF, self).__init__(workingDir, prefix)
-
-        self.device = device
-        # select default device if not specified
-        if self.device is None:
-            self.device = torch.device(
-                "cuda" if torch.cuda.is_available() else "cpu")
-
+    def __init__(self, mobile_model=None):
         self.lamb = Lamb
         self.mean = [0.485, 0.456, 0.406]
         self.std = [0.229, 0.224, 0.225]
 
-        self.testBatch = TestBatch
-        self.visualize = True
-
-        # Model
-        self.model = MobileReg()
-        if mobile_model is not None:
-            self.model.load_mobilenet(mobile_model) 
-            self.logger.info("Load MobileNet model: {}".format(mobile_model))
-
-        self.model.to(self.device)
-
-        if trained_model is not None:  # load trained params
-            self.model.load_from_npz(train_model) 
-            self.logger.info("Load trained model: ".format(trained_model))
+        self.visualize = False
+        self.mobile_model = mobile_model
 
         # Test dataset & loader
         self.test_dataset = self.get_test_dataset()
-        self.test_loader = DataLoader(self.test_dataset, batch_size=self.testBatch)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=TestBatch)
 
         self.criterion = nn.MSELoss()  # loss function
+
+    def load_model(self):
+        model = MobileReg()
+        if self.mobile_model is not None:
+            model.load_mobilenet(self.mobile_model) 
+            self.logger.info("Loaded MobileNet model: {}".format(self.mobile_model))
+
+        return model
 
     def get_test_dataset(self):
         pass
@@ -91,15 +74,12 @@ class GeneralWF(WorkFlow):
 
     def test(self):
         """ test one batch """
-        # activate
-        super(GeneralWF, self).test()
-        self.model.eval()
+        WorkFlow.test(self)
+        self.model.eval() # activate
 
         # calculate next sample loss
         sample = self.test_loader.next_sample()
         loss = self.calculate_loss(sample)
 
         return loss
-
-    def run(self):
-        pass
+    

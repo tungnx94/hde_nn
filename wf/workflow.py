@@ -2,9 +2,8 @@ import os
 import sys
 import time
 import signal
+import torch
 import logging
-import numpy as np
-from datetime import datetime
 
 from accValue import AccumulatedValue
 
@@ -17,11 +16,9 @@ class WFException(Exception):
 
     def __str__(self):
         if (self.name is not None):
-            desc = self.name + ": " + self.message
+            return self.name + ": " + self.message
         else:
-            desc = self.message
-
-        return desc
+            return self.message
 
 
 class WorkFlow(object):
@@ -30,36 +27,19 @@ class WorkFlow(object):
     SIG_INT = False
     IS_FINALISING = False
 
-    def __init__(self, workingDir, prefix, logFilename=None, verbose=False):
+    def __init__(self, logFile, trained_model=None, device=None, verbose=False):
         # True to enable debug_print
         self.verbose = verbose
-
-        # Add the current path to system path
-        self.prefix = prefix
-
-        t = datetime.now().strftime('%m-%d_%H:%M')
-        self.workingDir = os.path.join(workingDir, prefix + "_" + t)
-
-        # create log folders
-        self.traindir = os.path.join(self.workingDir, 'train')
-        self.modeldir = os.path.join(self.workingDir, 'models')
-        self.testdir = os.path.join(self.workingDir, 'validation')
-
-        for folder in [self.workingDir, self.traindir, self.testdir]:
-            if not os.path.isdir(folder):
-                os.makedirs(folder)
-
         self.isInitialized = False
 
-        # Accumulated value dictionary.
-        self.AV = {"loss": AccumulatedValue("loss")}
-
-        # Accumulated value Plotter.
+        # Accumulated value dictionary & plotter.
+        self.AV = {}
         self.AVP = []
 
-        # Log handlers
+        for v, w in self.acvs.items():
+            self.add_accumulated_value(v, w)
 
-        # logging.basicConfig(datefmt = '%m/%d/%Y %I:%M:%S')
+        # Log handlers
         # Console log
         streamHandler = logging.StreamHandler()
         streamHandler.setLevel(logging.DEBUG)
@@ -67,11 +47,11 @@ class WorkFlow(object):
             logging.Formatter('%(levelname)s: %(message)s'))
 
         # File log
-        if (logFilename is not None):
-            self.logFilename = logFilename
-        else:
-            self.logFilename = "train.log"
-        logFilePath = os.path.join(self.logdir, self.logFilename)
+        self.logdir = self.get_log_dir()
+        if not os.path.isdir(self.logdir):
+            os.makedirs(self.logdir)
+
+        logFilePath = os.path.join(self.logdir, logFile)
 
         fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
         fileHandler.setLevel(logging.DEBUG)
@@ -86,6 +66,40 @@ class WorkFlow(object):
         self.logger.addHandler(fileHandler)
 
         self.logger.info("WorkFlow created.")
+
+        # Ininiate model
+        self.device = device
+        # select default device if not specified
+        if device is None:
+            self.device = torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu")
+
+        self.model = self.load_model()
+        self.model.to(self.device)
+
+        self.load_dataset()
+
+        # load trained params
+        if trained_model is not None:
+            self.model.load_from_npz(train_model)
+            self.logger.info("Loaded trained model: ".format(trained_model))
+
+    def proceed(self):
+        self.initialize()
+        self.run()
+        self.finalize()
+
+    def get_log_dir(self):
+        pass
+
+    def run(self):
+        pass
+
+    def load_model(self):
+        pass
+
+    def load_dataset(self):
+        pass
 
     def add_accumulated_value(self, name, avgWidth=2):
         # Check if there is alread an ojbect whifch has the same name.
@@ -171,7 +185,8 @@ class WorkFlow(object):
         self.logger.info("FINISHED")
 
         self.endTime = datetime.now()
-        self.logger.info("Total time: {}".format(self.endTime - self.startTime))
+        self.logger.info("Total time: {}".format(
+            self.endTime - self.startTime))
 
         self.isInitialized = False
         WorkFlow.IS_FINALISING = False
@@ -179,9 +194,6 @@ class WorkFlow(object):
         self.debug_print("finalize() get called.")
 
     def plot_accumulated_values(self):
-        if len(self.AVP) == 0:
-            return
-
         for avp in self.AVP:
             avp.update()
 
@@ -191,14 +203,11 @@ class WorkFlow(object):
 
     def draw_accumulated_values(self, outDir):
         for avp in self.AVP:
-            avp.write_image(outDir, self.prefix)
+            avp.write_image(outDir)
 
-    def save_accumulated_values(self, outDir):
-        if not os.path.isdir(outDir):
-            os.makedirs(outDir)
-
-        self.write_accumulated_values(outDir)
-        self.draw_accumulated_values(outDir)
+    def save_accumulated_values(self):
+        self.write_accumulated_values(self.logdir)
+        self.draw_accumulated_values(self.logdir)
         self.plot_accumulated_values()
 
     def is_initialized(self):
@@ -207,9 +216,6 @@ class WorkFlow(object):
     def debug_print(self, msg):
         if self.verbose:
             print(msg)
-
-    def compose_file_name(self, fn, ext=""):
-        return self.workingDir + "/" + self.prefix + fn + "." + ext
 
     def check_signal(self):
         if (True == WorkFlow.SIG_INT):
