@@ -71,7 +71,7 @@ class TestWF(WorkFlow):
         self.modeldir = os.path.join(workingDir, 'models')
         self.testdir = os.path.join(workingDir, 'validation', prefix + "_" + t)
 
-        if not os.path.isdir(self.testdir)
+        if not os.path.isdir(self.testdir):
             os.makedirs(self.testdir) 
 
         self.trained_model = os.path.join(self.modeldir, trained_model)
