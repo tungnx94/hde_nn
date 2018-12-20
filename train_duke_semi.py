@@ -3,13 +3,12 @@ import config as cnf
 from wf import WFException, TrainSSWF, TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
 # 0: none(train), 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
-TestType = 0
+TestType = 3
 
 PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 ExpPrefix = 'sample'  # model name, should be unique
 
 TestFolder = "./log/sample_12-18_17:41"
-TestPrefix = "mock"
 PreModel = 'facing_37.pkl'
 
 def select_WF(TestType):
@@ -18,11 +17,11 @@ def select_WF(TestType):
     if TestType == 0:
         return TrainSSWF("./log", ExpPrefix, mobile_model=PreMobileModel, trained_model=None)
     elif TestType == 1:
-        return TestLabelSeqWF(TestFolder, TestPrefix, trained_model=PreModel)
+        return TestLabelSeqWF(TestFolder, "labelseq", PreModel)
     elif TestType == 2:
-        return TestFolderWF(TestFolder, TestPrefix, trained_model=PreModel)
+        return TestFolderWF(TestFolder, "folder", PreModel)
     else:  # 3
-        return TestUnlabelSeqWF(TestFolder, TestPrefix, trained_model=PreModel)
+        return TestUnlabelSeqWF(TestFolder, "unlabelseq", PreModel)
 
 
 def main():

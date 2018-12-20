@@ -82,8 +82,8 @@ class WorkFlow(object):
 
         # load trained params
         if trained_model is not None:
-            self.model.load_from_npz(train_model)
-            self.logger.info("Loaded trained model: ".format(trained_model))
+            self.model.load_from_npz(trained_model)
+            self.logger.info("Loaded model from {}".format(trained_model))
 
     def proceed(self):
         self.initialize()

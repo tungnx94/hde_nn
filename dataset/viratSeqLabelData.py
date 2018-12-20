@@ -10,22 +10,21 @@ import numpy as np
 
 from generalData import SingleSequenceDataset
 
-
+# not yet functional 
 class ViratSeqLabelDataset(SingleSequenceDataset):
 
-    def __init__(self, label_file, img_size=192, data_aug=False,
+    def __init__(self, name, label_file, img_size=192, data_aug=False,
                  mean=[0, 0, 0], std=[1, 1, 1], seq_length=32, subsample_rate=3):
 
         self.label_file = label_file
         self.subsample_rate = subsample_rate #distance between 2 frame
 
-        super(ViratSeqLabelDataset, self).__init__(
-            img_size, data_aug, 0, mean, std, seq_length)
+        super(ViratSeqLabelDataset, self).__init__(name, img_size, data_aug, 0, mean, std, seq_length)
         self.read_debug()
 
     def load_image_sequences(self):
         # need fixing
-        img_dir = os.path.split(label_file)[0]  # role ?
+        img_dir = os.path.split(self.label_file)[0]  # role ?
         with open(self.label_file, 'r') as f:
             lines = f.readlines()
 
@@ -72,7 +71,7 @@ def main():
     np.set_printoptions(precision=4)
 
     label_file = 'VIRAT/train/annotations/annotations.csv'
-    unlabelset = ViratSeqLabelDataset(
+    unlabelset = ViratSeqLabelDataset("virat-train",
         get_path(label_file), seq_length=24, data_aug=True)
     print len(unlabelset)
 

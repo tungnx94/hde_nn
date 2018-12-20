@@ -63,7 +63,7 @@ def main():
     np.set_printoptions(precision=4)
 
     test_img_dir = '3DPES/facing_labeled'
-    facingDroneLabelDataset = FolderLabelDataset(
+    facingDroneLabelDataset = FolderLabelDataset("3dpes-facing",
         img_dir=get_path(test_img_dir), data_aug=True)
 
     dataloader = DataLoader(facingDroneLabelDataset,

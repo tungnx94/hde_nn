@@ -77,7 +77,7 @@ def main():
     #data_file = 'combined_data2/train/annotations/person_annotations.csv'
     data_file = 'DukeMCMT/trainval_duke.txt'
     
-    trackingLabelDataset = TrackingLabelDataset(
+    trackingLabelDataset = TrackingLabelDataset("duke-train",
         data_file=get_path(data_file), data_aug=True)
 
     dataloader = DataLoader(trackingLabelDataset, batch_size=16)

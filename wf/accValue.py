@@ -38,13 +38,11 @@ class AccumulatedValue(object):
         else:
             if (self.avgCount < self.avgWidth):
                 self.avg.append(
-                    (self.avg[-1] * self.avgCount + self.acc[-1]) / (self.avgCount + 1))
+                    (self.avg[-1]*self.avgCount + self.acc[-1]) / (self.avgCount + 1))
                 self.avgCount += 1
             else:
                 self.avg.append(
-                    (self.avg[-1] * self.avgCount - self.acc[-1 -
-                                                             self.avgCount] + self.acc[-1]) / self.avgCount
-                )
+                    (self.avg[-1]*self.avgCount - self.acc[-1-self.avgCount] + self.acc[-1]) / self.avgCount)
 
     def clear(self):
         """ reset all values """

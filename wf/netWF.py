@@ -20,7 +20,7 @@ class TrainWF(WorkFlow):
         self.traindir = os.path.join(workingDir, 'train')
         self.modeldir = os.path.join(workingDir, 'models')
 
-        for folder in [workingDir, self.traindir]:
+        for folder in [workingDir, self.traindir, self.modeldir]:
             if not os.path.isdir(folder):
                 os.makedirs(folder)
 
@@ -42,7 +42,7 @@ class TrainWF(WorkFlow):
 
     def finalize(self):
         """ save model and values after training """
-        super(TrainWF, self).finalize()
+        WorkFlow.finalize(self)
         self.save_snapshot()
 
     def save_snapshot(self):
@@ -68,13 +68,13 @@ class TestWF(WorkFlow):
 
     def __init__(self, workingDir, prefix, trained_model, device=None, testStep=100):
         t = datetime.now().strftime('%m-%d_%H:%M')
-        self.modeldir = os.path.join(workingDir, 'models')
+        self.modeldir = os.path.join(workingDir, 'models') # should exist already
         self.testdir = os.path.join(workingDir, 'validation', prefix + "_" + t)
 
         if not os.path.isdir(self.testdir):
             os.makedirs(self.testdir) 
 
-        self.trained_model = os.path.join(self.modeldir, trained_model)
+        trained_model = os.path.join(self.modeldir, trained_model)
         self.testStep = testStep
         self.countTest = 0
 
@@ -85,7 +85,7 @@ class TestWF(WorkFlow):
 
     def finalize(self):
         """ save model and values after training """
-        super(TrainWF, self).finalize()
+        WorkFlow.finalize(self)
         self.save_accumulated_values()
 
     def run(self):
