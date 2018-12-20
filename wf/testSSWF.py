@@ -12,13 +12,15 @@ from dataset import FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDatase
 from visdomPlotter import VisdomLinePlotter
 
 LabelSeqLength = 24  # 32
-TestStep = 100  # number of test() calls, 5000
 
 TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
 TestLabelImgFolder = 'val_drone'
 TestUnlabelImgFolder = 'drone_unlabel_seq'
 
 Thresh = 0.005
+TestStep = 200 # number of test() calls, 5000
+ShowIter = 10
+Snapshot = 50
 
 class TestSSWF(TestWF, SSWF):
 
@@ -27,7 +29,7 @@ class TestSSWF(TestWF, SSWF):
 
         SSWF.__init__(self)
         TestWF.__init__(self, workingDir, prefix,
-                        trained_model, device, testStep=TestStep)
+                        trained_model, device, testStep=TestStep, saveIter=Snapshot, showIter=ShowIter)
 
 
 class TestLabelSeqWF(TestSSWF):  # Type 1

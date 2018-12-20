@@ -3,7 +3,7 @@ import config as cnf
 from wf import WFException, TrainSSWF, TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
 # 0: none(train), 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
-TestType = 3
+TestType = 0
 
 PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 ExpPrefix = 'sample'  # model name, should be unique

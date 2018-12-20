@@ -11,7 +11,7 @@ from workflow import WorkFlow
 class TrainWF(WorkFlow):
 
     def __init__(self, workingDir, prefix, modelName,
-                 trained_model=None, device=None, trainStep=100, testIter=10, lr=0.005):
+                 trained_model=None, device=None, trainStep=100, testIter=20, saveIter=50, showIter=10, lr=0.005):
 
         # create folders
         t = datetime.now().strftime('%m-%d_%H:%M')
@@ -25,19 +25,20 @@ class TrainWF(WorkFlow):
                 os.makedirs(folder)
 
         self.modelName = modelName
+        self.lr = lr
+
         self.trainStep = trainStep
         self.testIter = testIter
-        self.lr = lr
-        self.countTrain = 0                
 
-        WorkFlow.__init__(self, "train.log", trained_model, device)
+        WorkFlow.__init__(self, "train.log", trained_model, device, saveIter=saveIter, showIter=showIter)
 
     def get_log_dir(self):
         return self.traindir
 
     def save_model(self):
         """ Save :param: model to pickle file """
-        model_path = os.path.join(self.modeldir, self.modelName + '_' + str(self.countTrain) + ".pkl")
+        model_path = os.path.join(
+            self.modeldir, self.modelName + '_' + str(self.countTrain) + ".pkl")
         torch.save(self.model.state_dict(), model_path)
 
     def finalize(self):
@@ -58,6 +59,15 @@ class TrainWF(WorkFlow):
 
         for iteration in range(1, self.trainStep + 1):
             self.train()
+
+            # output losses
+            if iteration % self.showIter == 0:
+                self.logger.info("#%d %s" % (iteration, self.get_log_str()))
+
+            # save temporary model
+            if iteration % self.saveIter == 0:
+                self.save_snapshot()
+
             if iteration % self.testIter == 0:
                 self.test()
 
@@ -66,19 +76,19 @@ class TrainWF(WorkFlow):
 
 class TestWF(WorkFlow):
 
-    def __init__(self, workingDir, prefix, trained_model, device=None, testStep=100):
+    def __init__(self, workingDir, prefix, trained_model, device=None, testStep=200, saveIter=50, showIter=10):
         t = datetime.now().strftime('%m-%d_%H:%M')
-        self.modeldir = os.path.join(workingDir, 'models') # should exist already
+        self.modeldir = os.path.join(
+            workingDir, 'models')  # should exist already
         self.testdir = os.path.join(workingDir, 'validation', prefix + "_" + t)
 
         if not os.path.isdir(self.testdir):
-            os.makedirs(self.testdir) 
+            os.makedirs(self.testdir)
 
         trained_model = os.path.join(self.modeldir, trained_model)
         self.testStep = testStep
-        self.countTest = 0
 
-        WorkFlow.__init__(self, "test.log", trained_model, device)
+        WorkFlow.__init__(self, "test.log", trained_model, device, saveIter=saveIter, showIter=showIter)
 
     def get_log_dir(self):
         return self.testdir
@@ -93,5 +103,12 @@ class TestWF(WorkFlow):
 
         for iteration in range(1, self.testStep + 1):
             self.test()
+
+            if iteration % self.showIter == 0:
+                self.logger.info("#%d %s" % (iteration, self.get_log_str()))
+
+            # save temporary model
+            if iteration % self.saveIter == 0:
+                self.save_accumulated_values()
 
         self.logger.info("Finished testing")

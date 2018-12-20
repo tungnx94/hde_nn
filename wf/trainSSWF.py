@@ -43,6 +43,7 @@ class TrainSSWF(TrainWF, SSWF):
         self.labelBatch = Batch
         self.unlabelBatch = UnlabelBatch
         self.seqLength = SeqLength
+        self.countTrain = 0
 
         self.acvs = {"train_total": 100,
                     "train_label": 100,
@@ -52,8 +53,8 @@ class TrainSSWF(TrainWF, SSWF):
                     "test_unlabel": 20}
 
         SSWF.__init__(self, mobile_model)
-        TrainWF.__init__(self, workingDir, prefix, ModelName, device,
-                         trained_model, trainStep=TrainStep, testIter=TestIter, lr=LearningRate)
+        TrainWF.__init__(self, workingDir, prefix, ModelName, device, trained_model, 
+                        trainStep=TrainStep, testIter=TestIter, saveIter=Snapshot, showIter=ShowIter, lr=LearningRate)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
@@ -159,14 +160,6 @@ class TrainSSWF(TrainWF, SSWF):
         self.AV['train_total'].push_back(loss.item(), self.countTrain)
         self.AV['train_label'].push_back(label_loss.item(), self.countTrain)
         self.AV['train_unlabel'].push_back(unlabel_loss.item(), self.countTrain)
-
-        # record current params
-        if self.countTrain % ShowIter == 0:
-            self.logger.info("#%d %s" % (self.countTrain, self.get_log_str()))
-
-        # save temporary model
-        if (self.countTrain % Snapshot == 0):
-            self.save_snapshot()
 
     def test(self):
         """ update test loss history """

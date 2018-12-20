@@ -28,10 +28,12 @@ class WorkFlow(object):
     SIG_INT = False
     IS_FINALISING = False
 
-    def __init__(self, logFile, trained_model=None, device=None, verbose=False):
+    def __init__(self, logFile, trained_model=None, device=None, saveIter=50, showIter=10, verbose=False):
         # True to enable debug_print
         self.verbose = verbose
         self.isInitialized = False
+        self.saveIter = saveIter
+        self.showIter = showIter
 
         # Accumulated value dictionary & plotter.
         self.AV = {}
