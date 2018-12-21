@@ -65,15 +65,6 @@ class TestLabelSeqWF(TestSSWF):  # Type 1
         targets = val_sample['labelseq'].squeeze()
 
         loss = self.model.forward_combine(inputs, targets, inputs) 
-        
-        if self.visualize:  # display
-            outputs = self.model(inputs)
-            self.visualize_output(inputs, outputs)
-
-            angle_error, cls_accuracy = angle_metric(
-                outputs.detach().cpu().numpy(), targets.cpu().numpy())
-            print 'loss: {}, angle diff %.4f, accuracy %.4f'.format(loss["total"].item(), angle_error, cls_accuracy)
-        
         return loss
 
     def test(self):
@@ -104,14 +95,6 @@ class TestFolderWF(TestSSWF):  # Type 2
         targets = val_sample['label']
 
         loss = self.model.forward_label(inputs, targets)
-        
-        if self.visualize:
-            outputs = outputs = self.model(inputs)
-            self.visualize_output(inputs, outputs)
-            angle_error, cls_accuracy = angle_metric(
-                outputs.detach().cpu().numpy(), targets.cpu().numpy())
-            print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss, angle_error, cls_accuracy)
-        
         return loss
 
     def test(self):
@@ -137,13 +120,6 @@ class TestUnlabelSeqWF(TestSSWF):  # Type 3
         """ unlabel loss only """
         inputs = val_sample.squeeze()
         loss = self.model.forward_unlabel(inputs) 
-        
-
-        if self.visualize:
-            outputs = self.model(inputs)
-            self.visualize_output(inputs, outputs)
-            print 'loss-unlabel %.4f' % (loss)
-
         return loss
 
     def test(self):
