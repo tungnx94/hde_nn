@@ -22,11 +22,11 @@ class MobileReg(HDENet):
         self.thresh = thresh
         self._initialize_weights()
 
-    def forward(self, x):    
+    def forward(self, x):
+        x = x.to(self.device)
+
         x = self.feature(x)
-
         x = F.relu(self.conv7(x), inplace=True)
-
         x = self.reg(x.view(x.size()[0], -1))
 
         return x

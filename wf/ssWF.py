@@ -8,8 +8,6 @@ from workflow import WorkFlow
 from dataset import DataLoader
 from network import MobileReg
 
-from utils import seq_show
-
 Lamb = 0.1
 Thresh = 0.005  # unlabel_loss threshold
 TestBatch = 1
@@ -36,10 +34,6 @@ class SSWF(WorkFlow):
             self.logger.info("Loaded MobileNet model: {}".format(self.mobile_model))
 
         return model
-
-    def visualize_output(self, inputs, outputs):
-        seq_show(inputs.cpu().numpy(), dir_seq=outputs.detach().cpu().numpy(),
-                 scale=0.8, mean=self.mean, std=self.std)
 
     def get_test_dataset(self):
         pass

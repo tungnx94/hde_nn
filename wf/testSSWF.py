@@ -5,8 +5,7 @@ import torch
 
 from ssWF import SSWF
 from netWF import TestWF
-
-from utils import angle_metric, get_path
+from utils import angle_metric, get_path, seq_show
 from dataset import FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
 from visdomPlotter import VisdomLinePlotter
@@ -21,14 +20,20 @@ TestStep = 100 # number of test() calls, 5000
 ShowIter = 10
 Snapshot = 50
 
+Visualize = True
+
 class TestSSWF(TestWF, SSWF):
 
     def __init__(self, workingDir, prefix, trained_model):
-        self.visualize = False
+        self.visualize = Visualize
 
         SSWF.__init__(self)
         TestWF.__init__(self, workingDir, prefix,
                         trained_model, testStep=TestStep, saveIter=Snapshot, showIter=ShowIter)
+
+    def visualize_output(self, inputs, outputs):
+        seq_show(inputs.cpu().numpy(), dir_seq=outputs.detach().cpu().numpy(),
+                 scale=0.8, mean=self.mean, std=self.std)
 
     def load_model(self):
         return SSWF.load_model(self)
@@ -60,14 +65,15 @@ class TestLabelSeqWF(TestSSWF):  # Type 1
         targets = val_sample['labelseq'].squeeze()
 
         loss = self.model.forward_combine(inputs, targets, inputs) 
-        """
+        
         if self.visualize:  # display
-            self.visualize_output(inputImgs, output)
+            outputs = self.model(inputs)
+            self.visualize_output(inputs, outputs)
 
             angle_error, cls_accuracy = angle_metric(
-                output.detach().cpu().numpy(), labels.cpu().numpy())
-            # print 'loss: {}, angle diff %.4f, accuracy %.4f'.format(loss, angle_error, cls_accuracy)
-        """
+                outputs.detach().cpu().numpy(), targets.cpu().numpy())
+            print 'loss: {}, angle diff %.4f, accuracy %.4f'.format(loss["total"].item(), angle_error, cls_accuracy)
+        
         return loss
 
     def test(self):
@@ -98,13 +104,14 @@ class TestFolderWF(TestSSWF):  # Type 2
         targets = val_sample['label']
 
         loss = self.model.forward_label(inputs, targets)
-        """
+        
         if self.visualize:
-            self.visualize_output(inputImgs, output)
+            outputs = outputs = self.model(inputs)
+            self.visualize_output(inputs, outputs)
             angle_error, cls_accuracy = angle_metric(
-                output.detach().cpu().numpy(), labels.cpu().numpy())
-            # print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss_label, angle_error, cls_accuracy)
-        """
+                outputs.detach().cpu().numpy(), targets.cpu().numpy())
+            print 'label-loss %.4f, angle diff %.4f, accuracy %.4f' % (loss, angle_error, cls_accuracy)
+        
         return loss
 
     def test(self):
@@ -130,12 +137,13 @@ class TestUnlabelSeqWF(TestSSWF):  # Type 3
         """ unlabel loss only """
         inputs = val_sample.squeeze()
         loss = self.model.forward_unlabel(inputs) 
-        """
-        output = self.model(inputImgs)
+        
+
         if self.visualize:
-            self.visualize_output(inputImgs, output)
-            # print loss_unlabel
-        """
+            outputs = self.model(inputs)
+            self.visualize_output(inputs, outputs)
+            print 'loss-unlabel %.4f' % (loss)
+
         return loss
 
     def test(self):
