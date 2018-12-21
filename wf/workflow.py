@@ -75,11 +75,12 @@ class WorkFlow(object):
         self.model = self.load_model()
 
         # load trained params
-        if trained_model is not None:
-            self.model.load_from_npz(trained_model)
+        if trained_model is not None:            
+            self.model.load_pretrained(trained_model)
             self.logger.info("Loaded model from {}".format(trained_model))
 
         self.model.load_to_device()
+        self.countTrain = self.model.countTrain
 
     def proceed(self):
         self.initialize()

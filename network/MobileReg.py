@@ -22,6 +22,9 @@ class MobileReg(HDENet):
         self.thresh = thresh
         self._initialize_weights()
 
+    def load_mobilenet(self, fname):
+        self.feature.load_from_npz(fname)
+
     def forward(self, x):
         x = x.to(self.device)
 
@@ -108,9 +111,6 @@ class MobileReg(HDENet):
                 n = m.weight.size(1)
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
-
-    def load_mobilenet(self, fname):
-        self.feature.load_from_npz(fname)
 
 
 def main():

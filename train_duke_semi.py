@@ -3,25 +3,28 @@ import config as cnf
 from wf import WFException, TrainSSWF, TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
 
 # 0: none(train), 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
-TestType = 3
+TestType = 0
 
 PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
+PreModel = './log/sample_12-21_01:55/models/facing_6000.pkl' # 
+# PreModel = None
 ExpPrefix = 'sample'  # model name, should be unique
 
 TestFolder = "./log/sample_12-18_17:41"
-PreModel = 'facing_37.pkl'
+# TestFolder = ./log/sample_12-21_01:55
+TestModel = 'facing_37.pkl'
 
 def select_WF(TestType):
     """ choose WF from test type """
     # ugly code to avoid multiple instance of logger in WorkFlow
     if TestType == 0:
-        return TrainSSWF("./log", ExpPrefix, mobile_model=PreMobileModel, trained_model=None)
+        return TrainSSWF("./log", ExpPrefix, mobile_model=PreMobileModel, trained_model=PreModel)
     elif TestType == 1:
-        return TestLabelSeqWF(TestFolder, "labelseq", PreModel)
+        return TestLabelSeqWF(TestFolder, "labelseq", TestModel)
     elif TestType == 2:
-        return TestFolderWF(TestFolder, "folder", PreModel)
+        return TestFolderWF(TestFolder, "folder", TestModel)
     else:  # 3
-        return TestUnlabelSeqWF(TestFolder, "unlabelseq", PreModel)
+        return TestUnlabelSeqWF(TestFolder, "unlabelseq", TestModel)
 
 
 def main():

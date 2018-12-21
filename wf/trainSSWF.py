@@ -16,11 +16,11 @@ Batch = 128
 SeqLength = 24  # 32
 UnlabelBatch = 1
 LearningRate = 0.0005  # to tune
-TrainStep = 40  # number of train() calls 20000
+TrainStep = 20000  # number of train() calls 20000
 
-Snapshot = 20  # 500 do a snapshot every Snapshot steps (save period)
-TestIter = 10  # do a testing every TestIter steps
-ShowIter = 5  # print to screen
+Snapshot = 500  # 500 do a snapshot every Snapshot steps (save period)
+TestIter = 100  # do a testing every TestIter steps
+ShowIter = 50  # print to screen
 
 ModelName = 'facing'
 TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
@@ -41,7 +41,6 @@ class TrainSSWF(TrainWF, SSWF):
         self.labelBatch = Batch
         self.unlabelBatch = UnlabelBatch
         self.seqLength = SeqLength
-        self.countTrain = 0
 
         self.acvs = {"train_total": 100,
                     "train_label": 100,
@@ -64,7 +63,9 @@ class TrainSSWF(TrainWF, SSWF):
             "unlabel_loss", self.AV, ['train_unlabel', 'test_unlabel'], [True, True]))
 
     def load_model(self):
-        return SSWF.load_model(self)
+        model = SSWF.load_model(self)
+        return model
+
 
     def load_dataset(self):
         # Train dataset & loader
