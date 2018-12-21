@@ -17,28 +17,6 @@ def new_variable(tensor, **kwargs):
     if torch.cuda.is_available():
         var = var.cuda()
     return var
-    
-
-def unlabel_loss_np(output, threshold):
-    """
-    :param output: network unlabel output (converted to numpy)
-    :return: unlabel loss
-    """
-    unlabel_batch = output.shape[0]
-    loss_unlabel = 0
-
-    for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
-        # randomly pick two other samples
-        ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
-        ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
-
-        diff_big = np.sum((output[ind1] - output[ind2]) ** 2) / 2.0
-        diff_small = np.sum((output[ind1] - output[ind3]) ** 2) / 2.0
-
-        cost = max(diff_small - diff_big - threshold, 0)
-        loss_unlabel += cost
-
-    return loss_unlabel
 
 
 def label_from_angle(angle):

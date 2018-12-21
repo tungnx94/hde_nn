@@ -28,7 +28,7 @@ class WorkFlow(object):
     SIG_INT = False
     IS_FINALISING = False
 
-    def __init__(self, logFile, trained_model=None, device=None, saveIter=50, showIter=10, verbose=False):
+    def __init__(self, logFile, trained_model=None, saveIter=50, showIter=10, verbose=False):
         # True to enable debug_print
         self.verbose = verbose
         self.isInitialized = False
@@ -70,22 +70,16 @@ class WorkFlow(object):
 
         self.logger.info("WorkFlow created.")
 
-        # Ininiate model
-        self.device = device
-        # select default device if not specified
-        if device is None:
-            self.device = torch.device(
-                "cuda" if torch.cuda.is_available() else "cpu")
+        self.load_dataset()
 
         self.model = self.load_model()
-        self.model.to(self.device)
-
-        self.load_dataset()
 
         # load trained params
         if trained_model is not None:
             self.model.load_from_npz(trained_model)
             self.logger.info("Loaded model from {}".format(trained_model))
+
+        self.model.load_to_device()
 
     def proceed(self):
         self.initialize()

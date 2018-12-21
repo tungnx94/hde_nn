@@ -7,7 +7,6 @@ import os
 import cv2
 import numpy as np
 
-from utils import unlabel_loss_np, label_from_angle
 from generalData import SingleSequenceDataset
 
 
@@ -60,7 +59,9 @@ class DukeSeqLabelDataset(SingleSequenceDataset):
 
 def main():
     # test
+    import torch
     from generalData import DataLoader
+    from network import MobileReg
     from utils import get_path, seq_show
     np.set_printoptions(precision=4)
 
@@ -70,17 +71,22 @@ def main():
     print len(unlabelset)
 
     dataloader = DataLoader(unlabelset)
+    model = MobileReg()
+    model.load_to_device()
 
     count = 10
     for sample in dataloader:
-        imgseq, labelseq = sample['imgseq'].squeeze().numpy(), sample[
-            'labelseq'].squeeze().numpy()
-        print "unlabel loss: ", unlabel_loss_np(labelseq, 0.005)
+        imgseq = sample['imgseq'].squeeze()
+        labelseq = sample['labelseq'].squeeze().numpy()
 
-        fakelabel = np.random.rand(24, 2)
-        print "fake loss: ", unlabel_loss_np(fakelabel, 0.005)
+        loss = model.unlabel_loss(imgseq, 0.005).to("cpu").numpy()
+        print "unlabel loss: ", loss
 
-        seq_show(imgseq, dir_seq=labelseq)
+        fakelabel = torch.tensor(np.random.rand(24, 2))
+        loss = model.unlabel_loss(fakelabel, 0.005).to("cpu").numpy()
+        print "fake loss: ", loss
+
+        seq_show(imgseq.numpy(), dir_seq=labelseq)
 
         count -= 1
         if count < 0:

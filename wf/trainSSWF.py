@@ -1,7 +1,6 @@
 import sys
 sys.path.append("..")
 import os
-import random
 
 import torch
 import torch.optim as optim
@@ -17,8 +16,7 @@ Batch = 128
 SeqLength = 24  # 32
 UnlabelBatch = 1
 LearningRate = 0.0005  # to tune
-TrainStep = 100  # number of train() calls 20000
-Thresh = 0.005  # unlabel_loss threshold
+TrainStep = 40  # number of train() calls 20000
 
 Snapshot = 20  # 500 do a snapshot every Snapshot steps (save period)
 TestIter = 10  # do a testing every TestIter steps
@@ -38,7 +36,7 @@ AccumulateValues = {"train_total": 100,
 class TrainSSWF(TrainWF, SSWF):
 
     def __init__(self, workingDir, prefix,
-                 device=None, mobile_model=None, trained_model=None):
+                 mobile_model=None, trained_model=None):
 
         self.labelBatch = Batch
         self.unlabelBatch = UnlabelBatch
@@ -53,7 +51,7 @@ class TrainSSWF(TrainWF, SSWF):
                     "test_unlabel": 20}
 
         SSWF.__init__(self, mobile_model)
-        TrainWF.__init__(self, workingDir, prefix, ModelName, device, trained_model, 
+        TrainWF.__init__(self, workingDir, prefix, ModelName, trained_model=trained_model, 
                         trainStep=TrainStep, testIter=TestIter, saveIter=Snapshot, showIter=ShowIter, lr=LearningRate)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -84,91 +82,46 @@ class TrainSSWF(TrainWF, SSWF):
         return DukeSeqLabelDataset("duke-test", get_path(TestLabelFile),
                                    seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
 
-    def unlabel_loss(self, output, threshold):
-        """
-        :param output: network unlabel output tensor
-        :return: unlabel loss tensor
-        """
-        unlabel_batch = output.shape[0]
-        loss_unlabel = torch.Tensor([0]).to(self.device).float()
-        threshold = torch.tensor(threshold).to(self.device).float()
-
-        for ind1 in range(unlabel_batch - 5):  # try to make every sample contribute
-            # randomly pick two other samples
-            ind2 = random.randint(ind1 + 2, unlabel_batch - 1)  # big distance
-            ind3 = random.randint(ind1 + 1, ind2 - 1)  # small distance
-
-            diff_big = torch.sum(
-                (output[ind1] - output[ind2]) ** 2).float() / 2.0
-            diff_small = torch.sum(
-                (output[ind1] - output[ind3]) ** 2).float() / 2.0
-
-            cost = torch.max(diff_small - diff_big - threshold,
-                             torch.tensor(0).to(self.device).float())
-            loss_unlabel += cost
-
-        return loss_unlabel
-
-    def forward_unlabel(self, sample):
-        """
-        :param sample: unlabeled data
-        :return: unlabel loss
-        """
-        inputValue = sample.squeeze().to(self.device)
-        output = self.model(inputValue)
-
-        loss = self.unlabel_loss(output, Thresh)
-        return loss.to(self.device).float()
-
-    def forward_label(self, sample):
-        """
-        :param sample: labeled data
-        :return: label loss
-        """
-        inputValue = sample['img'].to(self.device)
-        targetValue = sample['label'].to(self.device)
-
-        output = self.model(inputValue)
-
-        loss = self.criterion(output, targetValue)
-        return loss
-
     def train(self):
         """ train model (one batch) """
         super(TrainWF, self).train()
         self.model.train()
 
         self.countTrain += 1
-
         # get next samples
         sample = self.train_loader.next_sample()
         sample_unlabel = self.train_unlabel_loader.next_sample()
 
         # calculate loss
-        label_loss = self.forward_label(sample)
-        unlabel_loss = self.forward_unlabel(sample_unlabel)
-
-        loss = label_loss + self.lamb * unlabel_loss
+        loss = self.model.forward_combine(sample['img'], sample['label'], sample_unlabel.squeeze())
 
         # backpropagate
         self.optimizer.zero_grad()
-        loss.backward()
+        loss["total"].backward()
         self.optimizer.step()
 
         # update training loss history
         # convert to numeric value ?
-        self.AV['train_total'].push_back(loss.item(), self.countTrain)
-        self.AV['train_label'].push_back(label_loss.item(), self.countTrain)
-        self.AV['train_unlabel'].push_back(unlabel_loss.item(), self.countTrain)
+        self.AV['train_total'].push_back(loss["total"].item(), self.countTrain)
+        self.AV['train_label'].push_back(loss["label"].item(), self.countTrain)
+        self.AV['train_unlabel'].push_back(loss["unlabel"].item(), self.countTrain)
+
+    def calculate_loss(self, val_sample):
+        """ combined loss """
+        inputs = val_sample['imgseq'].squeeze()
+        targets = val_sample['labelseq'].squeeze()
+
+        loss = self.model.forward_combine(inputs, targets, inputs) 
+        return loss
 
     def test(self):
         """ update test loss history """
         self.logger.info("validation")
+        
         loss = SSWF.test(self)
-
-        self.AV['test_total'].push_back(loss["total"], self.countTrain)
-        self.AV['test_label'].push_back(loss["label"], self.countTrain)
-        self.AV['test_unlabel'].push_back(loss["unlabel"], self.countTrain)
+        self.AV['test_total'].push_back(loss["total"].item(), self.countTrain)
+        self.AV['test_label'].push_back(loss["label"].item(), self.countTrain)
+        self.AV['test_unlabel'].push_back(loss["unlabel"].item(), self.countTrain)
 
     def run(self):
         TrainWF.run(self)

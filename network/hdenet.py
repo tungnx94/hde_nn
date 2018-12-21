@@ -3,6 +3,16 @@ import torch.nn as nn
 
 class HDENet(nn.Module):
 
+    def __init__(self, device=None):
+        super(HDENet, self).__init__()
+        self.device = device
+
+        if device is None:  #select default if not specified
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def load_to_device(self):
+        self.to(self.device)
+
     def load_from_npz(self, params):
         model_dict = self.state_dict()
 
