@@ -6,13 +6,13 @@ from wf import WFException, TrainSSWF, TestFolderWF, TestLabelSeqWF, TestUnlabel
 TestType = 0
 
 PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
-PreModel = './log/sample_12-21_01:55/models/facing_6000.pkl' # 
+PreModel = './log/sample_12-21_12:11/models/facing_11500.pkl' # 
 # PreModel = None
 ExpPrefix = 'sample'  # model name, should be unique
 
-TestFolder = "./log/sample_12-18_17:41"
-# TestFolder = ./log/sample_12-21_01:55
-TestModel = 'facing_37.pkl'
+# TestFolder = "./log/sample_12-18_17:41"
+# TestFolder = ./log/sample_12-21_01:55())
+# TestModel = 'facing_37.pkl'#
 
 def select_WF(TestType):
     """ choose WF from test type """

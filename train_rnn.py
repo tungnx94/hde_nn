@@ -8,7 +8,7 @@ import numpy as np
 
 from network import MobilenetGRU
 from utils import Logger, img_denormalize, put_arrow, new_variable, get_path
-from dataset import DataLoader, DukeSeqLabelDataset, ViratSeqLabelDataset
+from dataset import DataLoader, DukeSeqLabelDataset # ViratSeqLabelDataset
 
 IS_CUDA = torch.cuda.is_available()  # True
 
@@ -34,8 +34,8 @@ class AverageMeter(object):
 
 TrainFile = get_path('DukeMCMT/trainval_duke.txt')
 ValFile = get_path('DukeMCMT/test_heading_gt.txt')
-ImageFolder = get_path('DukeMCMT/heading')  # heading_zip ?
-LogFolder = 'logdata'
+ImageFolder = get_path('DukeMCMT/heading')
+LogFolder = 'log/rnn-sample'
 ModelFolder = 'models'
 
 Lr = 1e-4  # 1e-5

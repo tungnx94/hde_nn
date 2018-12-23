@@ -1,7 +1,5 @@
 # This file is modified from train_ed_semi_cls.py
 # Change the classification model to regression model
-import cv2
-import random
 import torch
 
 import torch.nn as nn
@@ -10,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from os.path import join as joinPath
-from torch.autograd import Variable
 from dataset.generalData import DataLoader
 
 from utils import get_path, groupPlot, new_variable
@@ -85,7 +82,7 @@ def visualize(lossplot, labellossplot, unlabellossplot, vallossplot):
     plt.show()
 
 
-def train_label_unlabel(encoderReg, sample, unlabel_sample, regOptimizer, criterion, lamb):
+def train_label_unlabel(encoderReg, sample, unlabel_sample, optimizer, criterion, lamb):
     """ train one step """
     # label
     inputImgs = sample['img']
@@ -110,9 +107,9 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, regOptimizer, criter
     loss = loss_label + loss_pred * Lamb
 
     # backpropagate
-    regOptimizer.zero_grad()
+    optimizer.zero_grad()
     loss.backward()
-    regOptimizer.step()
+    optimizer.step()
 
     return loss_label.item(), loss_pred.item(), loss.item()
 
@@ -130,7 +127,7 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
     return loss.item()
 
 
-def save_snapshot(model, label_loss, unlabel_loss, total_loss, val_loss):
+def save_snapshot(model, ind, label_loss, unlabel_loss, total_loss, val_loss):
     torch.save(model.state_dict(), ModelName + '_' + str(ind) + '.pkl')
 
     np.save(LossFile, total_loss)
@@ -147,13 +144,6 @@ def main():
     if UseGPU:
         encoderReg.cuda()
 
-    """
-    # load weights
-    print 'load pretrained...'
-    preTrainModel = 'models_facing/13_1_ed_reg_100000.pkl'
-    encoderReg=loadPretrain(encoderReg,preTrainModel)
-    """
-
     paramlist = list(encoderReg.parameters())
     regOptimizer = optim.SGD(paramlist[-TrainLayers:], lr=LR, momentum=0.9)
     # regOptimizer = optim.Adam(paramlist[-TrainLayers:], lr = lr)
@@ -162,15 +152,15 @@ def main():
 
     # Datasets
     print "loading datasets"
-    imgdataset = TrackingLabelDataset(
+    imgdataset = TrackingLabelDataset("duke",
         data_file=DukeLabelFile, data_aug=True)  # Duke, 225426
-    imgdataset2 = FolderLabelDataset(
+    imgdataset2 = FolderLabelDataset("handlabel", 
         img_dir=HandLabelFolder, data_aug=True)  # HandLabel, 1201
 
-    unlabelset = FolderUnlabelDataset(
+    unlabelset = FolderUnlabelDataset("ucf",
         img_dir=UnlabelFolder, seq_length=UnlabelBatch, data_aug=True, extend=True)
 
-    valset = FolderLabelDataset(TestLabelFolder, data_aug=False)
+    valset = FolderLabelDataset("test", TestLabelFolder, data_aug=False)
     #valset2 = DukeSeqLabelDataset(TestLabelFolder, data_aug=False)
 
     # Dataloaders
@@ -219,7 +209,7 @@ def main():
               (exp_prefix[:-1], ind, total_loss, label_loss, unlabel_loss, val_loss))
 
         if ind % SnapShot == 0:  # Save model + loss
-            save_shapshot(encoderReg, labellossplot,
+            save_snapshot(encoderReg, ind, labellossplot,
                           unlabellossplot, lossplot, vallossplot)
 
     visualize(lossplot, labellossplot, unlabellossplot, vallossplot)

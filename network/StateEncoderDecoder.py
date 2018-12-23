@@ -167,7 +167,7 @@ class EncoderReg_Pred(nn.Module):
         x_encode = self.encoder(x)
         seq_length = x_encode.size()[0]
 
-        x_encode = x_encode.view(seq_legth, -1)
+        x_encode = x_encode.view(seq_length, -1)
 
         # regression (sin, cosin)
         x_reg = self.reg(x_encode)

@@ -16,7 +16,7 @@ Batch = 128
 SeqLength = 24  # 32
 UnlabelBatch = 1
 LearningRate = 0.0005  # to tune
-TrainStep = 20000  # number of train() calls 20000
+TrainStep = 10000  # number of train() calls 20000
 
 Snapshot = 500  # 500 do a snapshot every Snapshot steps (save period)
 TestIter = 100  # do a testing every TestIter steps
