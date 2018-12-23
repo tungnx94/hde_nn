@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch.autograd import Variable
+from 
 from utils import new_variable
 
 # default network parameters
@@ -144,6 +144,8 @@ class EncoderReg_Pred(nn.Module):
 
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2, rnnHidNum=128):
         super(EncoderReg_Pred, self).__init__()
+
+
         self.codenum = hiddens[-1]  # input size for LSTM
         self.rnnHidNum = rnnHidNum  # hidden layer size
 

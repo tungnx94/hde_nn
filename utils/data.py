@@ -13,7 +13,7 @@ def get_path(data, base_folder=BASE):
 
 
 def new_variable(tensor, **kwargs):
-    var = torch.autograd.Variable(tensor, **kwargs)
+    var = torch.autograd.Variable(tensor, **kwargs)  # deprecated
     if torch.cuda.is_available():
         var = var.cuda()
     return var

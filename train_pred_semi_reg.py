@@ -1,4 +1,4 @@
-# This file is modified from train_ed_semi_cls.py
+# This file is modified from tran_ed_semi_cls.py
 # Change the classification model to regression model
 import torch
 
@@ -7,6 +7,7 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 
+from datetime import datetime
 from os.path import join as joinPath
 from dataset.generalData import DataLoader
 
@@ -14,20 +15,19 @@ from utils import get_path, groupPlot, new_variable
 from network import EncoderReg_Pred
 from dataset import TrackingLabelDataset, FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
-UseGPU = torch.cuda.is_available()
+UseGPU = False#torch.cuda.is_available()
 
 exp_prefix = '20_2_'
 
-OutDir = 'resimg'
-DataDir = 'data_semi_reg'  # save folder for snapshot
+OutDir = './log/test/cpu'
 
-ModelName = 'models/' + exp_prefix + 'pred_reg'
-ModelFile = joinPath(OutDir, ModelName.split('/')[-1] + '.png')
 
-LossFile = joinPath(DataDir, exp_prefix + 'lossplot.npy')
-ValLossFile = joinPath(DataDir, exp_prefix + 'vallossplot.npy')
-LabelLossFile = joinPath(DataDir, exp_prefix + 'unlabellossplot.npy')
-UnlabelLossFile = joinPath(DataDir, exp_prefix + 'labellossplot.npy')
+ModelFile = joinPath(OutDir, "loss.png")
+
+LossFile = joinPath(OutDir, exp_prefix + 'lossplot.npy')
+ValLossFile = joinPath(OutDir, exp_prefix + 'vallossplot.npy')
+LabelLossFile = joinPath(OutDir, exp_prefix + 'unlabellossplot.npy')
+UnlabelLossFile = joinPath(OutDir, exp_prefix + 'labellossplot.npy')
 
 DukeLabelFile = get_path("DukeMCMT/trainval_duke.txt")
 HandLabelFolder = get_path("label")
@@ -59,16 +59,19 @@ def visualize(lossplot, labellossplot, unlabellossplot, vallossplot):
     labellossplot = np.array(labellossplot).reshape((-1, 1)).mean(axis=1)
     vallossplot = np.array(vallossplot)
 
+    # figure 1
     ax1 = plt.subplot(131)
     ax1.plot(labellossplot)
     ax1.plot(vallossplot)
     ax1.grid()
 
+    # figure 2
     lossplot = np.array(lossplot).reshape((-1, 1)).mean(axis=1)
     ax2 = plt.subplot(132)
     ax2.plot(lossplot)
     ax2.grid()
 
+    # firgure 3
     unlabellossplot = np.array(unlabellossplot)
     gpunlabelx, gpunlabely = groupPlot(
         range(len(unlabellossplot)), unlabellossplot)
@@ -79,7 +82,6 @@ def visualize(lossplot, labellossplot, unlabellossplot, vallossplot):
     ax3.grid()
 
     plt.savefig(ModelFile)
-    plt.show()
 
 
 def train_label_unlabel(encoderReg, sample, unlabel_sample, optimizer, criterion, lamb):
@@ -88,12 +90,12 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, optimizer, criterion
     inputImgs = sample['img']
     labels = sample['label']
 
-    inputState = new_variable(inputImgs, requires_grad=True)
-    targetreg = new_variable(labels, requires_grad=False)
+    inputState = new_var(inputImgs, requires_grad=True)
+    targetreg = new_var(labels, requires_grad=False)
 
     # unlabel
     imgseq = unlabel_sample.squeeze()
-    inputState_unlabel = new_variable(imgseq, requires_grad=True)
+    inputState_unlabel = new_var(imgseq, requires_grad=True)
 
     # forward pass
     output, _, _ = encoderReg(inputState)
@@ -118,8 +120,8 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
     """ validate on labeled dataset """
     inputImgs = val_sample['img']
     labels = val_sample['label']
-    inputState = new_variable(inputImgs, requires_grad=False)
-    targetreg = new_variable(labels, requires_grad=False)
+    inputState = new_var(inputImgs, requires_grad=False)
+    targetreg = new_var(labels, requires_grad=False)
 
     output, _, _ = encoderReg(inputState)
     loss = criterion(output, targetreg)
@@ -128,7 +130,8 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
 
 
 def save_snapshot(model, ind, label_loss, unlabel_loss, total_loss, val_loss):
-    torch.save(model.state_dict(), ModelName + '_' + str(ind) + '.pkl')
+    file = joinPath(OutDir, 'model_' + str(ind) + '.pkl')
+    torch.save(model.state_dict(), file)
 
     np.save(LossFile, total_loss)
     np.save(ValLossFile, val_loss)
@@ -137,6 +140,8 @@ def save_snapshot(model, ind, label_loss, unlabel_loss, total_loss, val_loss):
 
 
 def main():
+    start_t = datetime.now()
+
     # Encoder model
     encoderReg = EncoderReg_Pred(
         Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128)
@@ -213,6 +218,11 @@ def main():
                           unlabellossplot, lossplot, vallossplot)
 
     visualize(lossplot, labellossplot, unlabellossplot, vallossplot)
+
+    end_t = datetime.now()
+
+    print "Training completed"
+    print "Elapsed time: {}".format(end_t - start_t)
 
 if __name__ == "__main__":
     main()
