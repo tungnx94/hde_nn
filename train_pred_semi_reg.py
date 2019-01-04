@@ -11,11 +11,11 @@ from datetime import datetime
 from os.path import join as joinPath
 from dataset.generalData import DataLoader
 
-from utils import get_path, groupPlot, new_variable
+from utils import get_path, groupPlot
 from network import EncoderReg_Pred
 from dataset import TrackingLabelDataset, FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
-UseGPU = False#torch.cuda.is_available()
+UseGPU = torch.cuda.is_available()
 
 exp_prefix = '20_2_'
 
@@ -44,9 +44,9 @@ TrainBatch = 32
 UnlabelBatch = 32  # sequence length
 ValBatch = 100
 
-TrainStep = 200 # 10000
+TrainStep = 200  # 10000
 ShowIter = 10
-SnapShot = 50 # 500
+SnapShot = 50  # 500
 TrainLayers = 0
 
 Hiddens = [3, 16, 32, 32, 64, 64, 128, 256]
@@ -90,12 +90,12 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, optimizer, criterion
     inputImgs = sample['img']
     labels = sample['label']
 
-    inputState = new_var(inputImgs, requires_grad=True)
-    targetreg = new_var(labels, requires_grad=False)
+    inputState = encoderReg.new_variable(inputImgs, requires_grad=True)
+    targetreg = encoderReg.new_variable(labels, requires_grad=False)
 
     # unlabel
     imgseq = unlabel_sample.squeeze()
-    inputState_unlabel = new_var(imgseq, requires_grad=True)
+    inputState_unlabel = encoderReg.new_variable(imgseq, requires_grad=True)
 
     # forward pass
     output, _, _ = encoderReg(inputState)
@@ -104,7 +104,7 @@ def train_label_unlabel(encoderReg, sample, unlabel_sample, optimizer, criterion
     pred_target = encode[UnlabelBatch / 2:, :].detach()  # ?
 
     loss_label = criterion(output, targetreg)
-    loss_pred = criterion(pred, pred_target) # unlabel loss
+    loss_pred = criterion(pred, pred_target)  # unlabel loss
 
     loss = loss_label + loss_pred * Lamb
 
@@ -120,8 +120,8 @@ def test_label(val_sample, encoderReg, criterion, batchnum=1):
     """ validate on labeled dataset """
     inputImgs = val_sample['img']
     labels = val_sample['label']
-    inputState = new_var(inputImgs, requires_grad=False)
-    targetreg = new_var(labels, requires_grad=False)
+    inputState = encoderReg.new_variable(inputImgs, requires_grad=False)
+    targetreg = encoderReg.new_variable(labels, requires_grad=False)
 
     output, _, _ = encoderReg(inputState)
     loss = criterion(output, targetreg)
@@ -144,10 +144,9 @@ def main():
 
     # Encoder model
     encoderReg = EncoderReg_Pred(
-        Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128)
+        Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128, device="cuda")
 
-    if UseGPU:
-        encoderReg.cuda()
+    encoderReg.load_to_device()
 
     paramlist = list(encoderReg.parameters())
     regOptimizer = optim.SGD(paramlist[-TrainLayers:], lr=LR, momentum=0.9)
@@ -158,12 +157,12 @@ def main():
     # Datasets
     print "loading datasets"
     imgdataset = TrackingLabelDataset("duke",
-        data_file=DukeLabelFile, data_aug=True)  # Duke, 225426
-    imgdataset2 = FolderLabelDataset("handlabel", 
-        img_dir=HandLabelFolder, data_aug=True)  # HandLabel, 1201
+                                      data_file=DukeLabelFile, data_aug=True)  # Duke, 225426
+    imgdataset2 = FolderLabelDataset("handlabel",
+                                     img_dir=HandLabelFolder, data_aug=True)  # HandLabel, 1201
 
     unlabelset = FolderUnlabelDataset("ucf",
-        img_dir=UnlabelFolder, seq_length=UnlabelBatch, data_aug=True, extend=True)
+                                      img_dir=UnlabelFolder, seq_length=UnlabelBatch, data_aug=True, extend=True)
 
     valset = FolderLabelDataset("test", TestLabelFolder, data_aug=False)
     #valset2 = DukeSeqLabelDataset(TestLabelFolder, data_aug=False)
@@ -210,8 +209,8 @@ def main():
 
             vallossplot.append(val_loss)
 
-        print("[%s %d] loss: %.5f, label: %.5f, unlabel: %.5f, val: %.5f "%
-              (exp_prefix[:-1], ind, total_loss, label_loss, unlabel_loss, val_loss))
+            print("[%s %d] loss: %.5f, label: %.5f, unlabel: %.5f, val: %.5f " % (
+                exp_prefix[:-1], ind, total_loss, label_loss, unlabel_loss, val_loss))
 
         if ind % SnapShot == 0:  # Save model + loss
             save_snapshot(encoderReg, ind, labellossplot,
