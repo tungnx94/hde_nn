@@ -11,7 +11,7 @@ class HDENet(torch.nn.Module):
         if device is None:  #select default if not specified
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def new_variable(self, **kwargs):
+    def new_variable(self, tensor, **kwargs):
         var = torch.autograd.Variable(tensor, **kwargs) # deprecated
         if self.device == torch.device("cuda"):
             var = var.cuda()

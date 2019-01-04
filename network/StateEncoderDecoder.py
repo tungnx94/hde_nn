@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from 
+from hdenet import HDENet 
 from utils import new_variable
 
 # default network parameters
@@ -20,13 +20,13 @@ StridesDF = [2, 2, 2, 2, 1]
 UseGPU = torch.cuda.is_available()
 
 
-class StateCoder(nn.Module):
+class StateCoder(HDENet):
     """ 
     deep ConvNet
     can be used as encoder or decoder
     """
     def __init__(self, hiddens, kernels, strides, paddings, actfunc):
-        super(StateCoder, self).__init__()
+        HDENet.__init__(self)
 
         self.coder = nn.Sequential()
         for k in range(len(hiddens) - 1):
@@ -71,10 +71,11 @@ class StateCoder(nn.Module):
                 m.bias.data.zero_()
 
 
-class StateEncoderDecoder(nn.Module):
+class StateEncoderDecoder(HDENet):
 
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu'):
-        super(StateEncoderDecoder, self).__init__()
+        HDENet.__init__(elf)
+
         self.encoder = StateCoder(
             hiddens, kernels, strides, paddings, actfunc)
 
@@ -95,11 +96,11 @@ class StateEncoderDecoder(nn.Module):
         return x
 
 
-class EncoderFC(nn.Module):
+class EncoderFC(HDENet):
     """ encoder + fc-layer """
 
     def __init__(self, hiddens, kernels, strides, paddings, actfunc='relu', fc_layer=2):
-        super(EncoderFC, self).__init__()
+        HDENet.__init__(self)
         self.encoder = StateCoder(
             hiddens, kernels, strides, paddings, actfunc)
 
@@ -140,11 +141,10 @@ class EncoderReg_norm(EncoderReg):
         return x, x_encode
 
 
-class EncoderReg_Pred(nn.Module):
+class EncoderReg_Pred(HDENet):
 
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2, rnnHidNum=128):
-        super(EncoderReg_Pred, self).__init__()
-
+        HDENet.__init__(self)
 
         self.codenum = hiddens[-1]  # input size for LSTM
         self.rnnHidNum = rnnHidNum  # hidden layer size
@@ -160,8 +160,8 @@ class EncoderReg_Pred(nn.Module):
         self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum) # FC 
 
     def init_hidden(self, hidden_size, batch_size=1):
-        h1 = new_variable(torch.zeros(1, batch_size, hidden_size)) # hidden state
-        h2 = new_variable(torch.zeros(1, batch_size, hidden_size)) # cell state
+        h1 = self.new_variable(torch.zeros(1, batch_size, hidden_size)) # hidden state
+        h2 = self.new_variable(torch.zeros(1, batch_size, hidden_size)) # cell state
 
         return (h1, h2)
 

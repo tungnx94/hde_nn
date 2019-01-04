@@ -12,13 +12,6 @@ def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
 
 
-def new_variable(tensor, **kwargs):
-    var = torch.autograd.Variable(tensor, **kwargs)  # deprecated
-    if torch.cuda.is_available():
-        var = var.cuda()
-    return var
-
-
 def label_from_angle(angle):
     angle_cos = np.cos(float(angle))
     angle_sin = np.sin(float(angle))

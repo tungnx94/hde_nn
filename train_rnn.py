@@ -99,8 +99,8 @@ class Training:
             self.val_dataset, batch_size=BatchSize, num_workers=4)
 
     def forward_pass(self, sample):
-        imgseq = new_variable(sample['imgseq'].squeeze(), requires_grad=True)
-        labelseq = new_variable(
+        imgseq = self.model.new_variable(sample['imgseq'].squeeze(), requires_grad=True)
+        labelseq = self.model.new_variable(
             sample['labelseq'].squeeze(), requires_grad=False)
 
         output = self.model(imgseq)
