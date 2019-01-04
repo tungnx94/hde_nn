@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from hdenet import HDENet 
+from hdenet import HDENet
 from utils import new_variable
 
 # default network parameters
@@ -25,6 +25,7 @@ class StateCoder(HDENet):
     deep ConvNet
     can be used as encoder or decoder
     """
+
     def __init__(self, hiddens, kernels, strides, paddings, actfunc):
         HDENet.__init__(self)
 
@@ -96,51 +97,6 @@ class StateEncoderDecoder(HDENet):
         return x
 
 
-class EncoderFC(HDENet):
-    """ encoder + fc-layer """
-
-    def __init__(self, hiddens, kernels, strides, paddings, actfunc='relu', fc_layer=2):
-        HDENet.__init__(self)
-        self.encoder = StateCoder(
-            hiddens, kernels, strides, paddings, actfunc)
-
-        self.fc = nn.Linear(hiddens[-1], fc_layer)
-
-    def forward(self, x):
-        x_encode = self.encoder(x)
-        x = self.fc(x_encode.view(x_encode.size()[0], -1))
-        return x, x_encode
-
-
-class EncoderCls(EncoderFC):
-    """ encoder classificator """
-
-    def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', clsnum=8):
-        super(EncoderCls, self).__init__(hiddens, kernels,
-                                         strides, paddings, actfunc, fc_layer=clsnum)
-
-
-class EncoderReg(EncoderFC):
-    """ encoder regressor """
-
-    def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2):
-        super(EncoderCls, self).__init__(hiddens, kernels,
-                                         strides, paddings, actfunc, fc_layer=regnum)
-
-
-class EncoderReg_norm(EncoderReg):
-    """ normalized version of EncoderReg """
-
-    def forward(self, x):
-        x_encode = self.encoder(x)
-        x = self.fc(x_encode.view(x_encode.size()[0], -1))
-        y = x.abs()  # normalize so |x| + |y| = 1
-        y = y.sum(dim=1)
-
-        x = x / y.unsqueeze(1)
-        return x, x_encode
-
-
 class EncoderReg_Pred(HDENet):
 
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2, rnnHidNum=128):
@@ -157,11 +113,13 @@ class EncoderReg_Pred(HDENet):
         self.pred_en = nn.LSTM(self.codenum, rnnHidNum)
 
         self.pred_de = nn.LSTM(self.codenum, rnnHidNum)
-        self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum) # FC 
+        self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum)  # FC
 
     def init_hidden(self, hidden_size, batch_size=1):
-        h1 = self.new_variable(torch.zeros(1, batch_size, hidden_size)) # hidden state
-        h2 = self.new_variable(torch.zeros(1, batch_size, hidden_size)) # cell state
+        h1 = self.new_variable(torch.zeros(
+            1, batch_size, hidden_size))  # hidden state
+        h2 = self.new_variable(torch.zeros(
+            1, batch_size, hidden_size))  # cell state
 
         return (h1, h2)
 
@@ -175,13 +133,16 @@ class EncoderReg_Pred(HDENet):
         x_reg = self.reg(x_encode)
 
         # rnn predictor
-        innum = seq_length / 2  # use first half as input, last half as target (why though ?)
+        # use first half as input, last half as target (why though ?)
+        innum = seq_length / 2
 
-        # input of LSTM is [SeqLength x Batch x InputSize] with SeqLength varible 
-        pred_in = x_encode[:innum].unsqueeze(1) # add batch dimension (=1)
-        hidden = self.init_hidden(self.rnnHidNum, 1) # batch = 1 
+        # input of LSTM is [SeqLength x Batch x InputSize] with SeqLength
+        # varible
+        pred_in = x_encode[:innum].unsqueeze(1)  # add batch dimension (=1)
+        hidden = self.init_hidden(self.rnnHidNum, 1)  # batch = 1
 
-        pred_en_out, hidden = self.pred_en(pred_in, hidden) # output = [SeqLength x Batch x HiddenSize] 
+        # output = [SeqLength x Batch x HiddenSize]
+        pred_en_out, hidden = self.pred_en(pred_in, hidden)
 
         pred_de_in = new_variable(torch.zeros(1, 1, self.codenum))
 
@@ -189,11 +150,11 @@ class EncoderReg_Pred(HDENet):
         for k in range(innum, seq_length):  # input the decoder one by one cause there's a loop
             pred_de_out, hidden = self.pred_de(pred_de_in, hidden)
 
-            pred_de_out = self.pred_de_linear(pred_de_out.view(1, self.rnnHidNum))
+            pred_de_out = self.pred_de_linear(
+                pred_de_out.view(1, self.rnnHidNum))
             pred_de_in = pred_de_out.detach().unsqueeze(1)
 
             pred_out.append(pred_de_out)
-            
 
         pred_out = torch.cat(tuple(pred_out), dim=0)
 
@@ -215,7 +176,8 @@ if __name__ == '__main__':
     seq_length = 16
     lr = 0.005
 
-    stateEncoder = EncoderReg_Pred(hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
+    stateEncoder = EncoderReg_Pred(
+        hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
     if UseGPU:
         stateEncoder.cuda()
 
@@ -227,7 +189,7 @@ if __name__ == '__main__':
     # data
     imgdataset = FolderUnlabelDataset(img_dir=get_path(
         "dirimg"), seq_length=seq_length, data_aug=True, include_all=True)
-    dataloader = DataLoader(imgdataset) # batch_size = 1
+    dataloader = DataLoader(imgdataset)  # batch_size = 1
 
     criterion = nn.MSELoss()
     regOptimizer = optim.SGD(stateEncoder.parameters(), lr=lr, momentum=0.9)
