@@ -19,20 +19,20 @@ DepthSepConv = namedtuple('DepthSepConv', ['kernel', 'stride', 'depth'])
 
 # _CONV_DEFS specifies the MobileNet body
 _CONV_DEFS = [
-    Conv(kernel=[3, 3], stride=2, depth=32),  # 2
-    DepthSepConv(kernel=[3, 3], stride=1, depth=64),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=128),  # 4
-    DepthSepConv(kernel=[3, 3], stride=1, depth=128),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=256),  # 8
-    DepthSepConv(kernel=[3, 3], stride=1, depth=256),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),  # 16
-    DepthSepConv(kernel=[3, 3], stride=1, depth=512),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),  # 32
-    DepthSepConv(kernel=[3, 3], stride=1, depth=512),
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),  # 64
-    DepthSepConv(kernel=[3, 3], stride=1, depth=512)  # ,
-    # DepthSepConv(kernel=[3, 3], stride=2, depth=1024),
-    # DepthSepConv(kernel=[3, 3], stride=1, depth=1024)
+    Conv(kernel=[3, 3], stride=2, depth=32),            # 0,    2
+    DepthSepConv(kernel=[3, 3], stride=1, depth=64),    # 1,
+    DepthSepConv(kernel=[3, 3], stride=2, depth=128),   # 2,    4
+    DepthSepConv(kernel=[3, 3], stride=1, depth=128),   # 3,   
+    DepthSepConv(kernel=[3, 3], stride=2, depth=256),   # 4,    8
+    DepthSepConv(kernel=[3, 3], stride=1, depth=256),   # 5,    
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 6,    16
+    DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 7,    
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 8,    32
+    DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 9,    
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 10,   64
+    DepthSepConv(kernel=[3, 3], stride=1, depth=512)    # 11,   
+    # DepthSepConv(kernel=[3, 3], stride=2, depth=1024),# 12
+    # DepthSepConv(kernel=[3, 3], stride=1, depth=1024) # 13
 ]
 
 
@@ -85,7 +85,7 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
     if depth_multiplier <= 0:
         raise ValueError('depth_multiplier is not greater than zero.')
 
-    if conv_defs is None:
+    if conv_defs is None: # use default conv layers
         conv_defs = _CONV_DEFS
 
     if output_stride is not None and output_stride not in [8, 16, 32]:
@@ -172,7 +172,8 @@ class MobileNet_v1(HDENet):
                  min_depth=8,
                  depth_multiplier=1.0,
                  conv_defs=_CONV_DEFS,
-                 spatial_squeeze=True):
+                 spatial_squeeze=True,
+                 device=None):
         """Mobilenet v1 model for classification.
 
         Args:
@@ -202,7 +203,8 @@ class MobileNet_v1(HDENet):
         Raises:
             ValueError: Input rank is invalid.
         """
-        super(MobileNet_v1, self).__init__()
+        HDENet.__init__(self, device)
+
         self.dropout_keep_prob = dropout_keep_prob
         self.spatial_squeeze = spatial_squeeze
         self.features = mobilenet_v1_base(min_depth=min_depth,
@@ -211,25 +213,18 @@ class MobileNet_v1(HDENet):
 
         # self.classifier = nn.Conv2d(max(int(conv_defs[-1].depth * depth_multiplier), min_depth), num_classes, 1)
 
-        """
-        # init do nothing ?
-        for m in self.modules():
-            break
-        """
-
     def forward(self, x):
         x = self.features(x)
-        # kernel_size = _reduced_kernel_size_for_small_input(x, [7, 7])
-        # x = F.avg_pool2d(x, kernel_size)
-        # x = F.dropout(x, 1-self.dropout_keep_prob, self.training)
-        # x = self.classifier(x)
-        # if self.spatial_squeeze:
-        #     x = x.squeeze(3).squeeze(2)
         return x
 
-def mobilenet_v1(multiplier, pretrained=False, **kwargs):
-    return MobileNet_v1(depth_multiplier=multiplier, **kwargs)
-
+        """
+        kernel_size = _reduced_kernel_size_for_small_input(x, [7, 7])
+        x = F.avg_pool2d(x, kernel_size)
+        x = F.dropout(x, 1-self.dropout_keep_prob, self.training)
+        x = self.classifier(x)
+        if self.spatial_squeeze:
+            x = x.squeeze(3).squeeze(2)
+        """
 
 def _reduced_kernel_size_for_small_input(input_tensor, kernel_size):
     """Define kernel size which is automatically reduced for small input.

@@ -44,7 +44,7 @@ TrainBatch = 32
 UnlabelBatch = 32  # sequence length
 ValBatch = 100
 
-TrainStep = 200  # 10000
+TrainStep = 100  # 10000
 ShowIter = 10
 SnapShot = 50  # 500
 TrainLayers = 0
@@ -59,19 +59,19 @@ def visualize(lossplot, labellossplot, unlabellossplot, vallossplot):
     labellossplot = np.array(labellossplot).reshape((-1, 1)).mean(axis=1)
     vallossplot = np.array(vallossplot)
 
-    # figure 1
+    # figure 1, label & validation loss
     ax1 = plt.subplot(131)
     ax1.plot(labellossplot)
     ax1.plot(vallossplot)
     ax1.grid()
 
-    # figure 2
+    # figure 2, total loss
     lossplot = np.array(lossplot).reshape((-1, 1)).mean(axis=1)
     ax2 = plt.subplot(132)
     ax2.plot(lossplot)
     ax2.grid()
 
-    # firgure 3
+    # firgure 3, unlabel loss
     unlabellossplot = np.array(unlabellossplot)
     gpunlabelx, gpunlabely = groupPlot(
         range(len(unlabellossplot)), unlabellossplot)
@@ -144,7 +144,7 @@ def main():
 
     # Encoder model
     encoderReg = EncoderReg_Pred(
-        Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128, device="cuda")
+        Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128, device="cpu")
 
     encoderReg.load_to_device()
 

@@ -20,7 +20,8 @@ class HDENet(torch.nn.Module):
         return var
 
     def load_to_device(self):
-        self.to(self.device)
+        if self.device == torch.device("cuda"):
+            self.cuda()
 
     def load_from_npz(self, file):
         model_dict = self.state_dict()

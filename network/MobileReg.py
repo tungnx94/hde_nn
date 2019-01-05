@@ -5,21 +5,23 @@ import torch.nn as nn
 import torch.nn.functional as F
  
 from hdenet import HDENet
-from mobilenet import mobilenet_v1
+from mobilenet import MobileNet_v1
 
 class MobileReg(HDENet):
 
     def __init__(self, hidnum=256, regnum=2, lamb=0.1, thresh=0.005, device=None):  
-        # input size should be 112 ?
+        # input size should be 112 ? why
         HDENet.__init__(self, device=device)
 
-        self.feature = mobilenet_v1(0.50)
+        self.feature = MobileNet_v1(depth_multiplier=0.5, device=device) # feature extractor
+
         self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  #conv to 1 by 1
         self.reg = nn.Linear(hidnum, regnum)
 
         self.criterion = nn.MSELoss()  # L2 loss
         self.lamb = lamb
         self.thresh = thresh
+
         self._initialize_weights()
 
     def load_mobilenet(self, fname):
@@ -29,7 +31,8 @@ class MobileReg(HDENet):
         x = x.to(self.device)
 
         x = self.feature(x)
-        x = F.relu(self.conv7(x), inplace=True)
+        x = self.conv7(x)
+        x = F.relu(x, inplace=True)
         x = self.reg(x.view(x.size()[0], -1))
 
         return x
@@ -95,7 +98,7 @@ class MobileReg(HDENet):
 
     def _initialize_weights(self):
         for m in self.modules():
-            # print type(m)
+            print type(m)
             if isinstance(m, nn.Conv2d):
                 # print 'conv2d'
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels

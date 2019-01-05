@@ -24,13 +24,13 @@ class LabelDataset(GeneralDataset):
             self.factors = Factors
 
         virat = TrackingLabelDataset("combine-train",
-            data_file=get_path(PersonFiles), data_aug=True, mean=self.mean, std=self.std)  # 69680
+            data_file=get_path(PersonFiles), data_aug=True, mean=self.mean, std=self.std)  
 
         duke = TrackingLabelDataset("duke-train",
-            data_file=get_path(DukeLabelFile), data_aug=True, mean=self.mean, std=self.std)  # 225426
+            data_file=get_path(DukeLabelFile), data_aug=True, mean=self.mean, std=self.std)
 
         handlabel = FolderLabelDataset("handlabel-train",
-            img_dir=get_path(HandLabelFolder), data_aug=True, mean=self.mean, std=self.std)  # 1201
+            img_dir=get_path(HandLabelFolder), data_aug=True, mean=self.mean, std=self.std)
 
         self.datasets = [virat, duke, handlabel]
 

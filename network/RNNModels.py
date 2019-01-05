@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torchvision.models as models 
 
 from hdenet import HDENet
-from mobilenet import mobilenet_v1
+from mobilenet import MobileNet_v1
 
 MobileNetPretrained = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 
@@ -65,11 +65,10 @@ class MobilenetGRU(HDENet):
         self.batch_size = batch_size
 
         # self.base_model = models.vgg16().features
-        self.base_model = mobilenet_v1(0.50)
+        self.base_model = MobileNet_v1(depth_multiplier=0.5, device=device) 
 
         self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  # conv to 1 by 1
 
-        # self.reg = nn.Linear(hidnum, regnum)
         self.reg = nn.Linear(hidnum, regnum)
 
         # self.gru = nn.GRU(256, 2, 2)
