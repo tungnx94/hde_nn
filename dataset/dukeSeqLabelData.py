@@ -72,7 +72,6 @@ def main():
 
     dataloader = DataLoader(unlabelset)
     model = MobileReg()
-    model.load_to_device()
 
     count = 10
     for sample in dataloader:

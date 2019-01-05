@@ -8,7 +8,7 @@ import torch.nn as nn
 from hdenet import HDENet
 
 # default network parameters
-HiddensDF = [1, 8, 16, 16, 32, 32]  # 14, 7, 4, 2, 1
+HiddensDF = [1, 8, 16, 16, 32, 32]  # channels
 KernelsDF = [4, 4, 3, 4, 2]
 PaddingsDF = [1, 1, 1, 1, 0]
 StridesDF = [2, 2, 2, 2, 1]
@@ -17,9 +17,8 @@ StridesDF = [2, 2, 2, 2, 1]
 class StateCoder(HDENet):
     """ 
     deep ConvNet
-    can be used as encoder or decoder
+    can be used as en/decoder
     """
-
     def __init__(self, hiddens, kernels, strides, paddings, actfunc, device=None):
         HDENet.__init__(self, device)
 
@@ -39,9 +38,9 @@ class StateCoder(HDENet):
                                       (k + 1), nn.ReLU(inplace=True))
 
         self._initialize_weights()
+        self.load_to_device()
 
     def forward(self, x):
-
         return self.coder(x)
 
     def _initialize_weights(self):
@@ -76,7 +75,6 @@ class EncoderReg_Pred(HDENet):
 
         self.encoder = StateCoder(
             hiddens, kernels, strides, paddings, actfunc, device=device)
-        self.encoder.load_to_device()
 
         self.reg = nn.Linear(self.codenum, regnum)
 
@@ -84,6 +82,8 @@ class EncoderReg_Pred(HDENet):
 
         self.pred_de = nn.LSTM(self.codenum, rnnHidNum)
         self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum)  # FC
+
+        self.load_to_device()
 
     def init_hidden(self, hidden_size, batch_size=1):
         h1 = self.new_variable(torch.zeros(
@@ -108,7 +108,7 @@ class EncoderReg_Pred(HDENet):
 
         # input of LSTM is [SeqLength x Batch x InputSize] with SeqLength
         # varible
-        pred_in = x_encode[:innum].unsqueeze(1)  # add batch dimension (=1)
+        pred_in = x_encode[:innum].unsqueeze(1)  # add batch =1 dimension
         hidden = self.init_hidden(self.rnnHidNum, 1)  # batch = 1
 
         # output = [SeqLength x Batch x HiddenSize]
@@ -148,8 +148,6 @@ if __name__ == '__main__':
 
     stateEncoder = EncoderReg_Pred(
         hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
-    stateEncoder.load_to_device()
-
 
     paramlist = list(stateEncoder.parameters())
 

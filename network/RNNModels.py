@@ -12,9 +12,9 @@ MobileNetPretrained = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 class GRUBaseline(HDENet):
 
     def __init__(self, init_weights=True):
-        super(GRUBaseline, self).__init__()
-        self.base_model = models.vgg16().features
-        #self.base_model = mobilenet_v1_050()
+        HDENet.__init__(self)
+        # self.base_model = models.vgg16().features
+        self.base_model = MobileNet_v1(depth_multiplier=0.5, device=device)
 
         self.classifier = nn.Sequential(
             nn.Linear(512 * 7 * 7, 4096),
@@ -62,6 +62,7 @@ class MobilenetGRU(HDENet):
                  pretrain_model=MobileNetPretrained,
                  batch_size=1):
         super(MobilenetGRU, self).__init__()
+        HDENet.__init__(self)
         self.batch_size = batch_size
 
         # self.base_model = models.vgg16().features

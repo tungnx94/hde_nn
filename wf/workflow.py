@@ -78,14 +78,8 @@ class WorkFlow(object):
         if trained_model is not None:            
             self.model.load_pretrained(trained_model)
             self.logger.info("Loaded model from {}".format(trained_model))
-
-        self.model.load_to_device()
+            
         self.countTrain = self.model.countTrain
-
-    def proceed(self):
-        self.initialize()
-        self.run()
-        self.finalize()
 
     def get_log_dir(self):
         pass
@@ -98,6 +92,11 @@ class WorkFlow(object):
 
     def load_dataset(self):
         pass
+
+    def proceed(self):
+        self.initialize()
+        self.run()
+        self.finalize()
 
     def add_accumulated_value(self, name, avgWidth=2):
         # Check if there is alread an ojbect whifch has the same name.

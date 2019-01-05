@@ -146,8 +146,6 @@ def main():
     encoderReg = EncoderReg_Pred(
         Hiddens, Kernels, Strides, Paddings, actfunc='leaky', rnnHidNum=128, device="cpu")
 
-    encoderReg.load_to_device()
-
     paramlist = list(encoderReg.parameters())
     regOptimizer = optim.SGD(paramlist[-TrainLayers:], lr=LR, momentum=0.9) # adapt all layers
     # regOptimizer = optim.Adam(paramlist[-TrainLayers:], lr = lr)

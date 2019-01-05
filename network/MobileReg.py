@@ -23,6 +23,7 @@ class MobileReg(HDENet):
         self.thresh = thresh
 
         self._initialize_weights()
+        self.load_to_device()
 
     def load_mobilenet(self, fname):
         self.feature.load_from_npz(fname)
@@ -97,8 +98,9 @@ class MobileReg(HDENet):
         return loss
 
     def _initialize_weights(self):
+        # init weights for all submodules
         for m in self.modules():
-            print type(m)
+            # print type(m)
             if isinstance(m, nn.Conv2d):
                 # print 'conv2d'
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels

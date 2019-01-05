@@ -63,9 +63,7 @@ class TrainSSWF(TrainWF, SSWF):
             "unlabel_loss", self.AV, ['train_unlabel', 'test_unlabel'], [True, True]))
 
     def load_model(self):
-        model = SSWF.load_model(self)
-        return model
-
+        return SSWF.load_model(self)
 
     def load_dataset(self):
         # Train dataset & loader
