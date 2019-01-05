@@ -23,6 +23,7 @@ class StateCoder(HDENet):
         HDENet.__init__(self, device)
 
         self.coder = nn.Sequential()
+        
         for k in range(len(hiddens) - 1):
             # add conv layer
             conv = nn.Conv2d(hiddens[k], hiddens[k + 1], kernels[k],
@@ -94,22 +95,21 @@ class EncoderReg_Pred(HDENet):
         return (h1, h2)
 
     def forward(self, x):
-        x_encode = self.encoder(x)
+        x_encode = self.encoder(x) # features
         seq_length = x_encode.size()[0]
 
         x_encode = x_encode.view(seq_length, -1)
 
-        # regression (sin, cosin)
+        # regression -> (sin, cosin)
         x_reg = self.reg(x_encode)
 
         # rnn predictor
-        # use first half as input, last half as target (why though ?)
+        # use first half as input, last half as target (needs explaination)
         innum = seq_length / 2
 
-        # input of LSTM is [SeqLength x Batch x InputSize] with SeqLength
-        # varible
-        pred_in = x_encode[:innum].unsqueeze(1)  # add batch =1 dimension
-        hidden = self.init_hidden(self.rnnHidNum, 1)  # batch = 1
+        # input of LSTM is [SeqLength x Batch x InputSize] with SeqLength variable
+        pred_in = x_encode[:innum].unsqueeze(1)  # add batch=1 dimension
+        hidden = self.init_hidden(self.rnnHidNum, 1)  # batch=1
 
         # output = [SeqLength x Batch x HiddenSize]
         pred_en_out, hidden = self.pred_en(pred_in, hidden)
@@ -131,7 +131,7 @@ class EncoderReg_Pred(HDENet):
         return x_reg, x_encode, pred_out
 
 if __name__ == '__main__':
-
+    # test 
     import torch.optim as optim
     import matplotlib.pyplot as plt
 
@@ -161,12 +161,11 @@ if __name__ == '__main__':
 
     criterion = nn.MSELoss()
     regOptimizer = optim.SGD(stateEncoder.parameters(), lr=lr, momentum=0.9)
-    # regOptimizer = optim.Adam(stateEncoder.parameters(), lr = lr)
 
     lossplot = []
     encodesumplot = []
 
-    ind = 200
+    ind = 100
     for sample in dataloader:
         inputVar = stateEncoder.new_variable(sample.squeeze())
 

@@ -20,19 +20,10 @@ UseGPU = torch.cuda.is_available()
 exp_prefix = '20_2_'
 
 OutDir = './log/test/cpu'
-
-
 ModelFile = joinPath(OutDir, "loss.png")
-
-LossFile = joinPath(OutDir, exp_prefix + 'lossplot.npy')
-ValLossFile = joinPath(OutDir, exp_prefix + 'vallossplot.npy')
-LabelLossFile = joinPath(OutDir, exp_prefix + 'unlabellossplot.npy')
-UnlabelLossFile = joinPath(OutDir, exp_prefix + 'labellossplot.npy')
 
 DukeLabelFile = get_path("DukeMCMT/trainval_duke.txt")
 HandLabelFolder = get_path("label")
-
-UnlabelFolder = get_path("dirimg")
 
 TestLabelFile = get_path("DukeMCMT/test_heading_gt.txt")
 TestLabelFolder = get_path("val_drone")
@@ -133,11 +124,6 @@ def save_snapshot(model, ind, label_loss, unlabel_loss, total_loss, val_loss):
     file = joinPath(OutDir, 'model_' + str(ind) + '.pkl')
     torch.save(model.state_dict(), file)
 
-    np.save(LossFile, total_loss)
-    np.save(ValLossFile, val_loss)
-    np.save(LabelLossFile, label_loss)
-    np.save(UnlabelLossFile, unlabel_loss)
-
 
 def main():
     start_t = datetime.now()
@@ -153,17 +139,19 @@ def main():
     criterion = nn.MSELoss()
 
     # Datasets
-    print "loading datasets"
-    imgdataset = TrackingLabelDataset("duke",
+    imgdataset = TrackingLabelDataset("duke-train",
                                       data_file=DukeLabelFile, data_aug=True)  # Duke, 225426
-    imgdataset2 = FolderLabelDataset("handlabel",
+    imgdataset2 = FolderLabelDataset("handlabel-train",
                                      img_dir=HandLabelFolder, data_aug=True)  # HandLabel, 1201
 
-    unlabelset = FolderUnlabelDataset("ucf",
-                                      img_dir=UnlabelFolder, seq_length=UnlabelBatch, data_aug=True, extend=True)
+    unlabelset = FolderUnlabelDataset("ucf-train", dat_file="ucf_unlabeldata.pkl",
+                                      seq_length=UnlabelBatch, data_aug=True, extend=True)
 
-    valset = FolderLabelDataset("test", TestLabelFolder, data_aug=False)
-    #valset2 = DukeSeqLabelDataset(TestLabelFolder, data_aug=False)
+    # unlabelset = FolderUnlabelDataset("duke-unlabel", dat_file="duke_unlabeldata.pkl",
+    #                                  seq_length=UnlabelBatch, data_aug=True, extend=True)
+
+    valset = FolderLabelDataset("test-drone", TestLabelFolder, data_aug=True)
+    #valset = DukeSeqLabelDataset("test", TestLabelFolder, data_aug=False)
 
     # Dataloaders
     dataloader = DataLoader(imgdataset, batch_size=TrainBatch, num_workers=2)

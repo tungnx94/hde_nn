@@ -42,7 +42,7 @@ class WorkFlow(object):
         for v, w in self.acvs.items():
             self.add_accumulated_value(v, w)
 
-        # Log handlers
+        ### Init logging
         # Console log
         streamHandler = logging.StreamHandler()
         streamHandler.setLevel(logging.DEBUG)
@@ -78,7 +78,7 @@ class WorkFlow(object):
         if trained_model is not None:            
             self.model.load_pretrained(trained_model)
             self.logger.info("Loaded model from {}".format(trained_model))
-            
+
         self.countTrain = self.model.countTrain
 
     def get_log_dir(self):

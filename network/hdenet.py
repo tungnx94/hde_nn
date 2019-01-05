@@ -47,3 +47,5 @@ class HDENet(torch.nn.Module):
         modelname = os.path.splitext(os.path.basename(file))[0]
         self.countTrain = int(modelname.split('_')[-1])
         self.load_from_npz(file)
+
+        self.load_to_device()
