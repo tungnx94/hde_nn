@@ -144,7 +144,7 @@ def main():
     imgdataset2 = FolderLabelDataset("handlabel-train",
                                      img_dir=HandLabelFolder, data_aug=True)  # HandLabel, 1201
 
-    unlabelset = FolderUnlabelDataset("ucf-train", dat_file="ucf_unlabeldata.pkl",
+    unlabelset = FolderUnlabelDataset("ucf-train", dat_file="data/ucf_unlabeldata.pkl",
                                       seq_length=UnlabelBatch, data_aug=True, extend=True)
 
     # unlabelset = FolderUnlabelDataset("duke-unlabel", dat_file="duke_unlabeldata.pkl",
