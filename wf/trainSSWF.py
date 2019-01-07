@@ -35,7 +35,7 @@ AccumulateValues = {"train_total": 100,
 
 class TrainSSWF(TrainWF, SSWF):
 
-    def __init__(self, workingDir, prefix,
+    def __init__(self, workingDir, prefix, modelType,
                  mobile_model=None, trained_model=None):
 
         self.labelBatch = Batch
@@ -49,7 +49,7 @@ class TrainSSWF(TrainWF, SSWF):
                     "test_label": 20,
                     "test_unlabel": 20}
 
-        SSWF.__init__(self, mobile_model)
+        SSWF.__init__(self, modelType, mobile_model)
         TrainWF.__init__(self, workingDir, prefix, ModelName, trained_model=trained_model, 
                         trainStep=TrainStep, testIter=TestIter, saveIter=Snapshot, showIter=ShowIter, lr=LearningRate)
 

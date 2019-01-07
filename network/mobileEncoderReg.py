@@ -79,7 +79,6 @@ class MobileEncoderReg(MobileReg):
         # init weights for all submodules
         MobileReg._initialize_weights(self)
 
-        """
         for m in self.modules():
             if isinstance(m, nn.LSTM):
                 #print type(m)
@@ -88,7 +87,6 @@ class MobileEncoderReg(MobileReg):
                         nn.init.constant_(param, 0.0)
                     elif 'weight' in name:
                         nn.init.xavier_normal_(param)
-        """
 
 if __name__ == "__main__":  # test
     from utils import get_path

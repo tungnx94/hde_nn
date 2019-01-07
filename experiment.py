@@ -36,11 +36,16 @@ def conv2d():
         print x.shape
         print ""
 
-def place():
-    return
+def encoderReg():
+    from network import MobileEncoderReg
+
+    model = MobileEncoderReg()
+    print model
+    print "done"
 
 def main():
-    conv2d()
+    #conv2d()
+    encoderReg()
 
 if __name__ == '__main__':
     main()

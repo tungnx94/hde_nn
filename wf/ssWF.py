@@ -6,7 +6,7 @@ import torch.nn as nn
 
 from workflow import WorkFlow
 from dataset import DataLoader
-from network import MobileReg
+from network import MobileReg, MobileEncoderReg
 
 Lamb = 0.1
 Thresh = 0.005  # unlabel_loss threshold
@@ -16,8 +16,9 @@ device = None
 
 class SSWF(WorkFlow):
 
-    def __init__(self, mobile_model=None):
+    def __init__(self, modelType, mobile_model=None):
         self.lamb = Lamb
+        self.modelType = modelType
 
         # params for datasets
         self.mean = [0.485, 0.456, 0.406]
@@ -30,7 +31,11 @@ class SSWF(WorkFlow):
         self.test_loader = DataLoader(self.test_dataset, batch_size=TestBatch)
 
     def load_model(self):
-        model = MobileReg(lamb=Lamb, thresh=Thresh)
+        if self.modelType == 0:
+            model = MobileReg(lamb=Lamb, thresh=Thresh)
+        elif self.modelType == 1:
+            model = MobileEncoderReg(lamb=Lamb)
+
         if self.mobile_model is not None:
             model.load_mobilenet(self.mobile_model) 
             self.logger.info("Loaded MobileNet model: {}".format(self.mobile_model))

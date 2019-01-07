@@ -24,10 +24,10 @@ Visualize = True
 
 class TestSSWF(TestWF, SSWF):
 
-    def __init__(self, workingDir, prefix, trained_model):
+    def __init__(self, workingDir, prefix, modelType, trained_model):
         self.visualize = Visualize
 
-        SSWF.__init__(self)
+        SSWF.__init__(self, modelType)
         TestWF.__init__(self, workingDir, prefix,
                         trained_model, testStep=TestStep, saveIter=Snapshot, showIter=ShowIter)
 
@@ -41,12 +41,12 @@ class TestSSWF(TestWF, SSWF):
 
 class TestLabelSeqWF(TestSSWF):  # Type 1
 
-    def __init__(self, workingDir, prefix, trained_model):
+    def __init__(self, workingDir, prefix, modelType, trained_model):
         self.acvs = {"total": 20,
                      "label": 20,
                      "unlabel": 20}
 
-        TestSSWF.__init__(self, workingDir, prefix, trained_model)
+        TestSSWF.__init__(self, workingDir, prefix, modelType, trained_model)
 
         self.AVP.append(VisdomLinePlotter(
             "total_loss", self.AV, ['total'], [True]))
@@ -76,10 +76,10 @@ class TestLabelSeqWF(TestSSWF):  # Type 1
 
 class TestFolderWF(TestSSWF):  # Type 2
 
-    def __init__(self, workingDir, prefix, trained_model):
+    def __init__(self, workingDir, prefix, modelType, trained_model):
         self.acvs = {"label": 20}
 
-        TestSSWF.__init__(self, workingDir, prefix, trained_model)
+        TestSSWF.__init__(self, workingDir, prefix, modelType, trained_model)
 
         self.AVP.append(VisdomLinePlotter(
             "label_loss", self.AV, ['label'], [True]))
@@ -104,10 +104,10 @@ class TestFolderWF(TestSSWF):  # Type 2
 
 class TestUnlabelSeqWF(TestSSWF):  # Type 3
 
-    def __init__(self, workingDir, prefix, trained_model):
+    def __init__(self, workingDir, prefix, modelType, trained_model):
         self.acvs = {"unlabel": 20}
 
-        TestSSWF.__init__(self, workingDir, prefix, trained_model)
+        TestSSWF.__init__(self, workingDir, prefix, modelType, trained_model)
 
         self.AVP.append(VisdomLinePlotter(
             "unlabel_loss", self.AV, ['unlabel'], [True]))
