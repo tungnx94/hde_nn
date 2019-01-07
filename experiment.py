@@ -1,7 +1,8 @@
 def conv2d():
     from utils import get_path
-    from network import StateCoderfrom        
+    from network import StateCoder 
     from dataset import DataLoader, FolderUnlabelDataset
+    import torch.nn as nn
 
     hiddens = [3, 16, 32, 32, 64, 64, 128, 256]
     kernels = [4, 4, 4, 4, 4, 4, 3]

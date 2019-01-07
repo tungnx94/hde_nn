@@ -89,10 +89,10 @@ class TrainSSWF(TrainWF, SSWF):
         self.countTrain += 1
         # get next samples
         sample = self.train_loader.next_sample()
-        sample_unlabel = self.train_unlabel_loader.next_sample()
+        sample_unlabel = self.train_unlabel_loader.next_sample().squeeze()
 
         # calculate loss
-        loss = self.model.forward_combine(sample['img'], sample['label'], sample_unlabel.squeeze())
+        loss = self.model.forward_combine(sample['img'], sample['label'], sample_unlabel)
 
         # backpropagate
         self.optimizer.zero_grad()
@@ -107,7 +107,7 @@ class TrainSSWF(TrainWF, SSWF):
 
     def calculate_loss(self, val_sample):
         """ combined loss """
-        inputs = val_sample['imgseq'].squeeze()
+        inputs = val_sample['imgseq'].squeeze() # squeeze() might not needed ?
         targets = val_sample['labelseq'].squeeze()
 
         loss = self.model.forward_combine(inputs, targets, inputs) 

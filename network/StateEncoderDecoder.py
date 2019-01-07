@@ -5,9 +5,9 @@ import math
 import torch
 import torch.nn as nn
 
-from hdenet import HDENet
+from hdeNet import HDENet
 
-# default network parameters
+# default parameters
 HiddensDF = [1, 8, 16, 16, 32, 32]  # channels
 KernelsDF = [4, 4, 3, 4, 2]
 PaddingsDF = [1, 1, 1, 1, 0]
@@ -15,10 +15,7 @@ StridesDF = [2, 2, 2, 2, 1]
 
 
 class StateCoder(HDENet):
-    """ 
-    deep ConvNet
-    can be used as en/decoder
-    """
+    """ deep ConvNet, used as en/decoder """
     def __init__(self, hiddens, kernels, strides, paddings, actfunc, device=None):
         HDENet.__init__(self, device)
 
@@ -71,15 +68,15 @@ class EncoderReg_Pred(HDENet):
     def __init__(self, hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF, actfunc='relu', regnum=2, rnnHidNum=128, device=None):
         HDENet.__init__(self, device)
 
-        self.codenum = hiddens[-1]  # input size for LSTM
-        self.rnnHidNum = rnnHidNum  # hidden layer size
+        self.codenum = hiddens[-1]  # input for LSTM (features), should be 256
+        self.rnnHidNum = rnnHidNum  # hidden layer size for LSTMs
 
         self.encoder = StateCoder(
-            hiddens, kernels, strides, paddings, actfunc, device=device)
+            hiddens, kernels, strides, paddings, actfunc, device=device) # can be replaced using MobileNet
 
         self.reg = nn.Linear(self.codenum, regnum)
 
-        self.pred_en = nn.LSTM(self.codenum, rnnHidNum)
+        self.pred_en = nn.LSTM(self.codenum, rnnHidNum) # input_size, hidden_size respectively
 
         self.pred_de = nn.LSTM(self.codenum, rnnHidNum)
         self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum)  # FC
@@ -96,32 +93,31 @@ class EncoderReg_Pred(HDENet):
 
     def forward(self, x):
         x_encode = self.encoder(x) # features
-        seq_length = x_encode.size()[0]
+        seq_length = x_encode.size()[0] # Seq
 
-        x_encode = x_encode.view(seq_length, -1)
+        x_encode = x_encode.view(seq_length, -1) # 2d : Seq x Features
 
         # regression -> (sin, cosin)
         x_reg = self.reg(x_encode)
 
-        # rnn predictor
-        # use first half as input, last half as target (needs explaination)
+        # predictor: use first half as input, last half as target (needs explaination)
         innum = seq_length / 2
 
-        # input of LSTM is [SeqLength x Batch x InputSize] with SeqLength variable
+        # input of LSTM is [SeqLength x Batch x InputSize], SeqLength variable
         pred_in = x_encode[:innum].unsqueeze(1)  # add batch=1 dimension
-        hidden = self.init_hidden(self.rnnHidNum, 1)  # batch=1
+        hidden_0 = self.init_hidden(self.rnnHidNum, 1)  # batch=1
 
-        # output = [SeqLength x Batch x HiddenSize]
-        pred_en_out, hidden = self.pred_en(pred_in, hidden)
+        # output = [SeqLength x Batch x HiddenSize], (hidden_n, cell_n)
+        pred_en_out, hidden = self.pred_en(pred_in, hidden_0)
 
         pred_de_in = self.new_variable(torch.zeros(1, 1, self.codenum))
+        # could use pred_de_in = x_encode[innum-1].unsqueeze(0).unsqueeze(0) ? 
 
         pred_out = []
         for k in range(innum, seq_length):  # input the decoder one by one cause there's a loop
             pred_de_out, hidden = self.pred_de(pred_de_in, hidden)
 
-            pred_de_out = self.pred_de_linear(
-                pred_de_out.view(1, self.rnnHidNum))
+            pred_de_out = self.pred_de_linear(pred_de_out.view(1, self.rnnHidNum))
             pred_de_in = pred_de_out.detach().unsqueeze(1)
 
             pred_out.append(pred_de_out)
@@ -152,6 +148,7 @@ if __name__ == '__main__':
     paramlist = list(stateEncoder.parameters())
 
     print stateEncoder
+    print stateEncoder.codenum
     print len(paramlist)
 
     # data
@@ -165,7 +162,7 @@ if __name__ == '__main__':
     lossplot = []
     encodesumplot = []
 
-    ind = 100
+    ind = 2
     for sample in dataloader:
         inputVar = stateEncoder.new_variable(sample.squeeze())
 
@@ -174,7 +171,13 @@ if __name__ == '__main__':
         pred_target = encode[seq_length / 2:, :].detach()
         loss_pred = criterion(pred, pred_target)  # unlabel
 
-        # back propagate
+        """
+        print "iteration: ", ind
+        print x.shape, ' ', encode.shape
+        print pred.shape, ' ', pred_target.shape
+        """
+
+        # backpropagate
         regOptimizer.zero_grad()
         loss_pred.backward()
         regOptimizer.step()

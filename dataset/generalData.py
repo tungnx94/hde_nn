@@ -123,7 +123,8 @@ class SingleDataset(Dataset):
 
 
 class SequenceDataset(SingleDataset):
-
+    # extended by folderUnlabelData
+    
     def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length):
         super(SequenceDataset, self).__init__(
             name, img_size, data_aug, 0, mean, std)
@@ -172,6 +173,7 @@ class SequenceDataset(SingleDataset):
 
 
 class SingleSequenceDataset(SequenceDataset):
+    # extended by DukeSequenceDataset, ViratSequenceDataset
 
     def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length):
         super(SingleSequenceDataset, self).__init__(

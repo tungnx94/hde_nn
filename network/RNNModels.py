@@ -4,8 +4,8 @@ import torch.nn.functional as F
 
 import torchvision.models as models 
 
-from hdenet import HDENet
-from mobilenet import MobileNet_v1
+from hdeNet import HDENet
+from mobileNet import MobileNet_v1
 
 MobileNetPretrained = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 

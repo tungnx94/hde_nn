@@ -4,23 +4,24 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
  
-from hdenet import HDENet
-from mobilenet import MobileNet_v1
+from hdeNet import HDENet
+from mobileNet import MobileNet_v1
 
 class MobileReg(HDENet):
 
-    def __init__(self, hidnum=256, regnum=2, lamb=0.1, thresh=0.005, device=None):  
-        # input size should be 112 ? why
+    def __init__(self, hidNum=256, regNum=2, lamb=0.1, thresh=0.005, device=None):  
+        # input size should be 192
         HDENet.__init__(self, device=device)
-
-        self.feature = MobileNet_v1(depth_multiplier=0.5, device=device) # feature extractor
-
-        self.conv7 = nn.Conv2d(hidnum, hidnum, 3)  #conv to 1 by 1
-        self.reg = nn.Linear(hidnum, regnum)
 
         self.criterion = nn.MSELoss()  # L2 loss
         self.lamb = lamb
         self.thresh = thresh
+        self.hidNum = hidNum
+        self.regNum = regNum
+
+        self.feature = MobileNet_v1(depth_multiplier=0.5, device=device) # feature extractor, upper layers
+        self.conv7 = nn.Conv2d(hidNum, hidNum, 3)  #conv to 1x1, lower extractor layer
+        self.reg = nn.Linear(hidNum, regNum) # regression (sine, cosine)
 
         self._initialize_weights()
         self.load_to_device()
@@ -28,14 +29,21 @@ class MobileReg(HDENet):
     def load_mobilenet(self, fname):
         self.feature.load_from_npz(fname)
 
-    def forward(self, x):
-        x = x.to(self.device)
+    def extract_features(self, inputs):
+        # feature extractor
+        x = inputs.to(self.device)
 
         x = self.feature(x)
         x = self.conv7(x)
         x = F.relu(x, inplace=True)
-        x = self.reg(x.view(x.size()[0], -1))
+        x = x.view(x.size()[0], -1)
 
+        return x
+
+    def forward(self, x):
+        x = self.extract_features(x)
+
+        x = self.reg(x) # to (sine, cosine)
         return x
 
     def unlabel_loss(self, output, threshold):

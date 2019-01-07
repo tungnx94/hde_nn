@@ -124,6 +124,8 @@ def im_crop(image, maxscale=0.2):
 
 
 def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso=False, down_len=30, flip=False):
+    # output a numpy array (3, width, height)
+
     # downsample the image for data augmentation
     minlen = np.min(img.shape[0:2])
     down_len = random.randint(down_len, down_len * 5)
