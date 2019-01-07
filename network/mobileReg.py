@@ -16,8 +16,6 @@ class MobileReg(HDENet):
         self.criterion = nn.MSELoss()  # L2 loss
         self.lamb = lamb
         self.thresh = thresh
-        self.hidNum = hidNum
-        self.regNum = regNum
 
         self.feature = MobileNet_v1(depth_multiplier=0.5, device=device) # feature extractor, upper layers
         self.conv7 = nn.Conv2d(hidNum, hidNum, 3)  #conv to 1x1, lower extractor layer

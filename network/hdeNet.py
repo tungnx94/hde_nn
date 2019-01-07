@@ -49,3 +49,6 @@ class HDENet(torch.nn.Module):
         self.load_from_npz(file)
 
         self.load_to_device()
+
+    def _initialize_weights(self):
+        pass

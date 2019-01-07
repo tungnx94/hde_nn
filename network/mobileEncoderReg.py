@@ -2,22 +2,34 @@
 import sys
 sys.path.insert(0, "..")
 
+import torch
 import torch.nn as nn
-import torch.nn.functional as F
- 
+
+from hdeNet import HDENet
 from mobileReg import MobileReg
+from mobileNet import MobileNet_v1
 
 class MobileEncoderReg(MobileReg):
 
     def __init__(self, hidNum=256, rnnHidNum=128, regNum=2, lamb=0.1, device=None):
         # input tensor should be [Batch, 3, 192, 192]
+        HDENet.__init__(self, device=device)
+
+        self.lamb = lamb
+        self.hidNum = hidNum
         self.rnnHidNum = rnnHidNum
+        self.criterion = nn.MSELoss()
+
+        self.feature = MobileNet_v1(depth_multiplier=0.5, device=device) # feature extractor, upper layers
+        self.conv7 = nn.Conv2d(hidNum, hidNum, 3)  #conv to 1x1, lower extractor layer
+        self.reg = nn.Linear(hidNum, regNum) # regression (sine, cosine)
 
         self.pred_en = nn.LSTM(hidNum, rnnHidNum)
         self.pred_de = nn.LSTM(hidNum, rnnHidNum)
         self.pred_de_linear = nn.Linear(rnnHidNum, hidNum)  # FC
 
-        MobileReg.__init__(self, hidnum=hidNum, regnum=regNum, device=device)
+        self._initialize_weights()
+        self.load_to_device()
 
     def unlabel_loss(self, output):
         pass
@@ -33,7 +45,7 @@ class MobileEncoderReg(MobileReg):
     def forward_unlabel(self, inputs):
         # input size is [SeqLength, 3, W, H]
         x_encode = self.extract_features(inputs)
-        seq_length = x_encode.size()[0] # SeqLength
+        seq_length = x_encode.size()[0]  # SeqLength
 
         # prediction: use first half as input, last half as target
         innum = seq_length / 2
@@ -45,44 +57,58 @@ class MobileEncoderReg(MobileReg):
 
         pred_out = []
         pred_en_out, hidden = self.pred_en(pred_in, hidden_0)
-        pred_de_in = self.new_variable(torch.zeros(1, 1, self.codenum))
-        # could use pred_de_in = x_encode[innum-1].unsqueeze(0).unsqueeze(0) ? 
+        pred_de_in = self.new_variable(torch.zeros(1, 1, self.hidNum))
+        # could use pred_de_in = x_encode[innum-1].unsqueeze(0).unsqueeze(0) ?
 
         for k in range(innum, seq_length):  # decode one by one
             pred_de_out, hidden = self.pred_de(pred_de_in, hidden)
 
-            pred_de_out = self.pred_de_linear(pred_de_out.view(1, self.rnnHidNum))
+            pred_de_out = self.pred_de_linear(
+                pred_de_out.view(1, self.rnnHidNum))
             pred_de_in = pred_de_out.detach().unsqueeze(1)
 
             pred_out.append(pred_de_out)
 
         pred_out = torch.cat(tuple(pred_out), dim=0)
+        pred_target = x_encode[seq_length / 2:].detach()
 
-        loss = self.criterion(pred, pred_target)
+        loss = self.criterion(pred_target, pred_out)
         return loss
 
     def _initialize_weights(self):
         # init weights for all submodules
         MobileReg._initialize_weights(self)
 
-        nn.init.xavier_normal(self.pred_en)
-        nn.init.xavier_normal(self.pred_de)
+        """
+        for m in self.modules():
+            if isinstance(m, nn.LSTM):
+                #print type(m)
+                for name, param in m.named_parameters():
+                    if 'bias' in name:
+                        nn.init.constant_(param, 0.0)
+                    elif 'weight' in name:
+                        nn.init.xavier_normal_(param)
+        """
 
-
-if __name__ == "__main__": # test
+if __name__ == "__main__":  # test
+    from utils import get_path
     from dataset import TrackingLabelDataset, FolderUnlabelDataset, DataLoader
     # prepare data
     imgdataset = TrackingLabelDataset("duke-train",
-                                      data_file=DukeLabelFile, data_aug=True)
-    unlabelset = FolderUnlabelDataset("ucf-train", dat_file="../data/ucf_unlabeldata.pkl",
-                                      seq_length=UnlabelBatch, data_aug=True, extend=True)
+                                      data_file=get_path("DukeMCMT/trainval_duke.txt"), data_aug=True)
+    unlabelset = FolderUnlabelDataset("ucf-train", data_file="../data/ucf_unlabeldata.pkl",
+                                      seq_length=16, data_aug=True, extend=True)
     dataloader = DataLoader(imgdataset, batch_size=20)
     unlabelloader = DataLoader(unlabelset)
 
     model = MobileEncoderReg()
     model.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
-    val_loss = 0.0
-    for ind in range(1, 50):
+    for ind in range(1, 5):
         sample = dataloader.next_sample()
-        sample_unlabel = unlabelloader.next_sample()
+        sample_unlabel = unlabelloader.next_sample().squeeze()
+
+        loss = model.forward_combine(sample['img'], sample['label'], sample_unlabel)
+        print "iter {}, loss {}".format(ind, loss)
+
+    print "Finished" # why no auto terminate ?
