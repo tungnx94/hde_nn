@@ -11,6 +11,7 @@ import numpy as np
 from generalData import SingleSequenceDataset
 
 # not yet functional 
+# needs further digging
 class ViratSeqLabelDataset(SingleSequenceDataset):
 
     def __init__(self, name, label_file, img_size=192, data_aug=False,

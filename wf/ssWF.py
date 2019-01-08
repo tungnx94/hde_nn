@@ -32,9 +32,9 @@ class SSWF(WorkFlow):
 
     def load_model(self):
         if self.modelType == 0:
-            model = MobileReg(lamb=Lamb, thresh=Thresh)
+            model = MobileReg(lamb=0.1, thresh=Thresh)
         elif self.modelType == 1:
-            model = MobileEncoderReg(lamb=Lamb)
+            model = MobileEncoderReg(lamb=0.001)
 
         if self.mobile_model is not None:
             model.load_mobilenet(self.mobile_model) 

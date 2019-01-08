@@ -20,7 +20,7 @@ class FolderUnlabelDataset(SequenceDataset):
 
     def __init__(self, name, img_dir='', data_file=None,
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
-                 seq_length=32, extend=False, include_all=False):
+                 seq_length=24, extend=False, include_all=False):
 
         if data_file != None:
             # load from saved pickle file, priority
@@ -128,7 +128,7 @@ def main():
     np.set_printoptions(precision=4)
 
     duke_img_dir = "DukeMCMT/heading"
-    ucf_img_dir = "dirimg"
+    ucf_img_dir = "UCF"
 
     #unlabelset = FolderUnlabelDataset("duke-unlabel", img_dir=get_path(duke_img_dir),
     #                                  seq_length=24, data_aug=True, include_all=True)

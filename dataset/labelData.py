@@ -9,7 +9,7 @@ from trackingLabelData import TrackingLabelDataset
 from folderLabelData import FolderLabelDataset
 
 
-PersonFiles = 'combined_data2/train/annotations/person_annotations.csv'
+PersonFiles = 'VIRAT/train/annotations/person_annotations.csv'
 DukeLabelFile = 'DukeMCMT/trainval_duke.txt'
 HandLabelFolder = 'label'
 
@@ -23,10 +23,10 @@ class LabelDataset(GeneralDataset):
         if self.factors is None:
             self.factors = Factors
 
-        virat = TrackingLabelDataset("combine-train",
+        virat = TrackingLabelDataset("VIRAT-train",
             data_file=get_path(PersonFiles), data_aug=True, mean=self.mean, std=self.std)  
 
-        duke = TrackingLabelDataset("duke-train",
+        duke = TrackingLabelDataset("DUKE-train",
             data_file=get_path(DukeLabelFile), data_aug=True, mean=self.mean, std=self.std)
 
         handlabel = FolderLabelDataset("handlabel-train",

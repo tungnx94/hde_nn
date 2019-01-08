@@ -16,11 +16,11 @@ Batch = 128
 SeqLength = 24  # 32
 UnlabelBatch = 1
 LearningRate = 0.0005  # to tune
-TrainStep = 10000  # number of train() calls 20000
+TrainStep = 200  # number of train() calls 20000
 
-Snapshot = 500  # 500 do a snapshot every Snapshot steps (save period)
-TestIter = 100  # do a testing every TestIter steps
-ShowIter = 50  # print to screen
+Snapshot = 100  # 500 model save period
+TestIter = 50  # do a testing every TestIter steps
+ShowIter = 20  # print to screen
 
 ModelName = 'facing'
 TestLabelFile = 'DukeMCMT/test_heading_gt.txt'

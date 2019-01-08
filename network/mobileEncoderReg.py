@@ -11,7 +11,7 @@ from mobileNet import MobileNet_v1
 
 class MobileEncoderReg(MobileReg):
 
-    def __init__(self, hidNum=256, rnnHidNum=128, regNum=2, lamb=0.1, device=None):
+    def __init__(self, hidNum=256, rnnHidNum=128, regNum=2, lamb=0.001, device=None):
         # input tensor should be [Batch, 3, 192, 192]
         HDENet.__init__(self, device=device)
 
@@ -94,9 +94,9 @@ if __name__ == "__main__":  # test
     # prepare data
     imgdataset = TrackingLabelDataset("duke-train",
                                       data_file=get_path("DukeMCMT/trainval_duke.txt"), data_aug=True)
-    unlabelset = FolderUnlabelDataset("ucf-train", data_file="../data/ucf_unlabeldata.pkl",
-                                      seq_length=16, data_aug=True, extend=True)
-    dataloader = DataLoader(imgdataset, batch_size=20)
+    unlabelset = FolderUnlabelDataset("duke-unlabel", data_file="../data/duke_unlabeldata.pkl",
+                                      seq_length=24, data_aug=True, extend=True)
+    dataloader = DataLoader(imgdataset, batch_size=32)
     unlabelloader = DataLoader(unlabelset)
 
     model = MobileEncoderReg()
@@ -107,6 +107,8 @@ if __name__ == "__main__":  # test
         sample_unlabel = unlabelloader.next_sample().squeeze()
 
         loss = model.forward_combine(sample['img'], sample['label'], sample_unlabel)
-        print "iter {}, loss {}".format(ind, loss)
+
+
+        print "iter {}, loss {} {}".format(ind, loss["label"].item(), loss["unlabel"].item())
 
     print "Finished" # why no auto terminate ?

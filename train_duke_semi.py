@@ -6,11 +6,12 @@ from wf import WFException, TrainSSWF, TestFolderWF, TestLabelSeqWF, TestUnlabel
 TestType = 0
 
 # 0: MobileReg, 1: MobileEncoderReg, 3: Vanilla ?
-ModelType = 1
+ModelType = 0
 
 PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
-PreModel = './log/sample_12-21_12:11/models/facing_11500.pkl' # 
-# PreModel = None
+# PreModel = './log/sample_12-21_12:11/models/facing_11500.pkl' # 
+PreModel = None
+
 ExpPrefix = 'sample'  # model name, should be unique
 
 # TestFolder = "./log/sample_12-18_17:41"
