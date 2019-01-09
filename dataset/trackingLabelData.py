@@ -75,7 +75,7 @@ def main():
     np.set_printoptions(precision=4)
 
     #data_file = 'combined_data2/train/annotations/person_annotations.csv'
-    data_file = 'DukeMCMT/trainval_duke.txt'
+    data_file = 'DukeMCMT/train.txt'
     
     trackingLabelDataset = TrackingLabelDataset("duke-train",
         data_file=get_path(data_file), data_aug=True)

@@ -55,8 +55,7 @@ class FolderLabelDataset(SingleDataset):
         return {'img': out_img, 'label': label}
 
 
-def main():
-    # test
+def main(): # test
     from generalData import DataLoader
     from utils import get_path, seq_show, put_arrow
 
@@ -69,7 +68,6 @@ def main():
     dataloader = DataLoader(facingDroneLabelDataset,
                             batch_size=4, shuffle=True, num_workers=1)
 
-    # import ipdb; ipdb.set_trace()
     count = 20
     for sample in dataloader:
         print sample['label'], sample['img'].size()

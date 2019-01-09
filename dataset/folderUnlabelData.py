@@ -127,7 +127,7 @@ def main():
 
     np.set_printoptions(precision=4)
 
-    duke_img_dir = "DukeMCMT/heading"
+    duke_img_dir = "DukeMCMT/train"
     ucf_img_dir = "UCF"
 
     #unlabelset = FolderUnlabelDataset("duke-unlabel", img_dir=get_path(duke_img_dir),

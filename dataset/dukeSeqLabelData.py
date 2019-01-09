@@ -65,7 +65,7 @@ def main():
     from utils import get_path, seq_show
     np.set_printoptions(precision=4)
 
-    label_file = 'DukeMCMT/test_heading_gt.txt'
+    label_file = 'DukeMCMT/test.txt'
     unlabelset = DukeSeqLabelDataset("duke-test",
         label_file=get_path(label_file), seq_length=24, data_aug=True)
     print len(unlabelset)
