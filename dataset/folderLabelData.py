@@ -7,7 +7,6 @@ import random
 import numpy as np
 
 from generalData import SingleDataset
-from utils import im_scale_norm_pad, img_denormalize, im_crop, im_hsv_augmentation
 
 
 class FolderLabelDataset(SingleDataset):
@@ -15,9 +14,7 @@ class FolderLabelDataset(SingleDataset):
     def __init__(self, name, img_dir,
                  img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
 
-        super(FolderLabelDataset, self).__init__(name, img_size, data_aug, maxscale, mean, std)
-
-        # self.dir2ind = {'n': 0,'ne': 1,'e': 2, 'se': 3,'s': 4,'sw': 5,'w': 6,'nw': 7}
+        SingleDataset.__init__(self, name, img_size, data_aug, maxscale, mean, std)
         self.dir2val = {'n':  [1., 0.],
                         'ne': [0.707, 0.707],
                         'e':  [0., 1.],
@@ -55,27 +52,17 @@ class FolderLabelDataset(SingleDataset):
         return {'img': out_img, 'label': label}
 
 
-def main(): # test
+if __name__ == '__main__': # test
     from generalData import DataLoader
-    from utils import get_path, seq_show, put_arrow
+    from utils import get_path, seq_show
 
-    np.set_printoptions(precision=4)
-
-    test_img_dir = '3DPES'
-    facingDroneLabelDataset = FolderLabelDataset("3dpes-facing",
-        img_dir=get_path(test_img_dir), data_aug=True)
-
-    dataloader = DataLoader(facingDroneLabelDataset,
+    dataset = FolderLabelDataset("3DPES",
+        img_dir=get_path("3DPES"), data_aug=True)
+    dataloader = DataLoader(dataset,
                             batch_size=4, shuffle=True, num_workers=1)
 
-    count = 20
-    for sample in dataloader:
+    for count in range(20):
+        sample = dataloader.next_sample()
+
         print sample['label'], sample['img'].size()
         seq_show(sample['img'].numpy(), scale=0.3)
-        
-        count -= 1
-        if count < 0:
-            break
-
-if __name__ == '__main__':
-    main()

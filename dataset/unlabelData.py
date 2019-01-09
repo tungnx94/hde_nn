@@ -34,25 +34,15 @@ class UnlabelDataset(GeneralDataset):
 
         self.datasets = [ucf, duke]
 
-def main():
-    # test
-    import cv2
-    import numpy as np
-    from utils import seq_show, put_arrow
-    from generalData import DataLoader
-
-    np.set_printoptions(precision=4)
-
-    unlabeldataset = UnlabelDataset(seq_length=24, balance=True)
-    dataloader = DataLoader(unlabeldataset, batch_size=1,
-                            shuffle=True, num_workers=1)
-    count = 10
-    
-    for sample in dataloader:
-        seq_show(sample.squeeze().numpy())
-        count -= 10
-        if count < 0:
-            break
 
 if __name__ == '__main__':
-    main()
+    from utils import seq_show
+    from generalData import DataLoader
+
+    dataset = UnlabelDataset(seq_length=24, balance=True)
+    dataloader = DataLoader(dataset)
+    count = 10
+    
+    for count in range(10):
+        sample = dataloader.next_sample()
+        seq_show(sample.squeeze().numpy())

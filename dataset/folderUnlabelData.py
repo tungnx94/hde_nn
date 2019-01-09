@@ -24,15 +24,14 @@ class FolderUnlabelDataset(SequenceDataset):
 
         if data_file != None:
             # load from saved pickle file, priority
-            # grandparent
-            super(SequenceDataset, self).__init__(
-                name, img_size, data_aug, 0, mean, std)
+
+            SingleDataset.__init__(self, name, img_size, data_aug, 0, mean, std)
             self.seq_length = seq_length
 
             with open(data_file, 'rb') as f:
                 data = pickle.load(f)
             self.N = data['N']
-            self.episodes = data['episodeNum']
+            self.episodes = data['episodes']
             self.img_seqs = data['img_seqs']
 
             print "{} loaded from saved file".format(self)
@@ -41,13 +40,12 @@ class FolderUnlabelDataset(SequenceDataset):
             self.include_all = include_all
             self.extend = extend
             self.img_dir = img_dir
-            # parent
-            super(FolderUnlabelDataset, self).__init__(
-                name, img_size, data_aug, 0, mean, std, seq_length)
+            
+            SequenceDataset.__init__(self, name, img_size, data_aug, 0, mean, std, seq_length)
 
             # Save loaded data for future use
             with open(os.path.join(DataFolder, self.saveName), 'wb') as f:
-                pickle.dump({'N': self.N, 'episodeNum': self.episodes,
+                pickle.dump({'N': self.N, 'episodes': self.episodes,
                              'img_seqs': self.img_seqs}, f, pickle.HIGHEST_PROTOCOL)
 
             print "{} loaded new".format(self)
@@ -120,30 +118,17 @@ class FolderUnlabelDataset(SequenceDataset):
         return np.array(imgseq)
 
 
-def main():
-    # test
+if __name__ == '__main__': # test
     from generalData import DataLoader
     from utils import get_path, seq_show
 
-    np.set_printoptions(precision=4)
-
-    duke_img_dir = "DukeMCMT/train"
-    ucf_img_dir = "UCF"
-
-    #unlabelset = FolderUnlabelDataset("duke-unlabel", img_dir=get_path(duke_img_dir),
+    #unlabelset = FolderUnlabelDataset("duke-unlabel", img_dir=get_path("DukeMCMT/train"),
     #                                  seq_length=24, data_aug=True, include_all=True)
 
-    unlabelset = FolderUnlabelDataset("ucf-unlabel", img_dir=get_path(ucf_img_dir),
+    unlabelset = FolderUnlabelDataset("ucf-unlabel", img_dir=get_path("UCF"),
                                       seq_length=24, data_aug=True, extend=True)
-
     dataloader = DataLoader(unlabelset)
-    count = 5
-    for sample in dataloader:
+
+    for count in range(5):
+        sample = dataloader.next_sample()
         seq_show(sample.squeeze().numpy(), scale=0.8)
-
-        count -= 1
-        if count < 0:
-            break
-
-if __name__ == '__main__':
-    main()

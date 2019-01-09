@@ -4,12 +4,12 @@ import sys
 sys.path.insert(0, "..")
 
 import os
-import cv2
 import numpy as np
 
 from generalData import SingleSequenceDataset
 
-
+# segmentation not quite clear 
+# needs further digging
 class DukeSeqLabelDataset(SingleSequenceDataset):
 
     def __init__(self, name, label_file,
@@ -57,39 +57,24 @@ class DukeSeqLabelDataset(SingleSequenceDataset):
                 last_cam = -1
 
 
-def main():
-    # test
-    import torch
-    from generalData import DataLoader
+if __name__ == '__main__': # test
     from network import MobileReg
+    from generalData import DataLoader
     from utils import get_path, seq_show
-    np.set_printoptions(precision=4)
 
-    label_file = 'DukeMCMT/test.txt'
     unlabelset = DukeSeqLabelDataset("duke-test",
-        label_file=get_path(label_file), seq_length=24, data_aug=True)
-    print len(unlabelset)
+        label_file=get_path('DukeMCMT/val/val.txt'), seq_length=24, data_aug=True)
 
     dataloader = DataLoader(unlabelset)
     model = MobileReg()
 
     count = 10
-    for sample in dataloader:
+    for count in range(10:)
+        sample = dataloader.next_sample()
         imgseq = sample['imgseq'].squeeze()
         labelseq = sample['labelseq'].squeeze().numpy()
 
         loss = model.unlabel_loss(imgseq, 0.005).to("cpu").numpy()
         print "unlabel loss: ", loss
 
-        fakelabel = torch.tensor(np.random.rand(24, 2))
-        loss = model.unlabel_loss(fakelabel, 0.005).to("cpu").numpy()
-        print "fake loss: ", loss
-
         seq_show(imgseq.numpy(), dir_seq=labelseq)
-
-        count -= 1
-        if count < 0:
-            break
-
-if __name__ == '__main__':
-    main()

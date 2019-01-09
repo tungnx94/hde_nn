@@ -35,30 +35,16 @@ class LabelDataset(GeneralDataset):
         self.datasets = [virat, duke, handlabel]
 
 
-def main():
-    # test
-    import cv2
-    import numpy as np
+if __name__ == '__main__':
     from utils import seq_show
     from generalData import DataLoader
-
-    np.set_printoptions(precision=4)
 
     labeldataset = LabelDataset(balance=True)
     dataloader = DataLoader(labeldataset, batch_size=16)
 
-    # import ipdb;ipdb.set_trace()
-    print len(labeldataset)
+    for count in range(10):
+        sample = dataloader.next_sample()
 
-    count = 10
-    for sample in dataloader:
         print sample['label'], sample['img'].size()
         seq_show(sample['img'].numpy(),
                  dir_seq=sample['label'].numpy(), scale=0.5)
-
-        count -= 1
-        if count < 0:
-            break
-
-if __name__ == '__main__':
-    main()

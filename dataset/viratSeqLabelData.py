@@ -5,7 +5,6 @@ import sys
 sys.path.insert(0, "..")
 
 import os
-import cv2
 import numpy as np
 
 from generalData import SingleSequenceDataset
@@ -66,28 +65,21 @@ class ViratSeqLabelDataset(SingleSequenceDataset):
                                        0].strip().split(' ')[1]) for x in subsampled_arr]
                     self.img_seqs.append(subsampled_arr)
 
-def main():
+
+if __name__ == '__main__':
     from generalData import DataLoader
     from utils import get_path, seq_show
-    np.set_printoptions(precision=4)
 
-    label_file = 'VIRAT/train/annotations/annotations.csv'
     unlabelset = ViratSeqLabelDataset("virat-train",
-        get_path(label_file), seq_length=24, data_aug=True)
-    print len(unlabelset)
+        get_path('VIRAT/train/annotations/annotations.csv'), seq_length=24, data_aug=True)
 
     dataloader = DataLoader(unlabelset)
-    count = 10
 
-    for sample in dataloader:
+
+    for count in range(10):
+        sample = dataloader.next_sample()
+
         imgseq, labelseq = sample['imgseq'].squeeze().numpy(), sample[
             'labelseq'].squeeze().numpy()
 
         seq_show(imgseq, dir_seq=labelseq, scale=0.8)
-
-        count -= 1
-        if count < 0:
-            break
-
-if __name__ == '__main__':
-    main()

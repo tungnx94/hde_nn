@@ -1,3 +1,5 @@
+# Wrapper for Duke & VIRAT single image labeled datasets
+
 import sys
 sys.path.insert(0, "..")
 
@@ -29,7 +31,6 @@ class TrackingLabelDataset(SingleDataset):
 
         else:  # text file used by DukeMTMC dataset
             img_dir = os.path.dirname(data_file)
-            # img_dir = join(img_dir,'heading') # a subdirectory
 
             with open(data_file, 'r') as f:
                 lines = f.readlines()
@@ -44,7 +45,7 @@ class TrackingLabelDataset(SingleDataset):
         self.read_debug()
 
     def __getitem__(self, idx):
-        if self.data_file.endswith('csv'):
+        if self.data_file.endswith('.csv'):
             point_info = self.items.iloc[idx]
         else:
             point_info = self.items[idx]
@@ -67,30 +68,19 @@ class TrackingLabelDataset(SingleDataset):
         return {'img': out_img, 'label': label}
 
 
-def main():
-    # test
-    from utils import get_path, seq_show, put_arrow
+if __name__ == '__main__':
+    from utils import get_path, seq_show
     from generalData import DataLoader
-
-    np.set_printoptions(precision=4)
-
-    #data_file = 'combined_data2/train/annotations/person_annotations.csv'
-    data_file = 'DukeMCMT/train.txt'
     
-    trackingLabelDataset = TrackingLabelDataset("duke-train",
-        data_file=get_path(data_file), data_aug=True)
+    dataset = TrackingLabelDataset("duke-train",
+        data_file=get_path('DukeMCMT/train/train.txt'), data_aug=True)
 
-    dataloader = DataLoader(trackingLabelDataset, batch_size=16)
+    dataloader = DataLoader(dataset, batch_size=16)
 
     count = 20
-    for sample in dataloader:
+    for count in range(20):
+        sample = dataloader.next_sample()
+
         print sample['label'], sample['img'].size()
         seq_show(sample['img'].numpy(),
                  dir_seq=sample['label'].numpy(), scale=0.5)
-
-        count -= 1
-        if count < 0:
-            break
-
-if __name__ == '__main__':
-    main()
