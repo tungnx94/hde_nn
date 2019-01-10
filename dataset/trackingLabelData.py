@@ -22,35 +22,20 @@ class TrackingLabelDataset(SingleDataset):
 
         super(TrackingLabelDataset, self).__init__(name, img_size, data_aug, maxscale, mean, std)
 
-        self.data_file = data_file
+        self.data_file = data_file # absolute path needed
 
         # save image paths & directions
         self.items = []
-        if data_file.endswith(".csv"):  # .csv file
+        if data_file.endswith(".csv"):  # VIRAT
             self.items = pd.read_csv(data_file)
-
-        else:  # text file used by DukeMTMC dataset
-            img_dir = os.path.dirname(data_file)
-
-            with open(data_file, 'r') as f:
-                lines = f.readlines()
-
-            for line in lines:
-                img_name, angle = line.strip().split(' ')
-                self.items.append(
-                    {'path': os.path.join(img_dir, img_name), 'direction_angle': angle})
+        else:
+            raise Exception
 
         self.N = len(self.items)
-
         self.read_debug()
 
     def __getitem__(self, idx):
-        if self.data_file.endswith('.csv'):
-            point_info = self.items.iloc[idx]
-        else:
-            point_info = self.items[idx]
-        # print(point_info)
-
+        point_info = self.items.iloc[idx]
         # read image
         img_name = point_info['path']
         img = cv2.imread(img_name)
@@ -72,15 +57,18 @@ if __name__ == '__main__':
     from utils import get_path, seq_show
     from generalData import DataLoader
     
-    dataset = TrackingLabelDataset("duke-train",
-        data_file=get_path('DukeMTMC/train/train.txt'), data_aug=True)
+    duke = TrackingLabelDataset("duke",
+        data_file=get_path('DukeMTMC/train/person.csv'), data_aug=True)
 
-    dataloader = DataLoader(dataset, batch_size=16)
+    virat = duke = TrackingLabelDataset("virat",
+        data_file=get_path('VIRAT/train/person.csv'), data_aug=True)
 
-    count = 20
-    for count in range(20):
-        sample = dataloader.next_sample()
+    for dataset in [duke, virat]:
+        dataloader = DataLoader(dataset, batch_size=16)
 
-        print sample['label'], sample['img'].size()
-        seq_show(sample['img'].numpy(),
-                 dir_seq=sample['label'].numpy(), scale=0.5)
+        for count in range(5):
+            sample = dataloader.next_sample()
+
+            print sample['label'], sample['img'].size()
+            seq_show(sample['img'].numpy(),
+                dir_seq=sample['label'].numpy(), scale=0.5)
