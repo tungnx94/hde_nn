@@ -73,7 +73,7 @@ if __name__ == '__main__':
     from generalData import DataLoader
     
     dataset = TrackingLabelDataset("duke-train",
-        data_file=get_path('DukeMCMT/train/train.txt'), data_aug=True)
+        data_file=get_path('DukeMTMC/train/train.txt'), data_aug=True)
 
     dataloader = DataLoader(dataset, batch_size=16)
 

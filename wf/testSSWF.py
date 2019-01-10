@@ -12,7 +12,7 @@ from visdomPlotter import VisdomLinePlotter
 
 LabelSeqLength = 24  # 32
 
-TestLabelFile = 'DukeMCMT/test.txt'
+TestLabelFile = 'DukeMTMC/test.txt'
 TestLabelImgFolder = 'drone_label/val'
 TestUnlabelImgFolder = 'drone_seq'
 

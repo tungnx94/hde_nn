@@ -40,9 +40,9 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-TrainAnnotations = 'DukeMCMT/trainval_duke.txt'
-ValAnnotations = 'DukeMCMT/test_heading_gt.txt'
-ImageFolder = 'DukeMCMT/heading/' # heading_zip ?
+TrainAnnotations = 'DukeMTMC/trainval_duke.txt'
+ValAnnotations = 'DukeMTMC/test_heading_gt.txt'
+ImageFolder = 'DukeMTMC/heading/' # heading_zip ?
 LogFolder = '../outputs/tf_logs/'
 ModelFolder = '../outputs/intermediate_models/'
 

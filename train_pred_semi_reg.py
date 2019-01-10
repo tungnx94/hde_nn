@@ -22,10 +22,10 @@ exp_prefix = '20_2_'
 OutDir = './log/test/cpu'
 ModelFile = joinPath(OutDir, "loss.png")
 
-DukeLabelFile = get_path("DukeMCMT/trainval_duke.txt")
+DukeLabelFile = get_path("DukeMTMC/trainval_duke.txt")
 HandLabelFolder = get_path("label")
 
-TestLabelFile = get_path("DukeMCMT/test_heading_gt.txt")
+TestLabelFile = get_path("DukeMTMC/test_heading_gt.txt")
 TestLabelFolder = get_path("val_drone")
 
 LR = 0.01

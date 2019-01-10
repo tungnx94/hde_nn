@@ -32,9 +32,9 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-TrainFile = get_path('DukeMCMT/trainval_duke.txt')
-ValFile = get_path('DukeMCMT/test_heading_gt.txt')
-ImageFolder = get_path('DukeMCMT/heading')
+TrainFile = get_path('DukeMTMC/trainval_duke.txt')
+ValFile = get_path('DukeMTMC/test_heading_gt.txt')
+ImageFolder = get_path('DukeMTMC/heading')
 LogFolder = 'log/rnn-sample'
 ModelFolder = 'models'
 

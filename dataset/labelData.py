@@ -10,7 +10,7 @@ from folderLabelData import FolderLabelDataset
 
 
 PersonFiles = 'VIRAT/train/annotations/person_annotations.csv'
-DukeLabelFile = 'DukeMCMT/trainval_duke.txt'
+DukeLabelFile = 'DukeMTMC/trainval_duke.txt'
 HandLabelFolder = 'label'
 
 

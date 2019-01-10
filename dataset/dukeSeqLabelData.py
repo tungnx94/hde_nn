@@ -1,4 +1,4 @@
-# for dukeMCMT dataset
+# for dukeMTMC dataset
 # return a sequence of data with label
 import sys
 sys.path.insert(0, "..")
@@ -63,7 +63,7 @@ if __name__ == '__main__': # test
     from utils import get_path, seq_show
 
     unlabelset = DukeSeqLabelDataset("duke-test",
-        label_file=get_path('DukeMCMT/val/val.txt'), seq_length=24, data_aug=True)
+        label_file=get_path('DukeMTMC/val/val.txt'), seq_length=24, data_aug=True)
 
     dataloader = DataLoader(unlabelset)
     model = MobileReg()

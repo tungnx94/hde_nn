@@ -23,7 +23,7 @@ TestIter = 50  # do a testing every TestIter steps
 ShowIter = 20  # print to screen
 
 ModelName = 'facing'
-TestLabelFile = 'DukeMCMT/test_heading_gt.txt'
+TestLabelFile = 'DukeMTMC/test_heading_gt.txt'
 
 AccumulateValues = {"train_total": 100,
                     "train_label": 100,

@@ -29,12 +29,12 @@ ValLossFile = joinPath(OutDir, exp_prefix + 'vallossplot.npy')
 LabelLossFile = joinPath(OutDir, exp_prefix + 'unlabellossplot.npy')
 UnlabelLossFile = joinPath(OutDir, exp_prefix + 'labellossplot.npy')
 
-DukeLabelFile = get_path("DukeMCMT/trainval_duke.txt")
+DukeLabelFile = get_path("DukeMTMC/trainval_duke.txt")
 HandLabelFolder = get_path("label")
 
 UnlabelFolder = get_path("dirimg")
 
-TestLabelFile = get_path("DukeMCMT/test_heading_gt.txt")
+TestLabelFile = get_path("DukeMTMC/test_heading_gt.txt")
 TestLabelFolder = get_path("val_drone")
 
 LR = 0.01
