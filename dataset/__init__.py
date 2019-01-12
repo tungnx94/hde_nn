@@ -1,11 +1,6 @@
-from generalData import DataLoader
+from generalData import DataLoader, MixDataset
 
-from labelData import LabelDataset
-from unlabelData import UnlabelDataset
-
-from trackingLabelData import TrackingLabelDataset
-
-from folderLabelData import FolderLabelDataset
+from singleLabelData import SingleLabelDataset 
 from folderUnlabelData import FolderUnlabelDataset
 
 from dukeSeqLabelData import DukeSeqLabelDataset

@@ -45,7 +45,7 @@ class SSWF(WorkFlow):
     def get_test_dataset(self):
         pass
 
-    def calculate_loss(self, val_sample):
+    def calculate_loss(self, val_sample): # test/validation loss
         pass
 
     def test(self):

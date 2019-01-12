@@ -1,8 +1,8 @@
 import config as cnf
 
-from wf import WFException, TrainSSWF, TestFolderWF, TestLabelSeqWF, TestUnlabelSeqWF
+from wf import WFException, TrainSSWF, TestLabelWF, TestLabelSeqWF, TestUnlabelSeqWF
 
-# 0: none(train), 1: labeled sequence, 2: labeled folder, 3: unlabeled sequence
+# 0: none(train), 1: labeled sequence, 2: labeled image, 3: unlabeled sequence
 TestType = 0
 
 # 0: MobileReg, 1: MobileEncoderReg, 3: Vanilla ?
@@ -26,7 +26,7 @@ def select_WF(TestType):
     elif TestType == 1:
         return TestLabelSeqWF(TestFolder, "labelseq", ModelType, TestModel)
     elif TestType == 2:
-        return TestFolderWF(TestFolder, "folder", ModelType, TestModel)
+        return TestLabelWF(TestFolder, "folder", ModelType, TestModel)
     else:  # 3
         return TestUnlabelSeqWF(TestFolder, "unlabelseq", ModelType, TestModel)
 

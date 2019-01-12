@@ -5,16 +5,14 @@ import torch
 
 from ssWF import SSWF
 from netWF import TestWF
-from utils import angle_metric, get_path, seq_show
-from dataset import FolderLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
+from utils import get_path, seq_show
+from dataset import SingleLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
 
 from visdomPlotter import VisdomLinePlotter
 
 LabelSeqLength = 24  # 32
 
-TestLabelFile = 'DukeMTMC/test.txt'
 TestLabelImgFolder = 'drone_label/val'
-TestUnlabelImgFolder = 'drone_seq'
 
 TestStep = 100 # number of test() calls, 5000
 ShowIter = 10
@@ -56,13 +54,13 @@ class TestLabelSeqWF(TestSSWF):  # Type 1
             "unlabel_loss", self.AV, ['unlabel'], [True]))
 
     def get_test_dataset(self):
-        return DukeSeqLabelDataset("duke-test", get_path(TestLabelFile), seq_length=LabelSeqLength, data_aug=True,
+        return DukeSeqLabelDataset("duke-test", data_file=get_path('DukeMTMC/val/person.csv'), seq_length=LabelSeqLength, data_aug=True,
                                    mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):
         """ combined loss """
-        inputs = val_sample['imgseq'].squeeze()
-        targets = val_sample['labelseq'].squeeze()
+        inputs = val_sample[0].squeeze()
+        targets = val_sample[1].squeeze()
 
         loss = self.model.forward_combine(inputs, targets, inputs) 
         return loss
@@ -74,7 +72,7 @@ class TestLabelSeqWF(TestSSWF):  # Type 1
         self.AV['unlabel'].push_back(loss["unlabel"].item())
 
 
-class TestFolderWF(TestSSWF):  # Type 2
+class TestLabelWF(TestSSWF):  # Type 2
 
     def __init__(self, workingDir, prefix, modelType, trained_model):
         self.acvs = {"label": 20}
@@ -86,15 +84,12 @@ class TestFolderWF(TestSSWF):  # Type 2
 
     def get_test_dataset(self):
         self.testBatch = 50
-        return FolderLabelDataset("val-drone", get_path(TestLabelImgFolder), data_aug=False,
+        return SingleLabelDataset("val-drone", data_file=get_path('DRONE_label'), data_aug=False,
                                   mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):
         """ label loss only """
-        inputs = val_sample['img']
-        targets = val_sample['label']
-
-        loss = self.model.forward_label(inputs, targets)
+        loss = self.model.forward_label(val_sample[0], val_sample[1])
         return loss
 
     def test(self):
@@ -113,7 +108,7 @@ class TestUnlabelSeqWF(TestSSWF):  # Type 3
             "unlabel_loss", self.AV, ['unlabel'], [True]))
 
     def get_test_dataset(self):
-        return FolderUnlabelDataset("drone-unlabel", get_path(TestUnlabelImgFolder), data_aug=False,
+        return FolderUnlabelDataset("drone-unlabel", get_path('DRONE_seq'), data_aug=False,
                                     include_all=True, mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):
