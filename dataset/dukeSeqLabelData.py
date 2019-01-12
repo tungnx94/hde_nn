@@ -1,78 +1,69 @@
-# for dukeMTMC dataset
-# return a sequence of data with label
-import sys
-sys.path.insert(0, "..")
-
 import os
 import numpy as np
+import pandas as pd 
 
-from generalData import SingleSequenceDataset
+from sequenceData import SequenceLabelDataset
 
-# segmentation not quite clear 
-# needs further digging
-class DukeSeqLabelDataset(SingleSequenceDataset):
 
-    def __init__(self, name, label_file,
-                 img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=32):
+class DukeSeqLabelDataset(SequenceLabelDataset):
 
-        self.label_file = label_file
+    def __init__(self, name, data_file=None,
+                 img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=24, saved_file=None):
+        self.data_file = data_file
 
-        super(DukeSeqLabelDataset, self).__init__(
-            name, img_size, data_aug, 0, mean, std, seq_length)
+        SequenceLabelDataset.__init__(
+            self, name, img_size, data_aug, 0, mean, std, seq_length, saved_file)
 
-        self.read_debug()
-
-    def load_image_sequences(self):
+    def init_data(self):
         frame_iter = 6
-        # images
-        img_dir = os.path.split(self.label_file)[0]  # correct?
-        with open(self.label_file, 'r') as f:
-            lines = f.readlines()
+        base_folder = os.path.dirname(self.data_file)
+        data = pd.read_csv(self.data_file).to_dict(orient='records')
 
         last_idx = -1
         last_cam = -1
-        sequence = []  # image sequence
-        for line in lines:
-            [img_name, angle] = line.strip().split(' ')
+        seq = []  # current image sequence
+
+        for point in data:
+            img_name = os.path.basename(point['path']).strip()
+            img_path = os.path.join(base_folder, point['path'])
+            label = np.array(
+                [point['sin'], point['cos']], dtype=np.float32)
 
             # extract frame id
-            frame_id = img_name.strip().split('/')[-1].split('_')[1][5:]
-            try:
-                frame_id = int(frame_id)
-            except:
-                print 'filename parse error:', img_name, frame_id
-                continue
+            frame_id = int(img_name.split('_')[1][5:])
+            cam_num = img_name.split('_')[0]  # camera number
 
-            file_path = os.path.join(img_dir, img_name)
-            cam_num = img_name.strip().split('_')[0]  # what is this ?
-
-            # import ipdb; ipdb.set_trace()
-            if (last_idx < 0 or frame_id == last_idx + frame_iter) and (cam_num == last_cam or last_cam == -1):
-                sequence.append((file_path, angle))
+            if (seq == []) or (frame_id == last_idx + frame_iter) and (cam_num == last_cam):
+                seq.append((img_path, label))
                 last_idx = frame_id
                 last_cam = cam_num
-            else:  # the index is not continuous
-                sequence = self.save_sequence(sequence)
+            else:  # the index is not continuous -> save current seq
+                self.save_sequence(seq)
+                seq = []
                 last_idx = -1
                 last_cam = -1
 
+        self.save_sequence(seq)
 
-if __name__ == '__main__': # test
+
+if __name__ == '__main__':  # test
+    import sys
+    sys.path.insert(0, "..")
+
     from network import MobileReg
     from generalData import DataLoader
     from utils import get_path, seq_show
 
-    unlabelset = DukeSeqLabelDataset("duke-test",
-        label_file=get_path('DukeMTMC/val/val.txt'), seq_length=24, data_aug=True)
+    unlabelset = DukeSeqLabelDataset(
+        "duke-test", data_file=get_path('DukeMTMC/val/person.csv'))
 
     dataloader = DataLoader(unlabelset)
     model = MobileReg()
 
-    count = 10
-    for count in range(10:)
+    for count in range(5):
         sample = dataloader.next_sample()
-        imgseq = sample['imgseq'].squeeze()
-        labelseq = sample['labelseq'].squeeze().numpy()
+        imgseq = sample[0].squeeze()
+        labelseq = sample[1].squeeze()
 
         loss = model.unlabel_loss(imgseq, 0.005).to("cpu").numpy()
         print "unlabel loss: ", loss

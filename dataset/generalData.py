@@ -32,14 +32,11 @@ class DataLoader(torch.utils.data.DataLoader):
 
 class GeneralDataset(Dataset):
 
-    def __init__(self, name, img_size, file=None, auto_shuffle=True):
+    def __init__(self, name, img_size, auto_shuffle=True):
         Dataset.__init__(self)
         self.name = name
         self.img_size = img_size
         self.items = []
-
-        #if file is not None:
-        #    self.load(file)
 
     def __str__(self):
         return self.name
@@ -62,7 +59,7 @@ class GeneralDataset(Dataset):
 
     def save(self, fname):
         file = open(fname, "wb")
-        pickle.dump(self.items, file)
+        pickle.dump(self.items, file, pickle.HIGHEST_PROTOCOL)
 
     def load(self, fname):
         file = open(fname, "rb")
@@ -74,14 +71,23 @@ class GeneralDataset(Dataset):
 
 class SingleDataset(GeneralDataset):
 
-    def __init__(self, name, img_size, data_aug, maxscale, mean, std):
-        GeneralDataset.__init__(self, name, img_size)
-
+    def __init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file=None):
         self.aug = data_aug
-        self.maxscale = maxscale
-
         self.mean = mean
         self.std = std
+        self.maxscale = maxscale
+        
+        GeneralDataset.__init__(self, name, img_size)
+
+        if saved_file is not None:
+            self.load(saved_file)
+        else:
+            self.init_data()
+
+        self.read_debug()
+
+    def init_data(self):
+        pass
 
     def get_flipping(self):  # random fliping with probability 0.5
         return (self.aug and random.random() > 0.5)
@@ -106,16 +112,17 @@ class SingleDataset(GeneralDataset):
 
 class MixDataset(GeneralDataset):
 
-    def __init__(self, name, auto_shuffle=True):
+    def __init__(self, name, auto_shuffle=True, saved_file=None):
         GeneralDataset.__init__(self, name, auto_shuffle=auto_shuffle)
-        self.set_n = 0
+
+        if saved_file is not None:
+            self.load(saved_file)
 
     def add(self, dataset, factor=1):
         for idx in range(len(dataset)):
             for i in range(factor):
                 self.items.append({"dataset": dataset, "idx": idx})
 
-        self.set_n += 1
         self.reorder()
 
     def __getitem__(self, idx):
