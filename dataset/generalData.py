@@ -1,24 +1,20 @@
 import sys
 sys.path.insert(0, "..")
 
-
-import cv2
 import random
 import torch
+import pickle
 import numpy as np
 
 from torch.utils.data import Dataset
-from utils import label_from_angle, im_scale_norm_pad, im_crop, im_hsv_augmentation
+from utils import im_scale_norm_pad, im_crop, im_hsv_augmentation
 
 
 class DataLoader(torch.utils.data.DataLoader):
 
     def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1):
-        self.dataset = dataset
-
-        super(DataLoader, self).__init__(self.dataset, batch_size=batch_size,
+        super(DataLoader, self).__init__(dataset, batch_size=batch_size,
                                          shuffle=shuffle, num_workers=num_workers)
-
         self.epoch = 0
         self.data_iter = iter(self)
 
@@ -36,166 +32,94 @@ class DataLoader(torch.utils.data.DataLoader):
 
 class GeneralDataset(Dataset):
 
-    def __init__(self, balance=False, mean=[0, 0, 0], std=[1, 1, 1]):
-        super(GeneralDataset, self).__init__()
+    def __init__(self, name, img_size, file=None, auto_shuffle=True):
+        Dataset.__init__(self)
+        self.name = name
+        self.img_size = img_size
+        self.items = []
 
-        self.mean = mean
-        self.std = std
-        self.datasets = []
+        #if file is not None:
+        #    self.load(file)
 
-        if balance:
-            self.factors = None
-        else:
-            self.factors = []
-
-        self.init_datasets()
-
-        if self.factors is not None:
-            self.factors = [1] * len(self.datasets)
-
-        self.dataset_sizes = [
-            len(dataset) * factor for dataset, factor in zip(self.datasets, self.factors)]
-
-    def init_datasets(self):
-        pass
+    def __str__(self):
+        return self.name
 
     def __len__(self):
-        return sum(self.dataset_sizes)
+        return len(self.items)
 
-    def __getitem__(self, idx):
-        for dataset, dsize in zip(self.datasets, self.dataset_sizes):
-            if idx >= dsize:
-                idx -= dsize
-            else:  # fidx the value
-                idx = idx % len(dataset)
-                dset = dataset
+    def resize(self, nsize):
+        if nsize <= len(self.items):
+            self.items = self.items[:nsize]
 
-        try:
-            return dset[idx]
-        except:
-            print 'Error dataset {} index {}'.format(dset, idx)
-            return None
+        self.reorder()
+
+    def shuffle(self):
+        random.shuffle(self.items)
+
+    def reorder(self):
+        if self.auto_shuffle:
+            self.shuffle()
+
+    def save(self, fname):
+        file = open(fname, "wb")
+        pickle.dump(self.items, file)
+
+    def load(self, fname):
+        file = open(fname, "rb")
+        self.items = pickle.load(file)
+
+    def read_debug(self):
+        print "{}: {} samples".format(self, len(self))
 
 
-class SingleDataset(Dataset):
+class SingleDataset(GeneralDataset):
 
     def __init__(self, name, img_size, data_aug, maxscale, mean, std):
-        super(SingleDataset, self).__init__()
+        GeneralDataset.__init__(self, name, img_size)
 
-        self.img_size = img_size
         self.aug = data_aug
         self.maxscale = maxscale
 
         self.mean = mean
         self.std = std
 
-        self.N = 0
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
-    def __len__(self):
-        return self.N
-
-    def read_debug(self):
-        print "{}: {} images".format(self, self.N) 
-
-    def get_flipping(self):
-        """ random fliping with probability 0.5 """
+    def get_flipping(self):  # random fliping with probability 0.5
         return (self.aug and random.random() > 0.5)
 
-    def get_img_and_label(self, img, label, flipping):
-        """ :return pair of image after augmentation/scale and corresponding label """
-
-        # augment to make more data
+    def augment_image(self, img, flipping):
+        # to make "new" data
         if self.aug:
             img = im_hsv_augmentation(img)
             img = im_crop(img, maxscale=self.maxscale)
 
-            if flipping and label is not None:
-                label[1] = -label[1]
+        out_img = im_scale_norm_pad(
+            img, out_size=self.img_size, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
 
-        out_img = im_scale_norm_pad(img,
-                                    out_size=self.img_size, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
+        return out_img
 
-        return out_img, label
-
-
-class SequenceDataset(SingleDataset):
-    # extended by folderUnlabelData
-    
-    def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length):
-        super(SequenceDataset, self).__init__(
-            name, img_size, data_aug, 0, mean, std)
-        self.seq_length = seq_length
-        self.img_seqs = []
-        self.episodes = []
-
-        self.load_image_sequences()
-
-        # total length
-        self.N = 0
-        for sequence in self.img_seqs:
-            self.N += len(sequence) - seq_length + 1
-            self.episodes.append(self.N)
-
-    def read_debug(self):
-        imgsN = sum([len(sequence) for sequence in self.img_seqs])
-
-        print '{}: {} episodes, {} sequences, {} images'.format(self, len(self.img_seqs), self.N, imgsN)
-
-    def load_image_sequences(self):
-        # for Duke and VIRAT
-        pass
-
-    def save_sequence(self, sequence):
-        # add new sequence to list if long enough
-        if len(sequence) >= self.seq_length:
-            # print 'sequence: ', len(sequence)
-
-            self.img_seqs.append(sequence)
-            sequence = []
-        # else:
-            # print '!sequence too short'
-
-        return sequence
-
-    def get_indexes(self, idx):
-        ep_idx = 0  # calculate the episode index
-        while idx >= self.episodes[ep_idx]:
-            ep_idx += 1
-
-        if ep_idx > 0:
-            idx -= self.episodes[ep_idx - 1]
-
-        return ep_idx, idx
+    def augment_label(self, label, flipping):
+        if self.aug and flipping:
+            return np.array([label[0], -label[1]])
+        else:
+            return label
 
 
-class SingleSequenceDataset(SequenceDataset):
-    # extended by DukeSequenceDataset, ViratSequenceDataset
+class MixDataset(GeneralDataset):
 
-    def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length):
-        super(SingleSequenceDataset, self).__init__(
-            name, img_size, data_aug, maxscale, mean, std, seq_length)
+    def __init__(self, name, auto_shuffle=True):
+        GeneralDataset.__init__(self, name, auto_shuffle=auto_shuffle)
+        self.set_n = 0
+
+    def add(self, dataset, factor=1):
+        for idx in range(len(dataset)):
+            for i in range(factor):
+                self.items.append({"dataset": dataset, "idx": idx})
+
+        self.set_n += 1
+        self.reorder()
 
     def __getitem__(self, idx):
-        ep_idx, idx = self.get_indexes(idx)
+        dataset = self.items[idx]["dataset"]
+        idx = self.items[idx]["idx"]
 
-        # random fliping
-        flipping = self.get_flipping()
-
-        imgseq = []
-        labelseq = []
-        for k in range(self.seq_length):
-            img = cv2.imread(self.img_seqs[ep_idx][idx + k][0])
-
-            angle = self.img_seqs[ep_idx][idx + k][1]
-            label = label_from_angle(angle)
-
-            out_img, label = self.get_img_and_label(img, label, flipping)
-
-            imgseq.append(out_img)
-            labelseq.append(label)
-
-        return {'imgseq': np.array(imgseq), 'labelseq': np.array(labelseq)}
+        return dataset[idx]

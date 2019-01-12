@@ -52,6 +52,8 @@ class FolderUnlabelDataset(SequenceDataset):
 
         self.read_debug()
 
+        
+
     def load_image_sequences(self):
         img_folders = []
         if self.include_all:  # Duke
@@ -74,8 +76,9 @@ class FolderUnlabelDataset(SequenceDataset):
             sequence = []
             last_idx = -1
 
+            # process the sequence
             for file_name in img_list:
-                if not file_name.endswith(".jpg"):  # only process jpg
+                if not file_name.endswith(".jpg"):  # only process jpg, why really ? 
                     continue
 
                 file_path = join(folder_path, file_name)
@@ -103,20 +106,15 @@ class FolderUnlabelDataset(SequenceDataset):
             sequence = self.save_sequence(sequence)
 
     def __getitem__(self, idx):
-        ep_idx, idx = self.get_indexes(idx)
-        # random flip all images in seq_length
-        flipping = self.get_flipping()
+        flip = self.get_flipping()
 
-        # print ep_idx, idx
-        imgseq = []
-        for k in range(self.seq_length):
-            img = cv2.imread(self.img_seqs[ep_idx][idx + k])
+        out_seq = []
+        for img_path in self.items[idx]:
+            img = cv2.imread(img_path)
+            out_img = self.augment_image(img, flip)
+            out_seq.append(out_img)
 
-            out_img, _ = self.get_img_and_label(img, None, flipping)
-            imgseq.append(out_img)
-
-        return np.array(imgseq)
-
+        return np.array(out_seq)
 
 if __name__ == '__main__': # test
     from generalData import DataLoader

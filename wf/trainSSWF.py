@@ -89,7 +89,7 @@ class TrainSSWF(TrainWF, SSWF):
         self.countTrain += 1
         # get next samples
         sample = self.train_loader.next_sample()
-        sample_unlabel = self.train_unlabel_loader.next_sample().squeeze()
+        sample_unlabel = self.train_unlabel_loader.next_sample().squeeze() # remove 0-dim (=1)
 
         # calculate loss
         loss = self.model.forward_combine(sample['img'], sample['label'], sample_unlabel)
