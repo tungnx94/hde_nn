@@ -1,5 +1,3 @@
-import config as cnf
-
 from wf import WFException, TrainSSWF, TestLabelWF, TestLabelSeqWF, TestUnlabelSeqWF
 
 # 0: none(train), 1: labeled sequence, 2: labeled image, 3: unlabeled sequence
@@ -9,6 +7,7 @@ TestType = 0
 ModelType = 0
 
 PreMobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
+
 # PreModel = './log/sample_12-21_12:11/models/facing_11500.pkl' # 
 PreModel = None
 

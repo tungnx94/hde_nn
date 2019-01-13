@@ -1,31 +1,24 @@
-# for VIRAT dataset
-# return a sequence of data with label
-
-import sys
-sys.path.insert(0, "..")
-
 import os
 import numpy as np
+import pandas as pd 
 
-from generalData import SingleSequenceDataset
+from sequenceData import SequenceLabelDataset
 
-# not yet functional 
-# needs further digging
-class ViratSeqLabelDataset(SingleSequenceDataset):
+class ViratSeqLabelDataset(SequenceLabelDataset):
 
-    def __init__(self, name, label_file, img_size=192, data_aug=False,
+    def __init__(self, name, data_file, img_size=192, data_aug=False,
                  mean=[0, 0, 0], std=[1, 1, 1], seq_length=32, subsample_rate=3):
 
-        self.label_file = label_file
-        self.subsample_rate = subsample_rate #distance between 2 frame
+        self.data_file = data_file
+        self.subsample_rate = subsample_rate
 
-        super(ViratSeqLabelDataset, self).__init__(name, img_size, data_aug, 0, mean, std, seq_length)
-        self.read_debug()
+        SequenceLabelDataset.__init__(
+            self, name, img_size, data_aug, 0, mean, std, seq_length, saved_file)
 
-    def load_image_sequences(self):
+    def init_data(self):
         # need fixing
-        img_dir = os.path.split(self.label_file)[0]  # role ?
-        with open(self.label_file, 'r') as f:
+        img_dir = os.path.split(self.data_file)[0]  # role ?
+        with open(self.data_file, 'r') as f:
             lines = f.readlines()
 
         line_dict = {}
@@ -67,19 +60,19 @@ class ViratSeqLabelDataset(SingleSequenceDataset):
 
 
 if __name__ == '__main__':
+    import sys
+    sys.path.insert(0, "..")
+
     from generalData import DataLoader
     from utils import get_path, seq_show
 
     unlabelset = ViratSeqLabelDataset("virat-train",
-        get_path('VIRAT/train/annotations/annotations.csv'), seq_length=24, data_aug=True)
+        data_fiel=get_path('VIRAT/train/annotations/annotations.csv'), seq_length=24, data_aug=True)
 
     dataloader = DataLoader(unlabelset)
-
-
-    for count in range(10):
-        sample = dataloader.next_sample()
-
-        imgseq, labelseq = sample['imgseq'].squeeze().numpy(), sample[
-            'labelseq'].squeeze().numpy()
+    for count in range(5):
+        imgseq, labelseq = dataloader.next_sample()
+        imgseq = imgseq.squeeze().numpy()
+        labelseq = labelseq.squeeze().numpy()
 
         seq_show(imgseq, dir_seq=labelseq, scale=0.8)

@@ -32,10 +32,10 @@ class DataLoader(torch.utils.data.DataLoader):
 
 class GeneralDataset(Dataset):
 
-    def __init__(self, name, img_size, auto_shuffle=True):
+    def __init__(self, name, auto_shuffle=False):
         Dataset.__init__(self)
         self.name = name
-        self.img_size = img_size
+        self.auto_shuffle = auto_shuffle
         self.items = []
 
     def __str__(self):
@@ -76,8 +76,9 @@ class SingleDataset(GeneralDataset):
         self.mean = mean
         self.std = std
         self.maxscale = maxscale
-        
-        GeneralDataset.__init__(self, name, img_size)
+        self.img_size = img_size
+
+        GeneralDataset.__init__(self, name)
 
         if saved_file is not None:
             self.load(saved_file)
@@ -112,8 +113,8 @@ class SingleDataset(GeneralDataset):
 
 class MixDataset(GeneralDataset):
 
-    def __init__(self, name, auto_shuffle=True, saved_file=None):
-        GeneralDataset.__init__(self, name, auto_shuffle=auto_shuffle)
+    def __init__(self, name, auto_shuffle=False, saved_file=None):
+        GeneralDataset.__init__(self, name, auto_shuffle)
 
         if saved_file is not None:
             self.load(saved_file)

@@ -8,7 +8,7 @@ import torch.optim as optim
 from utils import get_path
 from ssWF import SSWF
 from netWF import TrainWF
-from dataset import DukeSeqLabelDataset, DataLoader
+from dataset import *
 
 from visdomPlotter import VisdomLinePlotter
 
@@ -68,20 +68,20 @@ class TrainSSWF(TrainWF, SSWF):
         # Labeled
         train_duke = SingleLabelDataset("train-duke", data_file=get_path(
             'DukeMTMC/train/person.csv'), data_aug=True, mean=self.mean, std=self.std)
-        train_duke.resize()
+        #train_duke.resize()
 
         train_virat = SingleLabelDataset("train-virat", data_file=get_path(
             'VIRAT/train/person.csv'), data_aug=True, mean=self.mean, std=self.std)
-        train_virat.resize()
+        #train_virat.resize()
 
         train_manual = SingleLabelDataset("train-handlabeled", data_file=get_path(
             'handlabel/train/person.csv'), data_aug=True, mean=self.mean, std=self.std)
-        train_manual.resize()
+        #train_manual.resize()
 
         label_dataset = MixDataset("Training-label")
-        label_dataset.add(train_duke, )
-        label_dataset.add(train_virat, )
-        label_dataset.add(train_manual, )
+        label_dataset.add(train_duke)
+        label_dataset.add(train_virat)
+        label_dataset.add(train_manual)
 
         self.train_loader = DataLoader(
             label_dataset, batch_size=self.labelBatch, num_workers=4)
@@ -89,26 +89,26 @@ class TrainSSWF(TrainWF, SSWF):
         # Unlabeled
         unlabel_duke = FolderUnlabelDataset(
             "duke-unlabel", img_dir=get_path("DukeMTMC/train/images"), mean=self.mean, std=self.std)
-        unlabel_duke.resize()
+        #unlabel_duke.resize()
 
         unlabel_ucf = FolderUnlabelDataset(
             "ucf-unlabel", img_dir=get_path("UCF"), mean=self.mean, std=self.std)
-        unlabel_ucf.resize()
+        #unlabel_ucf.resize()
 
         unlabel_drone = FolderUnlabelDataset(
             "drone-unlabel", img_dir=get_path("DRONE_seq"), mean=self.mean, std=self.std)
-        unlabel_drone.resize()
+        #unlabel_drone.resize()
 
         unlabel_dataset = MixDataset("Training-unlabel")
-        unlabel_dataset.add(unlabel_duke, )
-        unlabel_dataset.add(unlabel_ucf, )
-        unlabel_dataset.add(unlabel_drone, )
+        unlabel_dataset.add(unlabel_duke)
+        unlabel_dataset.add(unlabel_ucf)
+        unlabel_dataset.add(unlabel_drone)
 
         self.train_unlabel_loader = DataLoader(
             unlabel_dataset, batch_size=self.unlabelBatch, num_workers=4)
 
     def get_test_dataset(self):
-        return = DukeSeqLabelDataset("test-dukeseq", data_file=get_path(
+        return DukeSeqLabelDataset("test-dukeseq", data_file=get_path(
             'DukeMTMC/val/person.csv'), seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
 
     def train(self):
