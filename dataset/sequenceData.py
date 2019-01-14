@@ -7,10 +7,10 @@ from generalData import SingleDataset
 
 class SequenceDataset(SingleDataset):
 
-    def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length, saved_file=None):
+    def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length, saved_file=None, auto_shuffle=False):
         self.seq_length = seq_length
 
-        SingleDataset.__init__(self, name, img_size, data_aug, maxscale, mean, std)
+        SingleDataset.__init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file, auto_shuffle)
 
     def read_debug(self):
         print '{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length)

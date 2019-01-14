@@ -9,12 +9,13 @@ from generalData import SingleDataset
 
 class SingleLabelDataset(SingleDataset):
 
-    def __init__(self, name, data_file=None, saved_file=None,
-                 img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1]):
+    def __init__(self, name, data_file=None,
+                 img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1],
+                 saved_file=None, auto_shuffle=False):
 
         self.data_file = data_file  # path must be absolute path
         SingleDataset.__init__(self, name, img_size,
-                               data_aug, maxscale, mean, std, saved_file=saved_file)
+                               data_aug, maxscale, mean, std, saved_file, auto_shuffle)
 
     def init_data(self):
         data = pd.read_csv(self.data_file).to_dict(orient='records')
@@ -61,8 +62,8 @@ if __name__ == '__main__':
         for count in range(3):
             img, label = dataloader.next_sample()
 
-            print img.shape 
+            print img.shape
             print label.shape
-            
+
             seq_show(img.numpy(),
                      dir_seq=label.numpy(), scale=0.5)

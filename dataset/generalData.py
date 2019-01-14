@@ -71,14 +71,14 @@ class GeneralDataset(Dataset):
 
 class SingleDataset(GeneralDataset):
 
-    def __init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file=None):
+    def __init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file=None, auto_shuffle=False):
         self.aug = data_aug
         self.mean = mean
         self.std = std
         self.maxscale = maxscale
         self.img_size = img_size
 
-        GeneralDataset.__init__(self, name)
+        GeneralDataset.__init__(self, name, auto_shuffle)
 
         if saved_file is not None:
             self.load(saved_file)
@@ -113,7 +113,7 @@ class SingleDataset(GeneralDataset):
 
 class MixDataset(GeneralDataset):
 
-    def __init__(self, name, auto_shuffle=False, saved_file=None):
+    def __init__(self, name, saved_file=None, auto_shuffle=False):
         GeneralDataset.__init__(self, name, auto_shuffle)
 
         if saved_file is not None:

@@ -30,7 +30,6 @@ class ViratSeqLabelDataset(SequenceLabelDataset):
                 line_dict[img_id] = []
             line_dict[img_id].append([line, int(frame_num)])
 
-        # ipdb.set_trace() # check the dict
         sequencelist = []
         for k, v in line_dict.items():
             if len(v) <= 1:
@@ -67,7 +66,7 @@ if __name__ == '__main__':
     from utils import get_path, seq_show
 
     unlabelset = ViratSeqLabelDataset("virat-train",
-        data_fiel=get_path('VIRAT/train/annotations/annotations.csv'), seq_length=24, data_aug=True)
+        data_file=get_path('VIRAT/train/person.csv'), seq_length=24)
 
     dataloader = DataLoader(unlabelset)
     for count in range(5):

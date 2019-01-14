@@ -9,7 +9,7 @@ class FolderUnlabelDataset(SequenceUnlabelDataset):
 
     def __init__(self, name, img_dir=None,
                  img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
-                 seq_length=24, saved_file=None):
+                 seq_length=24, saved_file=None, auto_shuffle=False):
 
         self.img_dir = img_dir
         SequenceUnlabelDataset.__init__(self, name, img_size, data_aug, 0, mean, std, seq_length, saved_file)
