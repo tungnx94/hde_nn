@@ -11,9 +11,7 @@ def conv2d():
 
     model = StateCoder(
         hiddens, kernels, strides, paddings, actfunc='leaky')
-
-    dataset = FolderUnlabelDataset("ucf-unlabel", data_file="data/ucf_unlabeldata.pkl",
-                                      seq_length=16, data_aug=True, extend=True)
+    dataset = FolderUnlabelDataset("ucf-unlabel", img_dir=get_path("UCF"))
     dataloader = DataLoader(dataset)  # batch_size = 1
 
     print model
@@ -44,8 +42,8 @@ def encoderReg():
     print "done"
 
 def main():
-    #conv2d()
-    encoderReg()
+    conv2d()
+    # encoderReg()
 
 if __name__ == '__main__':
     main()

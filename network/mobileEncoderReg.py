@@ -1,28 +1,24 @@
 # based on MobileReg and StateEncoderDecoder
-import sys
-sys.path.insert(0, "..")
-
 import torch
 import torch.nn as nn
 
 from hdeNet import HDENet
 from mobileReg import MobileReg
-from mobileNet import MobileNet_v1
+from extractor import MobileExtractor
+
 
 class MobileEncoderReg(MobileReg):
 
     def __init__(self, hidNum=256, rnnHidNum=128, regNum=2, lamb=0.001, device=None):
         # input tensor should be [Batch, 3, 192, 192]
         HDENet.__init__(self, device=device)
-
         self.lamb = lamb
         self.hidNum = hidNum
         self.rnnHidNum = rnnHidNum
         self.criterion = nn.MSELoss()
 
-        self.feature = MobileNet_v1(depth_multiplier=0.5, device=device) # feature extractor, upper layers
-        self.conv7 = nn.Conv2d(hidNum, hidNum, 3)  #conv to 1x1, lower extractor layer
-        self.reg = nn.Linear(hidNum, regNum) # regression (sine, cosine)
+        self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device) 
+        self.reg = nn.Linear(hidNum, regNum)  # regression (sine, cosine)
 
         self.pred_en = nn.LSTM(hidNum, rnnHidNum)
         self.pred_de = nn.LSTM(hidNum, rnnHidNum)
@@ -44,7 +40,7 @@ class MobileEncoderReg(MobileReg):
 
     def forward_unlabel(self, inputs):
         # input size is [SeqLength, 3, W, H]
-        x_encode = self.extract_features(inputs)
+        x_encode = self.feature(inputs)
         seq_length = x_encode.size()[0]  # SeqLength
 
         # prediction: use first half as input, last half as target
@@ -75,40 +71,32 @@ class MobileEncoderReg(MobileReg):
         loss = self.criterion(pred_target, pred_out)
         return loss
 
-    def _initialize_weights(self):
-        # init weights for all submodules
-        MobileReg._initialize_weights(self)
-
-        for m in self.modules():
-            if isinstance(m, nn.LSTM):
-                #print type(m)
-                for name, param in m.named_parameters():
-                    if 'bias' in name:
-                        nn.init.constant_(param, 0.0)
-                    elif 'weight' in name:
-                        nn.init.xavier_normal_(param)
 
 if __name__ == "__main__":  # test
+    import sys
+    sys.path.insert(0, "..")
     from utils import get_path
-    from dataset import TrackingLabelDataset, FolderUnlabelDataset, DataLoader
+    from dataset import SingleLabelDataset, FolderUnlabelDataset, DataLoader
+
     # prepare data
-    imgdataset = TrackingLabelDataset("duke-train",
-                                      data_file=get_path("DukeMCMT/trainval_duke.txt"), data_aug=True)
-    unlabelset = FolderUnlabelDataset("duke-unlabel", data_file="../data/duke_unlabeldata.pkl",
-                                      seq_length=24, data_aug=True, extend=True)
+    imgdataset = SingleLabelDataset("duke-train",
+                                    data_file=get_path("DukeMCMT/train/person.csvs"))
+    unlabelset = FolderUnlabelDataset(
+        "duke-unlabel", img_dir=get_path("DukeMTMC/train/images"))
+
     dataloader = DataLoader(imgdataset, batch_size=32)
     unlabelloader = DataLoader(unlabelset)
 
     model = MobileEncoderReg()
     model.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
-    for ind in range(1, 5):
+    for ind in range(1, 10):
         sample = dataloader.next_sample()
         sample_unlabel = unlabelloader.next_sample().squeeze()
 
-        loss = model.forward_combine(sample['img'], sample['label'], sample_unlabel)
-
+        loss = model.forward_combine(
+            sample['img'], sample['label'], sample_unlabel)
 
         print "iter {}, loss {} {}".format(ind, loss["label"].item(), loss["unlabel"].item())
 
-    print "Finished" # why no auto terminate ?
+    print "Finished"  # no auto terminate ?

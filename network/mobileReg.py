@@ -2,23 +2,31 @@ import math
 import random
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
  
 from hdeNet import HDENet
-from mobileNet import MobileNet_v1
+from extractor import MobileExtractor
 
 class MobileReg(HDENet):
 
     def __init__(self, hidNum=256, regNum=2, lamb=0.1, thresh=0.005, device=None):  
-        # input size should be 192
+        # input size should be [192x192]
         HDENet.__init__(self, device=device)
-
-        self.criterion = nn.MSELoss()  # L2 loss
+        self.criterion = nn.MSELoss()  # L2
         self.lamb = lamb
         self.thresh = thresh
 
-        self.feature = MobileNet_v1(depth_multiplier=0.5, device=device) # feature extractor, upper layers
-        self.conv7 = nn.Conv2d(hidNum, hidNum, 3)  #conv to 1x1, lower extractor layer
+        self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device) 
+
+        """
+        self.reg = nn.Sequential(
+                nn.Linear(256, 64),
+                nn.ReLU(),
+
+                nn.Linear(64, 8),
+                nn.Tanh(),
+
+                nn.Linear(8, 2),
+            )"""
         self.reg = nn.Linear(hidNum, regNum) # regression (sine, cosine)
 
         self._initialize_weights()
@@ -27,20 +35,9 @@ class MobileReg(HDENet):
     def load_mobilenet(self, fname):
         self.feature.load_from_npz(fname)
 
-    def extract_features(self, inputs):
-        # feature extractor
-        x = inputs.to(self.device)
-
-        x = self.feature(x)
-        x = self.conv7(x)
-        x = F.relu(x, inplace=True)
-        x = x.view(x.size()[0], -1)
-
-        return x
-
     def forward(self, x):
-        x = self.extract_features(x)
-
+        x = x.to(self.device)
+        x = self.feature(x) 
         x = self.reg(x) # to (sine, cosine)
         return x
 
@@ -103,38 +100,34 @@ class MobileReg(HDENet):
 
         return loss
 
-    def _initialize_weights(self):
-        # init weights for all submodules
-        for m in self.modules():
-            # print type(m)
-            if isinstance(m, nn.Conv2d):
-                # print 'conv2d'
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-                if m.bias is not None:
-                    m.bias.data.zero_()
-            elif isinstance(m, nn.BatchNorm2d):
-                # print 'batchnorm'
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
-                # print 'linear'
-                n = m.weight.size(1)
-                m.weight.data.normal_(0, 0.01)
-                m.bias.data.zero_()
+if __name__ == '__main__':
+    import sys
+    sys.path.insert(0, "..")
+    from utils import get_path, seq_show
 
-
-def main():
-    import torch
-    from torch.autograd import Variable
-
-    inputVar = Variable(torch.rand((10, 3, 192, 192)))
+    import torch.optim as optim
+    from dataset import SingleLabelDataset, DataLoader
 
     net = MobileReg()
     net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
-    outputVar = net(inputVar)
-    print outputVar
+    dataset = SingleLabelDataset(
+        "duke", data_file=get_path('DukeMTMC/val/person.csv'))
+    dataset.shuffle()
+    loader = DataLoader(dataset, batch_size=24)
 
-if __name__ == '__main__':
-    main()
+    optimizer = optim.Adam(net.parameters(), lr=0.03)
+    for ind in range(1, 500):
+        sample = loader.next_sample()
+        imgseq = sample[0].squeeze()
+        labels = sample[1].squeeze()
+
+        l = net.forward_label(imgseq, labels)
+        print l.item()
+
+        optimizer.zero_grad()
+        l.backward()
+        optimizer.step()
+        #seq_show(imgseq.numpy(), dir_seq=output.to("cpu").detach().numpy())
+
+    print "Finished"

@@ -61,9 +61,5 @@ if __name__ == '__main__':
         dataloader = DataLoader(dataset, batch_size=8)
         for count in range(3):
             img, label = dataloader.next_sample()
-
-            print img.shape
-            print label.shape
-
             seq_show(img.numpy(),
                      dir_seq=label.numpy(), scale=0.5)

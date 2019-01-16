@@ -18,18 +18,18 @@ Conv = namedtuple('Conv', ['kernel', 'stride', 'depth'])
 DepthSepConv = namedtuple('DepthSepConv', ['kernel', 'stride', 'depth'])
 
 # _CONV_DEFS specifies the MobileNet body
-_CONV_DEFS = [
-    Conv(kernel=[3, 3], stride=2, depth=32),            # 0,    2
+_CONV_DEFS = [                                          # layer, factor 
+    Conv(kernel=[3, 3], stride=2, depth=32),            # 0,        2
     DepthSepConv(kernel=[3, 3], stride=1, depth=64),    # 1,
-    DepthSepConv(kernel=[3, 3], stride=2, depth=128),   # 2,    4
+    DepthSepConv(kernel=[3, 3], stride=2, depth=128),   # 2,        4
     DepthSepConv(kernel=[3, 3], stride=1, depth=128),   # 3,   
-    DepthSepConv(kernel=[3, 3], stride=2, depth=256),   # 4,    8
+    DepthSepConv(kernel=[3, 3], stride=2, depth=256),   # 4,        8
     DepthSepConv(kernel=[3, 3], stride=1, depth=256),   # 5,    
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 6,    16
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 6,        16
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 7,    
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 8,    32
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 8,        32
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 9,    
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 10,   64
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 10,       64
     DepthSepConv(kernel=[3, 3], stride=1, depth=512)    # 11,   
     # DepthSepConv(kernel=[3, 3], stride=2, depth=1024),# 12
     # DepthSepConv(kernel=[3, 3], stride=1, depth=1024) # 13

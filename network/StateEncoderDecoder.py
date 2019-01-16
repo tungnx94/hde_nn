@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0, "..")
-
 import math
 import torch
 import torch.nn as nn
@@ -16,11 +13,12 @@ StridesDF = [2, 2, 2, 2, 1]
 
 class StateCoder(HDENet):
     """ deep ConvNet, used as en/decoder """
+
     def __init__(self, hiddens, kernels, strides, paddings, actfunc, device=None):
         HDENet.__init__(self, device)
 
         self.coder = nn.Sequential()
-        
+
         for k in range(len(hiddens) - 1):
             # add conv layer
             conv = nn.Conv2d(hiddens[k], hiddens[k + 1], kernels[k],
@@ -41,27 +39,6 @@ class StateCoder(HDENet):
     def forward(self, x):
         return self.coder(x)
 
-    def _initialize_weights(self):
-        for m in self.modules():
-            # print type(m)
-            if isinstance(m, nn.Conv2d):
-                # print 'conv2d'
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-                if m.bias is not None:
-                    m.bias.data.zero_()
-
-            elif isinstance(m, nn.BatchNorm2d):
-                # print 'batchnorm'
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-
-            elif isinstance(m, nn.Linear):
-                # print 'linear'
-                n = m.weight.size(1)
-                m.weight.data.normal_(0, 0.01)
-                m.bias.data.zero_()
-
 
 class EncoderReg_Pred(HDENet):
 
@@ -72,11 +49,12 @@ class EncoderReg_Pred(HDENet):
         self.rnnHidNum = rnnHidNum  # hidden layer size for LSTMs
 
         self.encoder = StateCoder(
-            hiddens, kernels, strides, paddings, actfunc, device=device) # can be replaced using MobileNet
+            hiddens, kernels, strides, paddings, actfunc, device=device)  # can be replaced using MobileNet
 
         self.reg = nn.Linear(self.codenum, regnum)
 
-        self.pred_en = nn.LSTM(self.codenum, rnnHidNum) # input_size, hidden_size respectively
+        # input_size, hidden_size respectively
+        self.pred_en = nn.LSTM(self.codenum, rnnHidNum)
 
         self.pred_de = nn.LSTM(self.codenum, rnnHidNum)
         self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum)  # FC
@@ -92,15 +70,14 @@ class EncoderReg_Pred(HDENet):
         return (h1, h2)
 
     def forward(self, x):
-        x_encode = self.encoder(x) # features
-        seq_length = x_encode.size()[0] # Seq
+        seq_length = x_encode.size()[0]  # Seq
 
-        x_encode = x_encode.view(seq_length, -1) # 2d : Seq x Features
+        x_encode = self.encoder(x)  # features
+        x_encode = x_encode.view(seq_length, -1)  # 2d : Seq x Features
 
-        # regression -> (sin, cosin)
-        x_reg = self.reg(x_encode)
+        x_reg = self.reg(x_encode) # (sine, cosine)
 
-        # predictor: use first half as input, last half as target (needs explaination)
+        # predictor: use first half as input, last half as target (good ?)
         innum = seq_length / 2
 
         # input of LSTM is [SeqLength x Batch x InputSize], SeqLength variable
@@ -111,13 +88,14 @@ class EncoderReg_Pred(HDENet):
         pred_en_out, hidden = self.pred_en(pred_in, hidden_0)
 
         pred_de_in = self.new_variable(torch.zeros(1, 1, self.codenum))
-        # could use pred_de_in = x_encode[innum-1].unsqueeze(0).unsqueeze(0) ? 
+        # could use pred_de_in = x_encode[innum-1].unsqueeze(0).unsqueeze(0) ?
 
         pred_out = []
         for k in range(innum, seq_length):  # input the decoder one by one cause there's a loop
             pred_de_out, hidden = self.pred_de(pred_de_in, hidden)
 
-            pred_de_out = self.pred_de_linear(pred_de_out.view(1, self.rnnHidNum))
+            pred_de_out = self.pred_de_linear(
+                pred_de_out.view(1, self.rnnHidNum))
             pred_de_in = pred_de_out.detach().unsqueeze(1)
 
             pred_out.append(pred_de_out)
@@ -126,11 +104,9 @@ class EncoderReg_Pred(HDENet):
 
         return x_reg, x_encode, pred_out
 
-if __name__ == '__main__':
-    # test 
-    import torch.optim as optim
-    import matplotlib.pyplot as plt
-
+if __name__ == '__main__': # test
+    import sys
+    sys.path.insert(0, "..")
     from utils import get_path
     from dataset import DataLoader, FolderUnlabelDataset
 
@@ -141,29 +117,23 @@ if __name__ == '__main__':
 
     seq_length = 16
     lr = 0.005
-
     stateEncoder = EncoderReg_Pred(
         hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
 
-    paramlist = list(stateEncoder.parameters())
-
     print stateEncoder
-    print stateEncoder.codenum
-    print len(paramlist)
-
     # data
     imgdataset = FolderUnlabelDataset("train", img_dir=get_path(
-        "dirimg"), seq_length=seq_length, data_aug=True, include_all=True)
+        "UCF"), seq_length=seq_length, data_aug=True)
     dataloader = DataLoader(imgdataset)  # batch_size = 1
 
     criterion = nn.MSELoss()
-    regOptimizer = optim.SGD(stateEncoder.parameters(), lr=lr, momentum=0.9)
+    # regOptimizer = optim.SGD(stateEncoder.parameters(), lr=lr, momentum=0.9)
 
     lossplot = []
     encodesumplot = []
 
-    ind = 2
-    for sample in dataloader:
+    for ind in range(5):
+        sample = dataloader.next_sample()
         inputVar = stateEncoder.new_variable(sample.squeeze())
 
         x, encode, pred = stateEncoder(inputVar)
@@ -171,27 +141,4 @@ if __name__ == '__main__':
         pred_target = encode[seq_length / 2:, :].detach()
         loss_pred = criterion(pred, pred_target)  # unlabel
 
-        """
-        print "iteration: ", ind
-        print x.shape, ' ', encode.shape
-        print pred.shape, ' ', pred_target.shape
-        """
-
-        # backpropagate
-        regOptimizer.zero_grad()
-        loss_pred.backward()
-        regOptimizer.step()
-
-        lossplot.append(loss_pred.item())
-        encodesumplot.append(encode.mean().item())
-        print ind, loss_pred.item(), encode.mean().item()
-
-        ind -= 1
-        if ind < 0:
-            break
-
-    # plot data
-    plt.plot(lossplot)
-    plt.plot(encodesumplot)
-    plt.grid()
-    plt.show()
+        print ind, loss_pred.item()

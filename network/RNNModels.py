@@ -61,7 +61,6 @@ class MobilenetGRU(HDENet):
     def __init__(self, init_weights=True, hidnum=256, regnum=2,
                  pretrain_model=MobileNetPretrained,
                  batch_size=1):
-        super(MobilenetGRU, self).__init__()
         HDENet.__init__(self)
         self.batch_size = batch_size
 

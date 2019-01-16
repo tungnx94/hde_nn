@@ -32,8 +32,8 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-TrainFile = get_path('DukeMTMC/trainval_duke.txt')
-ValFile = get_path('DukeMTMC/test_heading_gt.txt')
+TrainFile = get_path('DukeMTMC/train/person.csv')
+ValFile = get_path('DukeMTMC/test/person.csv')
 ImageFolder = get_path('DukeMTMC/heading')
 LogFolder = 'log/rnn-sample'
 ModelFolder = 'models'
@@ -44,7 +44,7 @@ SaveFreq = 500 # 10000
 LossPrintFreq = 100
 ImgSumFreq = 50
 BatchSize = 1
-SeqLength = 6
+SeqLength = 24
 ImgSize = 192
 
 LogLossFreq = 20
@@ -205,11 +205,8 @@ class Training:
 
         self.tf_logger.scalar_summary('val/loss', losses.avg, step)
         self.tf_logger.scalar_summary('val/angle_diff', angle_diff_val, step)
-
-
-def main():
-    training = Training()
-    training.train(num_iters=1000)
+    
 
 if __name__ == '__main__':
-    main()
+    training = Training()
+    training.train(num_iters=1000)
