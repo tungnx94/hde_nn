@@ -10,34 +10,7 @@ KernelsDF = [4, 4, 3, 4, 2]
 PaddingsDF = [1, 1, 1, 1, 0]
 StridesDF = [2, 2, 2, 2, 1]
 
-
-class StateCoder(HDENet):
-    """ deep ConvNet, used as en/decoder """
-
-    def __init__(self, hiddens, kernels, strides, paddings, actfunc, device=None):
-        HDENet.__init__(self, device)
-
-        self.coder = nn.Sequential()
-
-        for k in range(len(hiddens) - 1):
-            # add conv layer
-            conv = nn.Conv2d(hiddens[k], hiddens[k + 1], kernels[k],
-                             stride=strides[k], padding=paddings[k])
-            self.coder.add_module('conv%d' % (k + 1), conv)
-
-            # add activation layer
-            if actfunc == 'leaky':
-                self.coder.add_module('relu%d' % (
-                    k + 1), nn.LeakyReLU(0.1, inplace=True))
-            else:
-                self.coder.add_module('relu%d' %
-                                      (k + 1), nn.ReLU(inplace=True))
-
-        self._initialize_weights()
-        self.load_to_device()
-
-    def forward(self, x):
-        return self.coder(x)
+from extractor import BaseExtractor, MobileExtractor
 
 
 class EncoderReg_Pred(HDENet):
@@ -48,8 +21,10 @@ class EncoderReg_Pred(HDENet):
         self.codenum = hiddens[-1]  # input for LSTM (features), should be 256
         self.rnnHidNum = rnnHidNum  # hidden layer size for LSTMs
 
-        self.encoder = StateCoder(
+        self.encoder = BaseExtractor(
             hiddens, kernels, strides, paddings, actfunc, device=device)  # can be replaced using MobileNet
+
+        # self.encoder = MobileExtractor(depth_multiplier=0.5)
 
         self.reg = nn.Linear(self.codenum, regnum)
 
@@ -59,6 +34,7 @@ class EncoderReg_Pred(HDENet):
         self.pred_de = nn.LSTM(self.codenum, rnnHidNum)
         self.pred_de_linear = nn.Linear(self.rnnHidNum, self.codenum)  # FC
 
+        self._initialize_weights()
         self.load_to_device()
 
     def init_hidden(self, hidden_size, batch_size=1):
@@ -75,7 +51,7 @@ class EncoderReg_Pred(HDENet):
         x_encode = self.encoder(x)  # features
         x_encode = x_encode.view(seq_length, -1)  # 2d : Seq x Features
 
-        x_reg = self.reg(x_encode) # (sine, cosine)
+        x_reg = self.reg(x_encode)  # (sine, cosine)
 
         # predictor: use first half as input, last half as target (good ?)
         innum = seq_length / 2
@@ -104,7 +80,7 @@ class EncoderReg_Pred(HDENet):
 
         return x_reg, x_encode, pred_out
 
-if __name__ == '__main__': # test
+if __name__ == '__main__':  # test
     import sys
     sys.path.insert(0, "..")
     from utils import get_path
@@ -119,6 +95,7 @@ if __name__ == '__main__': # test
     lr = 0.005
     stateEncoder = EncoderReg_Pred(
         hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
+    criterion = nn.MSELoss()
 
     print stateEncoder
     # data
@@ -126,13 +103,7 @@ if __name__ == '__main__': # test
         "UCF"), seq_length=seq_length, data_aug=True)
     dataloader = DataLoader(imgdataset)  # batch_size = 1
 
-    criterion = nn.MSELoss()
-    # regOptimizer = optim.SGD(stateEncoder.parameters(), lr=lr, momentum=0.9)
-
-    lossplot = []
-    encodesumplot = []
-
-    for ind in range(5):
+    for ind in range(10):
         sample = dataloader.next_sample()
         inputVar = stateEncoder.new_variable(sample.squeeze())
 

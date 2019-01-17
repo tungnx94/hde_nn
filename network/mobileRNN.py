@@ -1,17 +1,19 @@
 import torch.nn as nn
 import torch.nn.functional as FF
 
-from hdeNet import HDENet 
+from hdeNet import HDENet
+from hdeReg import HDEReg
 from extractor import MobileExtractor
 
 
-class MobileRNN(HDENet):
+class MobileRNN(HDEReg):
 
     def __init__(self, rnn_type="gru", hidNum=256, rnnHidNum=8, n_layer=2, regNum=2, device=None):
         HDENet.__init__(self, device)
 
         self.criterion = nn.MSELoss()
-        self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device)
+        self.feature = MobileExtractor(
+            hidNum, depth_multiplier=0.5, device=device)
 
         if rnn_type == "gru":
             self.rnn = nn.GRU(hidNum, rnnHidNum, n_layer)
@@ -28,20 +30,13 @@ class MobileRNN(HDENet):
 
         x = x.to(self.device)
         x = self.feature(x)
-        x = x.unsqueeze(1)  
+        x = x.unsqueeze(1)
 
         x, h_n = self.rnn(x)
         x = x.view(seq_length, -1)
 
         output = self.reg(x)
         return output
-
-    def loss(self, inputs, targets):
-        inputs = inputs.to(self.device)
-        targets = targets.to(self.device)
-
-        outputs = self(inputs)
-        return self.criterion(outputs, targets)
 
 if __name__ == "__main__":
     import sys
@@ -61,17 +56,16 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(model.parameters(), lr=0.03)
 
-
     for ind in range(1, 1000):
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
-        l = model.loss(imgseq, labels)
-        print l.item()
+        loss = model.forward_label(imgseq, labels)
+        print loss.item()
 
         optimizer.zero_grad()
-        l.backward()
+        loss.backward()
         optimizer.step()
         #seq_show(imgseq.numpy(), dir_seq=output.to("cpu").detach().numpy())
 

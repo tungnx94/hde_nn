@@ -9,10 +9,10 @@ def conv2d():
     paddings = [1, 1, 1, 1, 1, 1, 0]
     strides = [2, 2, 2, 2, 2, 2, 1]
 
-    model = StateCoder(
+    model = BaseExtractor(
         hiddens, kernels, strides, paddings, actfunc='leaky')
     dataset = FolderUnlabelDataset("ucf-unlabel", img_dir=get_path("UCF"))
-    dataloader = DataLoader(dataset)  # batch_size = 1
+    dataloader = DataLoader(dataset)
 
     print model
 

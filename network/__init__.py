@@ -1,8 +1,8 @@
 from mobileReg import MobileReg
 from mobileEncoderReg import MobileEncoderReg
-from StateEncoderDecoder import StateCoder, EncoderReg_Pred
+from StateEncoderDecoder import EncoderReg_Pred
 
-from mobileRNN import MobileGRU, MobileLSTM
-from RNNModels import MobilenetGRU
+from mobileRNN import MobileRNN
 
+from extractor import BaseExtractor
 from base import load_checkpoint, save_checkpoint

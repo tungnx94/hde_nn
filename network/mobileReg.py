@@ -2,44 +2,30 @@ import math
 import random
 import torch
 import torch.nn as nn
- 
+
 from hdeNet import HDENet
+from hdeReg import HDEReg
 from extractor import MobileExtractor
 
-class MobileReg(HDENet):
 
-    def __init__(self, hidNum=256, regNum=2, lamb=0.1, thresh=0.005, device=None):  
+class MobileReg(HDEReg):
+
+    def __init__(self, hidNum=256, regNum=2, lamb=0.1, thresh=0.005, device=None):
         # input size should be [192x192]
         HDENet.__init__(self, device=device)
         self.criterion = nn.MSELoss()  # L2
         self.lamb = lamb
         self.thresh = thresh
 
-        self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device) 
-
-        """
-        self.reg = nn.Sequential(
-                nn.Linear(256, 64),
-                nn.ReLU(),
-
-                nn.Linear(64, 8),
-                nn.Tanh(),
-
-                nn.Linear(8, 2),
-            )"""
-        self.reg = nn.Linear(hidNum, regNum) # regression (sine, cosine)
+        self.feature = MobileExtractor(
+            hidNum, depth_multiplier=0.5, device=device)
+        self.reg = nn.Linear(hidNum, regNum)  # regression (sine, cosine)
 
         self._initialize_weights()
         self.load_to_device()
 
     def load_mobilenet(self, fname):
         self.feature.load_from_npz(fname)
-
-    def forward(self, x):
-        x = x.to(self.device)
-        x = self.feature(x) 
-        x = self.reg(x) # to (sine, cosine)
-        return x
 
     def unlabel_loss(self, output, threshold):
         """
@@ -78,21 +64,10 @@ class MobileReg(HDENet):
         loss = self.unlabel_loss(outputs, self.thresh)
         return loss.to(self.device).float()
 
-    def forward_label(self, inputs, targets):
-        """
-        :param sample: labeled data
-        :return: label loss
-        """
-        inputs = inputs.to(self.device)
-        targets = targets.to(self.device)
-
-        outputs = self(inputs)
-        return self.criterion(outputs, targets)
-
     def forward_combine(self, inputs, targets, inputs_unlabel):
         loss_label = self.forward_label(inputs, targets)
         loss_unlabel = self.forward_unlabel(inputs_unlabel)
-        loss_total = loss_label + self.lamb*loss_unlabel
+        loss_total = loss_label + self.lamb * loss_unlabel
 
         loss = {"total": loss_total,
                 "label": loss_label,
