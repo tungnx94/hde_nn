@@ -12,13 +12,6 @@ def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
 
 
-def label_from_angle(angle):
-    angle_cos = np.cos(float(angle))
-    angle_sin = np.sin(float(angle))
-
-    return np.array([angle_sin, angle_cos], dtype=np.float32)
-
-
 def angle_diff(outputs, labels):
     """ compute angular difference """
 
@@ -50,7 +43,7 @@ def accuracy_cls(outputs, labels):
     :param outputs, labels: numpy array
     """
     diff_angle = angle_diff(outputs, labels)
-    acc_angle = diff_angle < 0.3927  # 22.5 * pi / 180 = pi/8
+    acc_angle = diff_angle < pi / 8
 
     acc = float(np.sum(acc_angle)) / labels.shape[0]
     return acc

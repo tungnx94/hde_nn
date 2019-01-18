@@ -1,9 +1,3 @@
-import os
-import numpy as np
-import pandas as pd 
-
-from sequenceData import SequenceLabelDataset
-
 class ViratSeqLabelDataset(SequenceLabelDataset):
 
     def __init__(self, name, data_file=None,
@@ -56,22 +50,3 @@ class ViratSeqLabelDataset(SequenceLabelDataset):
                     subsampled_arr = [(join(self.img_dir, x[0].strip().split(' ')[0]), x[
                                        0].strip().split(' ')[1]) for x in subsampled_arr]
                     self.img_seqs.append(subsampled_arr)
-
-
-if __name__ == '__main__':
-    import sys
-    sys.path.insert(0, "..")
-
-    from generalData import DataLoader
-    from utils import get_path, seq_show
-
-    unlabelset = ViratSeqLabelDataset("virat-train",
-        data_file=get_path('VIRAT/train/person.csv'), seq_length=12)
-    dataloader = DataLoader(unlabelset)
-
-    for count in range(5):
-        imgseq, labelseq = dataloader.next_sample()
-        imgseq = imgseq.squeeze().numpy()
-        labelseq = labelseq.squeeze().numpy()
-
-        seq_show(imgseq, dir_seq=labelseq, scale=0.8)

@@ -50,22 +50,16 @@ if __name__ == '__main__':  # test
     import sys
     sys.path.insert(0, "..")
 
-    from network import MobileReg
     from generalData import DataLoader
     from utils import get_path, seq_show
 
     unlabelset = DukeSeqLabelDataset(
         "duke-test", data_file=get_path('DukeMTMC/val/person.csv'))
-
     dataloader = DataLoader(unlabelset)
-    model = MobileReg()
 
     for count in range(5):
         sample = dataloader.next_sample()
         imgseq = sample[0].squeeze()
         labelseq = sample[1].squeeze()
-
-        loss = model.unlabel_loss(imgseq, 0.005).to("cpu").numpy()
-        print "unlabel loss: ", loss
 
         seq_show(imgseq.numpy(), dir_seq=labelseq)

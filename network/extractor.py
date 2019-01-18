@@ -4,32 +4,11 @@ import torch.nn.functional as F
 from hdeNet import HDENet
 from mobileNet import MobileNet_v1
 
-
-class MobileExtractor(HDENet):
-
-    def __init__(self, hidNum=256, depth_multiplier=0.5, device=None):
-        HDENet.__init__(self, device)
-
-        self.base_model = MobileNet_v1(
-            depth_multiplier=depth_multiplier, device=device)
-        # conv to 1x1, lower extractor layer
-        self.conv7 = nn.Conv2d(hidNum, hidNum, 3)
-
-        self.load_to_device()
-
-    def forward(self, x):
-        x = self.base_model(x)
-        x = self.conv7(x)
-
-        x = F.relu(x, inplace=True)
-        x = x.view(x.size()[0], -1)
-        return x
-        
-SizeDf = [96, 32, 10, 4, 1]
-HiddensDF = [3, 32, 64, 64, 256]  # channels
-KernelsDF = [5, 5, 3, 4]
-PaddingsDF = [1, 0, 1, 0]
-StridesDF = [3, 3, 3, 1]
+SizeDf = [192, 96, 32, 10, 4, 1]
+HiddensDF = [3, 32, 32, 64, 64, 256]  # channels
+KernelsDF = [3, 5, 5, 3, 4]
+PaddingsDF = [1, 1, 0, 1, 0]
+StridesDF = [2, 3, 3, 3, 1]
 
 
 class BaseExtractor(HDENet):
@@ -58,4 +37,24 @@ class BaseExtractor(HDENet):
 
     def forward(self, x):
         x = self.coder(x)
+        return x
+
+
+class MobileExtractor(HDENet):
+
+    def __init__(self, hidNum=256, depth_multiplier=0.5, device=None):
+        HDENet.__init__(self, device)
+
+        self.base_model = MobileNet_v1(
+            depth_multiplier=depth_multiplier, device=device)
+        self.conv7 = nn.Conv2d(hidNum, hidNum, 3) # conv to [hidNum x 1 x 1] 
+
+        self.load_to_device()
+
+    def forward(self, x):
+        x = self.base_model(x)
+        x = self.conv7(x)
+
+        x = F.relu(x, inplace=True)
+        x = x.view(x.size()[0], -1)
         return x

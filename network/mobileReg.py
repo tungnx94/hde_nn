@@ -81,18 +81,26 @@ if __name__ == '__main__':
     from utils import get_path, seq_show
 
     import torch.optim as optim
-    from dataset import SingleLabelDataset, DataLoader
+    from dataset import SingleLabelDataset, DukeSeqLabelDataset, DataLoader
 
     net = MobileReg()
-    net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
+    #net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
+    """
+    dataset = DukeSeqLabelDataset(
+        "duke-test", data_file=get_path('DukeMTMC/val/person.csv'), seq_length=24, data_aug=True)
+    dataset.shuffle()
+    loader = DataLoader(dataset, batch_size=1)
+    
+    """
     dataset = SingleLabelDataset(
-        "duke", data_file=get_path('DukeMTMC/val/person.csv'))
+        "duke-test", data_file=get_path('DukeMTMC/val/person.csv'), data_aug=True)
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=24)
+    
 
-    optimizer = optim.Adam(net.parameters(), lr=0.03)
-    for ind in range(1, 500):
+    optimizer = optim.Adam(net.parameters(), lr=0.01)
+    for ind in range(1, 5000):
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()

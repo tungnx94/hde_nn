@@ -20,8 +20,8 @@ class MobileEncoderReg(MobileReg):
         self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device) 
         self.reg = nn.Linear(hidNum, regNum)  # regression (sine, cosine)
 
-        self.pred_en = nn.LSTM(hidNum, rnnHidNum)
-        self.pred_de = nn.LSTM(hidNum, rnnHidNum)
+        self.pred_en = nn.GRU(hidNum, rnnHidNum)
+        self.pred_de = nn.GRU(hidNum, rnnHidNum)
         self.pred_de_linear = nn.Linear(rnnHidNum, hidNum)  # FC
 
         self._initialize_weights()
