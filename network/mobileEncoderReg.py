@@ -95,7 +95,7 @@ if __name__ == "__main__":  # test
         sample_unlabel = unlabelloader.next_sample().squeeze()
 
         loss = model.forward_combine(
-            sample['img'], sample['label'], sample_unlabel)
+            sample[0], sample[1], sample_unlabel)
 
         print "iter {}, loss {} {}".format(ind, loss["label"].item(), loss["unlabel"].item())
 

@@ -43,12 +43,19 @@ class SequenceLabelDataset(SequenceDataset):
 
         out_seq = []
         label_seq = []
-        for img_path, label in self.items[idx]:
+        dir_seq = []
+        for sample in self.items[idx]:
+            img_path = sample[0]
+            label = sample[1]
+            direction = sample[2]
+
             img = cv2.imread(img_path)
             out_img = self.augment_image(img, flip)
             out_label = self.augment_label(label, flip)
+            out_direction = self.augment_direction(direction, flip)
 
             out_seq.append(out_img)
             label_seq.append(out_label)
+            dir_seq.append(out_direction)
 
-        return (np.array(out_seq), np.array(label_seq))
+        return (np.array(out_seq), np.array(label_seq), np.array(dir_seq))

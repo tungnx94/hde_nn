@@ -5,12 +5,16 @@ import numpy as np
 
 from math import pi
 
-BASE = "/media/mohammad/DATA/icra2019"
+# BASE = "/media/mohammad/DATA/icra2019"
+
+BASE = "/home/airlab/projects/data"
 
 
 def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
 
+def one_hot(cls):
+    return np.array([int(i==cls) for i in range(8)]) 
 
 def angle_diff(outputs, labels):
     """ compute angular difference """

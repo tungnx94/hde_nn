@@ -1,7 +1,11 @@
+import sys
+sys.path.insert(0, "..")
+
 import os
 import numpy as np
 import pandas as pd 
 
+from utils import one_hot
 from sequenceData import SequenceLabelDataset
 
 
@@ -27,21 +31,23 @@ class DukeSeqLabelDataset(SequenceLabelDataset):
             img_name = os.path.basename(point['path']).strip()
             img_path = os.path.join(base_folder, point['path'])
             label = np.array(
-                [point['sin'], point['cos']], dtype=np.float32)
+                [point['sin'], point['cos']], dtype=np.float32) 
+            group = one_hot(point['direction'])
 
             # extract frame id
             frame_id = int(img_name.split('_')[1][5:])
             cam_num = img_name.split('_')[0]  # camera number
 
             if (seq == []) or (frame_id == last_idx + frame_iter) and (cam_num == last_cam):
-                seq.append((img_path, label))
                 last_idx = frame_id
                 last_cam = cam_num
             else:  # the index is not continuous -> save current seq
                 self.save_sequence(seq)
-                seq = []
+                seq = []    # need to commit this change!
                 last_idx = -1
                 last_cam = -1
+
+            seq.append((img_path, label, group))
 
         self.save_sequence(seq)
 

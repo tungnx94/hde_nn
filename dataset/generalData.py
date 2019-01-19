@@ -68,6 +68,7 @@ class GeneralDataset(Dataset):
     def read_debug(self):
         print "{}: {} samples".format(self, len(self))
 
+FlipDir = {0:4, 1:3, 2:2, 3:1, 4:0, 5:7, 6:6, 7:5}
 
 class SingleDataset(GeneralDataset):
 
@@ -110,6 +111,11 @@ class SingleDataset(GeneralDataset):
         else:
             return label
 
+    def augment_direction(self, direction, flipping):
+        if self.aug and flipping:
+            return FlipDir[direction]
+        else:
+            return direction
 
 class MixDataset(GeneralDataset):
 

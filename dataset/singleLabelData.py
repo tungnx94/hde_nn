@@ -1,10 +1,14 @@
 # Wrapper for Duke & VIRAT single image labeled datasets
+import sys
+sys.path.insert(0, "..")
+
 import os
 import cv2
 import numpy as np
 import pandas as pd
 
 from generalData import SingleDataset
+from utils import one_hot
 
 
 class SingleLabelDataset(SingleDataset):
@@ -26,22 +30,23 @@ class SingleLabelDataset(SingleDataset):
             img_path = os.path.join(base_folder, point['path'])
             label = np.array(
                 [point['sin'], point['cos']], dtype=np.float32)
-            self.items.append((img_path, label))
+            group = one_hot(point['direction'])
+
+            self.items.append((img_path, label, group))
 
     def __getitem__(self, idx):
-        img_path, label = self.items[idx]
+        img_path, label, gr = self.items[idx]
         img = cv2.imread(img_path)
         flip = self.get_flipping()
 
         out_img = self.augment_image(img, flip)
         out_label = self.augment_label(label, flip)
+        out_gr = self.augment_direction(gr, flip)
 
-        return (out_img, out_label)
+        return (out_img, out_label, out_gr)
 
 
 if __name__ == '__main__':
-    import sys
-    sys.path.insert(0, "..")
 
     from utils import get_path, seq_show
     from generalData import DataLoader
