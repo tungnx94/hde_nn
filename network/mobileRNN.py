@@ -2,41 +2,27 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as FF
 
-from hdeNet import HDENet
 from hdeReg import HDEReg
 from extractor import MobileExtractor, BaseExtractor
 
 
 class MobileRNN(HDEReg):
 
-    def __init__(self, rnn_type="gru", hidNum=256, rnnHidNum=64, n_layer=2, regNum=2, device=None):
-        HDENet.__init__(self, device)
+    def __init__(self, hidNum=256, rnnHidNum=64, n_layer=2, rnn_type="gru", output_type="reg", device=None):
+        HDEReg.__init__(self, hidNum, output_type, device, init=False)
 
-        self.criterion = nn.MSELoss()
         self.feature = MobileExtractor(
             hidNum, depth_multiplier=0.5, device=device)
-
-        self.n_layer = n_layer
-        self.hidNum = hidNum
-        self.rnnHidNum = rnnHidNum
-
-        #self.feature = BaseExtractor()
 
         if rnn_type == "gru":
             self.rnn = nn.GRU(hidNum, rnnHidNum, n_layer)
         elif rnn_type == "lstm":
             self.rnn = nn.LSTM(hidNum, rnnHidNum, n_layer)
 
-        self.reg = nn.Linear(rnnHidNum, regNum)
-
-        """
-        self.reg = nn.Sequential(
-            nn.Linear(rnnHidNum, rnnHidNum/2),
-            nn.ReLU(),
-
-            nn.Linear(rnnHidNum/2, regNum)
-        )
-        """
+        if output_type == "reg": # regressor
+            self.reg = nn.Linear(rnnHidNum, 2)
+        else:
+            self.reg = nn.Linear(rnnHidNum, 8)
 
         self._initialize_weights()
         self.load_to_device()
@@ -52,7 +38,7 @@ class MobileRNN(HDEReg):
         output = self.reg(x)
         return output
 
-        """ # sequential proceeding
+        """ # sequential proceeding, same result 
         h = torch.zeros(self.n_layer, 1, self.rnnHidNum) 
         h = self.new_variable(h)
         out_seq = []
@@ -94,7 +80,7 @@ if __name__ == "__main__":
     import torch.optim as optim
 
     dataset = DukeSeqLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/val/person.csv'), seq_length=8, data_aug=True)
+        "duke-test", data_file=get_path('DukeMTMC/test/test.csv'), seq_length=8, data_aug=True)
     dataset.shuffle()
     dataset.resize(5000)
     loader = DataLoader(dataset)

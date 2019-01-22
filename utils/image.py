@@ -3,6 +3,7 @@ import math
 import random
 import numpy as np
 
+# TODO: examine each image processing method
 
 def normalized_color(x, y, t):
     return np.clip(1 - math.sqrt(float(x * x + y * y)) / t, 0, 1)

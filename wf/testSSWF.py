@@ -11,9 +11,6 @@ from dataset import SingleLabelDataset, FolderUnlabelDataset, DukeSeqLabelDatase
 from visdomPlotter import VisdomLinePlotter
 
 LabelSeqLength = 24  # 32
-
-TestLabelImgFolder = 'drone_label/val'
-
 TestStep = 100 # number of test() calls, 5000
 ShowIter = 10
 Snapshot = 50
@@ -54,7 +51,7 @@ class TestLabelSeqWF(TestSSWF):  # Type 1
             "unlabel_loss", self.AV, ['unlabel'], [True]))
 
     def get_test_dataset(self):
-        return DukeSeqLabelDataset("duke-test", data_file=get_path('DukeMTMC/val/person.csv'), seq_length=LabelSeqLength, data_aug=True,
+        return DukeSeqLabelDataset("duke-test", data_file=get_path('DukeMTMC/test/test.csv'), seq_length=LabelSeqLength, data_aug=True,
                                    mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):
@@ -84,7 +81,7 @@ class TestLabelWF(TestSSWF):  # Type 2
 
     def get_test_dataset(self):
         self.testBatch = 50
-        return SingleLabelDataset("val-drone", data_file=get_path('DRONE_label'), data_aug=False,
+        return SingleLabelDataset("val-drone", data_file=get_path('DRONE_label'/), data_aug=False,
                                   mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):
@@ -109,7 +106,7 @@ class TestUnlabelSeqWF(TestSSWF):  # Type 3
 
     def get_test_dataset(self):
         return FolderUnlabelDataset("drone-unlabel", get_path('DRONE_seq'), data_aug=False,
-                                    include_all=True, mean=self.mean, std=self.std)
+                                    mean=self.mean, std=self.std)
 
     def calculate_loss(self, val_sample):
         """ unlabel loss only """

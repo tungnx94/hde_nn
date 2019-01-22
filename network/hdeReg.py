@@ -10,26 +10,35 @@ KernelsDF = [5, 5, 3, 3, 3]
 PaddingsDF = [2, 2, 1, 1, 0]
 StridesDF = [2, 2, 3, 2, 1]
 
+
 class HDEReg(HDENet):
 
-    def __init__(self, hidNum=256, device=None):
+    def __init__(self, hidNum=256, output_type="reg", device=None, init=True):
         # input size should be [192x192]
         HDENet.__init__(self, device)
-        self.criterion = nn.MSELoss()  # L2
-
+        
         self.feature = BaseExtractor(hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF)
 
-        self.reg = nn.Linear(256, 2)
+        # self.reg = nn.Linear(256, 2)
 
-        self.reg = nn.Sequential(
-            nn.Linear(256, 64),
-            nn.ReLU(),
+        if output_type == "reg": # regressor
+            self.criterion = nn.MSELoss()  # L2    
+            self.reg = nn.Sequential(
+                nn.Linear(hidNum, 64),
+                nn.ReLU(),
+                nn.Linear(64, 2)
+            )
+        else: # current dirty fix
+            self.criterion = nn.CrossEntropyLoss()
+            self.reg = nn.Sequential(
+                nn.Linear(hidNum, 32),
+                nn.ReLU(),
+                nn.Linear(32, 8)
+            )
 
-            nn.Linear(64, 2)
-        )
-
-        self._initialize_weights()
-        self.load_to_device()
+        if init:
+            self._initialize_weights()
+            self.load_to_device()
 
     def forward(self, x):
         x = x.to(self.device)
@@ -48,6 +57,7 @@ class HDEReg(HDENet):
         return self.forward_label(inputs, targets)
 
 
+
 if __name__ == '__main__':
     import sys
     sys.path.insert(0, "..")
@@ -58,7 +68,7 @@ if __name__ == '__main__':
 
     net = HDEReg()
     dataset = SingleLabelDataset(
-        "duke", data_file=get_path('DukeMTMC/val/person.csv'), img_size=64)
+        "duke", data_file=get_path('DukeMTMC/test/test.csv'), img_size=64)
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=32)
 

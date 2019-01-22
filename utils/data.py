@@ -5,9 +5,9 @@ import numpy as np
 
 from math import pi
 
-# BASE = "/media/mohammad/DATA/icra2019"
+BASE = "/home/airlab/projects/data_icra"
 
-BASE = "/home/airlab/projects/data"
+ACC_THRESH = pi/8
 
 
 def get_path(data, base_folder=BASE):
@@ -25,7 +25,7 @@ def angle_diff(outputs, labels):
 
     diff_angle = output_angle - label_angle
 
-    # map to (-pi, pi)
+    # map to [-pi, pi]
     mask = diff_angle < -pi
     diff_angle[mask] = diff_angle[mask] + 2 * pi
 
@@ -47,7 +47,7 @@ def accuracy_cls(outputs, labels):
     :param outputs, labels: numpy array
     """
     diff_angle = angle_diff(outputs, labels)
-    acc_angle = diff_angle < pi / 8
+    acc_angle = diff_angle < ACC_THRESH
 
     acc = float(np.sum(acc_angle)) / labels.shape[0]
     return acc

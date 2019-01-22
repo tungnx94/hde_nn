@@ -35,7 +35,7 @@ if __name__ == '__main__':  # test
     from generalData import DataLoader
     from utils import get_path, seq_show
 
-    duke = FolderUnlabelDataset("duke-unlabel", img_dir=get_path("DukeMTMC/train/images"))
+    duke = FolderUnlabelDataset("duke-unlabel", img_dir=get_path("DukeMTMC/train/images_unlabel"))
     ucf = FolderUnlabelDataset("ucf-unlabel", img_dir=get_path("UCF"))
     drone = FolderUnlabelDataset("drone-unlabel", img_dir=get_path("DRONE_seq"))
 
@@ -43,6 +43,8 @@ if __name__ == '__main__':  # test
         print dataset
         dataloader = DataLoader(dataset, batch_size=1)
 
+        """
         for count in range(3):
             sample = dataloader.next_sample()
             seq_show(sample.squeeze().numpy(), scale=0.8)
+        """

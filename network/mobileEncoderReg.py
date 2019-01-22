@@ -80,9 +80,9 @@ if __name__ == "__main__":  # test
 
     # prepare data
     imgdataset = SingleLabelDataset("duke-train",
-                                    data_file=get_path("DukeMCMT/train/person.csvs"))
+                                    data_file=get_path("DukeMCMT/train/train.csv"))
     unlabelset = FolderUnlabelDataset(
-        "duke-unlabel", img_dir=get_path("DukeMTMC/train/images"))
+        "duke-unlabel", img_dir=get_path("DukeMTMC/train/images_unlabel"))
 
     dataloader = DataLoader(imgdataset, batch_size=32)
     unlabelloader = DataLoader(unlabelset)

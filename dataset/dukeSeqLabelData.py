@@ -38,15 +38,13 @@ class DukeSeqLabelDataset(SequenceLabelDataset):
             frame_id = int(img_name.split('_')[1][5:])
             cam_num = img_name.split('_')[0]  # camera number
 
-            if (seq == []) or (frame_id == last_idx + frame_iter) and (cam_num == last_cam):
-                last_idx = frame_id
-                last_cam = cam_num
-            else:  # the index is not continuous -> save current seq
+            if not ((seq == []) or ((frame_id == last_idx + frame_iter) and (cam_num == last_cam))): # split here
+                # print frame_id, cam_num, len(seq)
                 self.save_sequence(seq)
-                seq = []    # need to commit this change!
-                last_idx = -1
-                last_cam = -1
+                seq = []
 
+            last_idx = frame_id
+            last_cam = cam_num
             seq.append((img_path, label, group))
 
         self.save_sequence(seq)
@@ -59,8 +57,9 @@ if __name__ == '__main__':  # test
     from generalData import DataLoader
     from utils import get_path, seq_show
 
+    """
     unlabelset = DukeSeqLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/val/person.csv'))
+        "duke-test", data_file=get_path('DukeMTMC/test/person.csv'))
     dataloader = DataLoader(unlabelset)
 
     for count in range(5):
@@ -69,3 +68,13 @@ if __name__ == '__main__':  # test
         labelseq = sample[1].squeeze()
 
         seq_show(imgseq.numpy(), dir_seq=labelseq)
+    """
+
+    trainset = DukeSeqLabelDataset(
+        "duke-train", data_file=get_path('DukeMTMC/train/train.csv'))
+
+    valset = DukeSeqLabelDataset(
+        "duke-val", data_file=get_path('DukeMTMC/train/val.csv'))
+
+    testset = DukeSeqLabelDataset(
+        "duke-test", data_file=get_path('DukeMTMC/test/test.csv'))

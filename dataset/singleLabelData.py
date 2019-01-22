@@ -52,13 +52,13 @@ if __name__ == '__main__':
     from generalData import DataLoader
 
     duke = SingleLabelDataset("duke", data_file=get_path(
-        'DukeMTMC/train/person.csv'), data_aug=True)
+        'DukeMTMC/train/train.csv'), data_aug=True)
 
     virat = SingleLabelDataset("virat", data_file=get_path(
-        'VIRAT/train/person.csv'), data_aug=True)
+        'VIRAT/person/train.csv'), data_aug=True)
 
     pes = SingleLabelDataset("3dpes", data_file=get_path(
-        '3DPES/person.csv'), data_aug=False)
+        '3DPES/train.csv'), data_aug=False)
 
     for dataset in [duke, virat, pes]:
         print dataset

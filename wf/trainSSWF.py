@@ -18,9 +18,9 @@ UnlabelBatch = 1
 LearningRate = 0.0005  # to tune
 TrainStep = 200  # number of train() calls 20000
 
-Snapshot = 100  # 500 model save period
+Snapshot = 500  # 500 model save period
 TestIter = 50  # do a testing every TestIter steps
-ShowIter = 20  # print to screen
+ShowIter = 50  # print to screen
 
 ModelName = 'facing'
 
@@ -88,7 +88,7 @@ class TrainSSWF(TrainWF, SSWF):
 
         # Unlabeled
         unlabel_duke = FolderUnlabelDataset(
-            "duke-unlabel", img_dir=get_path("DukeMTMC/train/images"), mean=self.mean, std=self.std)
+            "duke-unlabel", img_dir=get_path("DukeMTMC/train/images_unlabel"), mean=self.mean, std=self.std)
         #unlabel_duke.resize()
 
         unlabel_ucf = FolderUnlabelDataset(

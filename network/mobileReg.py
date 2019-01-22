@@ -3,23 +3,21 @@ import random
 import torch
 import torch.nn as nn
 
-from hdeNet import HDENet
 from hdeReg import HDEReg
 from extractor import MobileExtractor
 
 
 class MobileReg(HDEReg):
 
-    def __init__(self, hidNum=256, regNum=2, lamb=0.1, thresh=0.005, device=None):
+    def __init__(self, hidNum=256, output_type="reg", lamb=0.1, thresh=0.005, device=None):
         # input size should be [192x192]
-        HDENet.__init__(self, device=device)
-        self.criterion = nn.MSELoss()  # L2
         self.lamb = lamb
         self.thresh = thresh
 
+        HDEReg.__init__(self, hidNum, output_type, device, init=False)
+
         self.feature = MobileExtractor(
-            hidNum, depth_multiplier=0.5, device=device)
-        self.reg = nn.Linear(hidNum, regNum)  # regression (sine, cosine)
+            hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better
 
         self._initialize_weights()
         self.load_to_device()
@@ -84,19 +82,12 @@ if __name__ == '__main__':
     from dataset import SingleLabelDataset, DukeSeqLabelDataset, DataLoader
 
     net = MobileReg()
-    #net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
+    net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
-    """
-    dataset = DukeSeqLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/val/person.csv'), seq_length=24, data_aug=True)
-    dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=1)
-    
-    """
     dataset = SingleLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/val/person.csv'), data_aug=True)
+        "duke-test", data_file=get_path('DukeMTMC/test/test.csv'), data_aug=True)
     dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=24)
+    loader = DataLoader(dataset, batch_size=32)
     
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
