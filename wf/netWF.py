@@ -1,9 +1,12 @@
+import sys
+sys.path.append(0, '..')
+
 import os
 import torch
 
 from datetime import datetime
 from workflow import WorkFlow
-
+from utils import ModelLoader
 
 class TrainWF(WorkFlow):
 
@@ -54,11 +57,18 @@ class TrainWF(WorkFlow):
     def run(self):
         """ train on all samples """
         self.logger.info("Started training")
+        WorkFlow.train(self)
 
+        self.model.train()
         for iteration in range(1, self.trainStep + 1):
             self.train()
 
-            # output losses
+            if iteration % self.valFreq == 0:
+                self.model.eval()
+                self.validate()
+                self.model.train()
+
+            # output screen
             if iteration % self.showFreq == 0:
                 self.logger.info("#%d %s" % (iteration, self.get_log_str()))
 
@@ -66,10 +76,10 @@ class TrainWF(WorkFlow):
             if iteration % self.saveFreq == 0:
                 self.save_snapshot()
 
-            if iteration % self.valFreq == 0:
-                self.validate()
-
         self.logger.info("Finished training")
+
+    def train(self):
+        pass
 
     def validate(self):
         pass
@@ -77,7 +87,7 @@ class TrainWF(WorkFlow):
 
 class TestWF(WorkFlow):
 
-    def __init__(self, workingDir, prefix, testStep=200, saveFreq=50, showFreq=25):
+    def __init__(self, workingDir, prefix, model_type, trained_model, testStep=200, saveFreq=50, showFreq=25):
         t = datetime.now().strftime('%m-%d_%H:%M')
         self.modeldir = os.path.join(
             workingDir, 'models')  # should exist already
@@ -87,8 +97,13 @@ class TestWF(WorkFlow):
             os.makedirs(self.testdir)
 
         self.testStep = testStep
-
+        self.model_type = model_type
+        self.trained_model = trained_model
         WorkFlow.__init__(self, "test.log", saveFreq=saveFreq, showFreq=showFreq)
+
+    def load_model(self):
+        m_loader = ModelLoader()
+        return m_loader.load_trained(self.model_type, self.trained_model)
 
     def get_log_dir(self):
         return self.testdir
@@ -100,17 +115,17 @@ class TestWF(WorkFlow):
 
     def run(self):
         self.logger.info("Started testing")
-
         WorkFlow.test(self)
-        self.model.eval()
 
+        self.model.eval()
         for iteration in range(1, self.testStep + 1):
             self.test()
 
+            # output screen
             if iteration % self.showFreq == 0:
                 self.logger.info("#%d %s" % (iteration, self.get_log_str()))
 
-            # save temporary model
+            # save temporary values
             if iteration % self.saveFreq == 0:
                 self.save_accumulated_values()
 

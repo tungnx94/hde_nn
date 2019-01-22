@@ -12,8 +12,8 @@ SAFE_DISTANCE = 40.0
 
 class ViratSeqLabelDataset(SequenceLabelDataset):
 
-    def __init__(self, name, data_file=None, img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1],
-                 seq_length=24, saved_file=None):
+    def __init__(self, name, data_file=None, 
+                img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=24, saved_file=None):
 
         self.data_file = data_file
 
