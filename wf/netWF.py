@@ -1,6 +1,3 @@
-import sys
-sys.path.append("..")
-
 import os
 import torch
 
@@ -11,7 +8,7 @@ from workflow import WorkFlow
 class TrainWF(WorkFlow):
 
     def __init__(self, workingDir, prefix, modelName,
-                 trained_model=None, trainStep=100, testIter=20, saveIter=50, showIter=10, lr=0.005):
+                 trainStep=100, testIter=20, saveIter=50, showIter=10, lr=0.005):
 
         # create folders
         t = datetime.now().strftime('%m-%d_%H:%M')
@@ -30,7 +27,7 @@ class TrainWF(WorkFlow):
         self.trainStep = trainStep
         self.testIter = testIter
 
-        WorkFlow.__init__(self, "train.log", trained_model, saveIter=saveIter, showIter=showIter)
+        WorkFlow.__init__(self, "train.log", saveIter=saveIter, showIter=showIter)
 
     def get_log_dir(self):
         return self.traindir
@@ -76,7 +73,7 @@ class TrainWF(WorkFlow):
 
 class TestWF(WorkFlow):
 
-    def __init__(self, workingDir, prefix, trained_model, testStep=200, saveIter=50, showIter=10):
+    def __init__(self, workingDir, prefix, testStep=200, saveIter=50, showIter=10):
         t = datetime.now().strftime('%m-%d_%H:%M')
         self.modeldir = os.path.join(
             workingDir, 'models')  # should exist already
@@ -85,10 +82,9 @@ class TestWF(WorkFlow):
         if not os.path.isdir(self.testdir):
             os.makedirs(self.testdir)
 
-        trained_model = os.path.join(self.modeldir, trained_model)
         self.testStep = testStep
 
-        WorkFlow.__init__(self, "test.log", trained_model, saveIter=saveIter, showIter=showIter)
+        WorkFlow.__init__(self, "test.log", saveIter=saveIter, showIter=showIter)
 
     def get_log_dir(self):
         return self.testdir
@@ -100,6 +96,9 @@ class TestWF(WorkFlow):
 
     def run(self):
         self.logger.info("Started testing")
+
+        WorkFlow.test(self)
+        self.model.eval()
 
         for iteration in range(1, self.testStep + 1):
             self.test()

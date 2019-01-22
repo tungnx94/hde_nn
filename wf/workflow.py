@@ -7,7 +7,8 @@ import logging
 
 from datetime import datetime
 from accValue import AccumulatedValue
-
+from avPlotter import AccumulatedValuePlotter
+from visdomPlotter import VisdomPlotter
 
 class WFException(Exception):
 
@@ -28,9 +29,11 @@ class WorkFlow(object):
     SIG_INT = False
     IS_FINALISING = False
 
-    def __init__(self, logFile, trained_model=None, saveIter=50, showIter=10, verbose=False):
+    def __init__(self, logFile, saveIter=50, showIter=10, verbose=False, livePlot=False):
         # True to enable debug_print
         self.verbose = verbose
+        self.livePlot = livePlot 
+
         self.isInitialized = False
         self.saveIter = saveIter
         self.showIter = showIter
@@ -71,14 +74,7 @@ class WorkFlow(object):
         self.logger.info("WorkFlow created.")
 
         self.load_dataset()
-
         self.model = self.load_model()
-
-        # load trained params
-        if trained_model is not None:            
-            self.model.load_pretrained(trained_model)
-            self.logger.info("Loaded model from {}".format(trained_model))
-
         self.countTrain = self.model.countTrain
 
     def get_log_dir(self):
@@ -108,6 +104,14 @@ class WorkFlow(object):
 
         # Name is new. Create a new AccumulatedValue object.
         self.AV[name] = AccumulatedValue(name, avgWidth)
+
+    def add_plotter(self, name, name_list, avg_flag_list):
+        if (self.livePlot)
+            plotter = VisdomLinePlotter(name, self.av, name_list, avg_flag_list)
+        else:
+            plotter = AccumulatedValuePlotter(name, self.av, name_list, avg_flag_list)
+
+        self.AVP.append(plotter)
 
     def have_accumulated_value(self, name):
         return (name in self.AV.keys())

@@ -17,6 +17,8 @@ ExpPrefix = 'sample'  # model name, should be unique
 # TestFolder = ./log/sample_12-21_01:55())
 # TestModel = 'facing_37.pkl'#
 
+#TODO: update to simplified structure
+
 def select_WF(TestType):
     """ choose WF from test type """
     # ugly code to avoid multiple instance of logger in WorkFlow

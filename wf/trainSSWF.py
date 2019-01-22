@@ -6,7 +6,6 @@ import torch
 import torch.optim as optim
 
 from utils import get_path
-from ssWF import SSWF
 from netWF import TrainWF
 from dataset import *
 
@@ -32,14 +31,16 @@ AccumulateValues = {"train_total": 100,
                     "test_unlabel": 20}
 
 
-class TrainSSWF(TrainWF, SSWF):
+class TrainSSWF(TrainWF):
 
-    def __init__(self, workingDir, prefix, modelType,
-                 mobile_model=None, trained_model=None):
+    def __init__(self, workingDir, prefix):
 
         self.labelBatch = Batch
         self.unlabelBatch = UnlabelBatch
         self.seqLength = SeqLength
+
+        self.mean = [0.485, 0.456, 0.406]
+        self.std = [0.229, 0.224, 0.225]
 
         self.acvs = {"train_total": 100,
                      "train_label": 100,
@@ -48,34 +49,27 @@ class TrainSSWF(TrainWF, SSWF):
                      "test_label": 20,
                      "test_unlabel": 20}
 
-        SSWF.__init__(self, modelType, mobile_model)
-        TrainWF.__init__(self, workingDir, prefix, ModelName, trained_model=trained_model,
+        TrainWF.__init__(self, workingDir, prefix, ModelName,
                          trainStep=TrainStep, testIter=TestIter, saveIter=Snapshot, showIter=ShowIter, lr=LearningRate)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
-        self.AVP.append(VisdomLinePlotter(
-            "total_loss", self.AV, ['train_total', 'test_total'], [True, True]))
-        self.AVP.append(VisdomLinePlotter(
-            "label_loss", self.AV, ['train_label', 'test_label'], [True, True]))
-        self.AVP.append(VisdomLinePlotter(
-            "unlabel_loss", self.AV, ['train_unlabel', 'test_unlabel'], [True, True]))
-
-    def load_model(self):
-        return SSWF.load_model(self)
+        self.add_plotter("total_loss", ['train_total', 'test_total'], [True, True])
+        self.add_plotter("label_loss", ['train_label', 'test_label'], [True, True])
+        self.add_plotter("unlabel_loss", ['train_unlabel', 'test_unlabel'], [True, True])
 
     def load_dataset(self):
         # Labeled
         train_duke = SingleLabelDataset("train-duke", data_file=get_path(
-            'DukeMTMC/train/person.csv'), data_aug=True, mean=self.mean, std=self.std)
+            'DukeMTMC/train/train.csv'), data_aug=True, mean=self.mean, std=self.std)
         #train_duke.resize()
 
         train_virat = SingleLabelDataset("train-virat", data_file=get_path(
-            'VIRAT/train/person.csv'), data_aug=True, mean=self.mean, std=self.std)
+            'VIRAT/person/train.csv'), data_aug=True, mean=self.mean, std=self.std)
         #train_virat.resize()
 
         train_manual = SingleLabelDataset("train-handlabeled", data_file=get_path(
-            'handlabel/train/person.csv'), data_aug=True, mean=self.mean, std=self.std)
+            'handlabel/person.csv'), data_aug=True, mean=self.mean, std=self.std)
         #train_manual.resize()
 
         label_dataset = MixDataset("Training-label")
@@ -107,9 +101,9 @@ class TrainSSWF(TrainWF, SSWF):
         self.train_unlabel_loader = DataLoader(
             unlabel_dataset, batch_size=self.unlabelBatch, num_workers=4)
 
-    def get_test_dataset(self):
-        return DukeSeqLabelDataset("test-dukeseq", data_file=get_path(
-            'DukeMTMC/val/person.csv'), seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
+        self.test_dataset = DukeSeqLabelDataset("test-dukeseq", data_file=get_path(
+            'DukeMTMC/train/val.csv'), seq_length=SeqLength, data_aug=True, mean=self.mean, std=self.std)
+        self.test_loader = self.test_loader = DataLoader(self.test_dataset, batch_size=1)
 
     def train(self):
         """ train model (one batch) """
@@ -130,29 +124,23 @@ class TrainSSWF(TrainWF, SSWF):
         self.optimizer.step()
 
         # update training loss history
-        # convert to numeric value ?
         self.AV['train_total'].push_back(loss["total"].item(), self.countTrain)
         self.AV['train_label'].push_back(loss["label"].item(), self.countTrain)
-        self.AV['train_unlabel'].push_back(
-            loss["unlabel"].item(), self.countTrain)
-
-    def calculate_loss(self, val_sample):
-        """ combined loss """
-        inputs = val_sample[0].squeeze()
-        targets = val_sample[1].squeeze()
-
-        loss = self.model.forward_combine(inputs, targets, inputs)
-        return loss
+        self.AV['train_unlabel'].push_back(loss["unlabel"].item(), self.countTrain)
 
     def test(self):
         """ update test loss history """
         self.logger.info("validation")
 
-        loss = SSWF.test(self)
+        # test one batch by calculating next sample loss
+        WorkFlow.test(self)
+        self.model.eval() # activate
+
+        sample = self.test_loader.next_sample()
+        inputs = sample[0].squeeze()
+        targets = sample[1].squeeze()
+        loss = self.model.forward_combine(inputs, targets, inputs)
+
         self.AV['test_total'].push_back(loss["total"].item(), self.countTrain)
         self.AV['test_label'].push_back(loss["label"].item(), self.countTrain)
-        self.AV['test_unlabel'].push_back(
-            loss["unlabel"].item(), self.countTrain)
-
-    def run(self):
-        TrainWF.run(self)
+        self.AV['test_unlabel'].push_back(loss["unlabel"].item(), self.countTrain)

@@ -6,6 +6,7 @@ import torch.nn as nn
 from hdeReg import HDEReg
 from extractor import MobileExtractor
 
+Lamb = 0.1 
 
 class MobileReg(HDEReg):
 

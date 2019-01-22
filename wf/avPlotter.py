@@ -58,3 +58,6 @@ class AccumulatedValuePlotter(object):
 
         fig.savefig(outDir + "/" + self.title + ".png")
         plt.close(fig)
+
+    def update(self):
+        return
