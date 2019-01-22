@@ -8,7 +8,7 @@ from workflow import WorkFlow
 class TrainWF(WorkFlow):
 
     def __init__(self, workingDir, prefix, modelName,
-                 trainStep=100, testIter=20, saveIter=50, showIter=10, lr=0.005):
+                 trainStep=1000, valStep=100, valFreq=100, saveFreq=100, showFreq=25, lr=0.005):
 
         # create folders
         t = datetime.now().strftime('%m-%d_%H:%M')
@@ -25,9 +25,10 @@ class TrainWF(WorkFlow):
         self.lr = lr
 
         self.trainStep = trainStep
-        self.testIter = testIter
+        self.valStep = valStep
+        self.valFreq = valFreq
 
-        WorkFlow.__init__(self, "train.log", saveIter=saveIter, showIter=showIter)
+        WorkFlow.__init__(self, "train.log", saveFreq=saveFreq, showFreq=showFreq)
 
     def get_log_dir(self):
         return self.traindir
@@ -58,33 +59,36 @@ class TrainWF(WorkFlow):
             self.train()
 
             # output losses
-            if iteration % self.showIter == 0:
+            if iteration % self.showFreq == 0:
                 self.logger.info("#%d %s" % (iteration, self.get_log_str()))
 
             # save temporary model
-            if iteration % self.saveIter == 0:
+            if iteration % self.saveFreq == 0:
                 self.save_snapshot()
 
-            if iteration % self.testIter == 0:
-                self.test()
+            if iteration % self.valFreq == 0:
+                self.validate()
 
         self.logger.info("Finished training")
+
+    def validate(self):
+        pass
 
 
 class TestWF(WorkFlow):
 
-    def __init__(self, workingDir, prefix, testStep=200, saveIter=50, showIter=10):
+    def __init__(self, workingDir, prefix, testStep=200, saveFreq=50, showFreq=25):
         t = datetime.now().strftime('%m-%d_%H:%M')
         self.modeldir = os.path.join(
             workingDir, 'models')  # should exist already
-        self.testdir = os.path.join(workingDir, 'validation', prefix + "_" + t)
+        self.testdir = os.path.join(workingDir, 'test', prefix + "_" + t)
 
         if not os.path.isdir(self.testdir):
             os.makedirs(self.testdir)
 
         self.testStep = testStep
 
-        WorkFlow.__init__(self, "test.log", saveIter=saveIter, showIter=showIter)
+        WorkFlow.__init__(self, "test.log", saveFreq=saveFreq, showFreq=showFreq)
 
     def get_log_dir(self):
         return self.testdir
@@ -103,11 +107,14 @@ class TestWF(WorkFlow):
         for iteration in range(1, self.testStep + 1):
             self.test()
 
-            if iteration % self.showIter == 0:
+            if iteration % self.showFreq == 0:
                 self.logger.info("#%d %s" % (iteration, self.get_log_str()))
 
             # save temporary model
-            if iteration % self.saveIter == 0:
+            if iteration % self.saveFreq == 0:
                 self.save_accumulated_values()
 
         self.logger.info("Finished testing")
+
+    def test(self):
+        pass

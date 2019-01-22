@@ -3,12 +3,12 @@ sys.path.append("..")
 
 from netWF import TestWF
 from utils import get_path, seq_show
-from dataset import SingleLabelDataset, FolderUnlabelDataset, DukeSeqLabelDataset
+from dataset import *
 
 LabelSeqLength = 24  # 32
-TestStep = 100 # number of test() calls, 5000
-ShowIter = 10
-Snapshot = 50
+TestStep = 5000 # number of test() calls, 5000
+showFreq = 25
+Snapshot = 500
 
 Visualize = True
 
@@ -20,7 +20,7 @@ class TestSSWF(TestWF):
         self.std = [0.229, 0.224, 0.225]
 
         TestWF.__init__(self, workingDir, prefix,
-                        testStep=TestStep, saveIter=Snapshot, showIter=ShowIter)
+                        testStep=TestStep, saveFreq=Snapshot, showFreq=showFreq)
 
     def visualize_output(self, inputs, outputs):
         seq_show(inputs.cpu().numpy(), dir_seq=outputs.detach().cpu().numpy(),
@@ -51,9 +51,9 @@ class TestLabelSeqWF(TestSSWF):  # Type 1
         targets = sample[1].squeeze()
         loss = self.model.forward_combine(inputs, targets, inputs)
 
-        self.AV['total'].push_back(loss["total"].item())
-        self.AV['label'].push_back(loss["label"].item())
-        self.AV['unlabel'].push_back(loss["unlabel"].item())
+        self.AV['label'].push_back(loss[0].item())
+        self.AV['unlabel'].push_back(loss[1].item())
+        self.AV['total'].push_back(loss[2].item())
 
 
 class TestLabelWF(TestSSWF):  # Type 2

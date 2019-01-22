@@ -29,14 +29,14 @@ class WorkFlow(object):
     SIG_INT = False
     IS_FINALISING = False
 
-    def __init__(self, logFile, saveIter=50, showIter=10, verbose=False, livePlot=False):
+    def __init__(self, logFile, saveFreq=100, showFreq=20, verbose=False, livePlot=False):
         # True to enable debug_print
         self.verbose = verbose
         self.livePlot = livePlot 
 
         self.isInitialized = False
-        self.saveIter = saveIter
-        self.showIter = showIter
+        self.saveFreq = saveFreq
+        self.showFreq = showFreq
 
         # Accumulated value dictionary & plotter.
         self.AV = {}
@@ -106,7 +106,7 @@ class WorkFlow(object):
         self.AV[name] = AccumulatedValue(name, avgWidth)
 
     def add_plotter(self, name, name_list, avg_flag_list):
-        if (self.livePlot)
+        if self.livePlot:
             plotter = VisdomLinePlotter(name, self.av, name_list, avg_flag_list)
         else:
             plotter = AccumulatedValuePlotter(name, self.av, name_list, avg_flag_list)

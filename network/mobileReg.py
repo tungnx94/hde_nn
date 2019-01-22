@@ -68,11 +68,7 @@ class MobileReg(HDEReg):
         loss_unlabel = self.forward_unlabel(inputs_unlabel)
         loss_total = loss_label + self.lamb * loss_unlabel
 
-        loss = {"total": loss_total,
-                "label": loss_label,
-                "unlabel": loss_unlabel}
-
-        return loss
+        return (loss_label, loss_unlabel, loss_total)
 
 if __name__ == '__main__':
     import sys
