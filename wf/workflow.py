@@ -40,7 +40,6 @@ class WorkFlow(object):
             logging.Formatter('%(levelname)s: %(message)s'))
 
         # File log
-        self.logdir = self.get_log_dir()
         if not os.path.isdir(self.logdir):
             os.makedirs(self.logdir)
 
@@ -60,7 +59,6 @@ class WorkFlow(object):
 
         self.logger.info("WorkFlow created.")
 
-        self.prepare_dataset()
         self.load_model()
 
     def run(self):
@@ -69,7 +67,7 @@ class WorkFlow(object):
     def load_dataset(self):
         pass
 
-    def prepare_dataset(self):
+    def prepare_dataset(self, dloader):
         pass
 
     def load_model(self):

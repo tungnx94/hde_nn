@@ -13,21 +13,20 @@ class TrainWF(WorkFlow):
         workingDir = os.path.join(config['dir'], config['prefix'] + "_" + t)
         self.traindir = os.path.join(workingDir, 'train')
         self.modeldir = os.path.join(workingDir, 'models')
-        self.modelName = cnf['model']['name']
+        self.modelName = config['model']['name']
         self.logdir = self.traindir
-        self.logfile = cnf['log']
+        self.logfile = config['log']
 
-        self.saveFreq = cnf['save_freq']
-        self.showFreq = cnf['show_freq']
-        self.valFreq = cnf['val_freq']
-        self.trainStep = cnf['train_step']
-        self.valStep = cnf['val_step']
+        self.saveFreq = config['save_freq']
+        self.showFreq = config['show_freq']
+        self.valFreq = config['val_freq']
+        self.trainStep = config['train_step']
+        self.valStep = config['val_step']
 
-        self.lr = cnf['lr']
-        self.batch = cnf['batch']
-        self.batch_unlabel = cnf['batch_unlabel']
-        self.batch_val = cnf['batch_val']
-        self.seq_length = cnf['seq_length']
+        self.lr = config['lr']
+        self.batch = config['batch']
+        self.batch_unlabel = config['batch_unlabel']
+        self.batch_val = config['batch_val']
 
         for folder in [workingDir, self.traindir, self.modeldir]:
             if not os.path.isdir(folder):

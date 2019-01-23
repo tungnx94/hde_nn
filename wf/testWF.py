@@ -2,6 +2,7 @@ import os
 
 from datetime import datetime
 from workflow import WorkFlow
+from dataset import DatasetLoader
 
 class TestWF(WorkFlow):
 
@@ -12,16 +13,15 @@ class TestWF(WorkFlow):
         self.modeldir = os.path.join(workingDir, 'models') 
         self.testdir = os.path.join(workingDir, 'test', config['prefix'] + "_" + t)
 
-        self.testStep = cnf['test_step']
-        self.saveFreq = cnf['save_freq']
-        self.showFreq = cnf['show_freq']
-        self.batch = cnf['batch']
+        self.testStep = config['test_step']
+        self.saveFreq = config['save_freq']
+        self.showFreq = config['show_freq']
+        self.batch = config['batch']
 
         self.logdir = self.testdir
-        self.logfile = cnf['log']
+        self.logfile = config['log']
 
         self.modeldir = os.path.join(workingDir, 'models')
-        self.modelName = cnf['model']['name']
 
         if not os.path.isdir(self.testdir):
             os.makedirs(self.testdir)
@@ -33,9 +33,9 @@ class TestWF(WorkFlow):
         WorkFlow.finalize(self)
         self.save_accumulated_values()
 
-    def prepare_dataset(self):
+    def prepare_dataset(self, dloader):
         test_dts = self.load_dataset()
-        self.test_loader = d_loader.loader(test_dts, self.batch)
+        self.test_loader = dloader.loader(test_dts, self.batch)
 
     def run(self):
         self.logger.info("Started testing")

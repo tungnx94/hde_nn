@@ -12,7 +12,7 @@ class ModelLoader(object):
     def __init__(self):
         self.name = "Model-Loader"
 
-    def load(self, config)
+    def load(self, config):
         model = None
 
         mtype = config['type']
@@ -31,3 +31,5 @@ class ModelLoader(object):
         if mtrained is not None:
             model.load_pretrained(mtrained)
             print "Loaded weights from", mtrained
+
+        return model

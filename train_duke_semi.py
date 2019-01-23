@@ -3,7 +3,6 @@ from dataset import DatasetLoader
 
 Mean = [0.485, 0.456, 0.406]
 Std = [0.229, 0.224, 0.225]
-
 d_loader = DatasetLoader(Mean, Std)
 
 # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
@@ -12,8 +11,8 @@ ModelType = 2
 TrainConfig = {
     'dir': './log',
     'prefix': 'sample',
-    'log': 'train.log'
-    'train_step': 10000,
+    'log': 'train.log',
+    'train_step': 1000,
     'val_step': 100,
     'save_freq': 500,
     'show_freq': 50,
@@ -50,18 +49,19 @@ class TrainDuke(TrainSSWF):
         #unlabel_drone.resize()
         unlabel_dts = d_loader.mix('Training-unlabel', [unlabel_duke, unlabel_ucf, unlabel_drone])
         
-        val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', SeqLength)
+        val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', TrainConfig['seq_length'])
 
         return (label_dts, unlabel_dts, val_dts)
 
 TestConfig = {
     'dir': './log/sample_01-22_19:37',
     'prefix': '',
-    'log': 'test.log'
+    'log': 'test.log',
     'test_step': 1000,
     'show_freq': 25,
     'save_freq': 250,
     'batch': 64,
+    'seq_length':24,
     'model': {
         'type': 2,
         'trained': 'facing_20000.pkl',
@@ -74,11 +74,11 @@ class TestDuke_1(TestLabelWF):
 
 class TestDuke_2(TestUnlabelWF):
     def load_dataset(self):
-        return = d_loader.folder_unlabel('DRONE-seq', 'DRONE_seq', data_aug=False)
+        return d_loader.folder_unlabel('DRONE-seq', 'DRONE_seq', data_aug=False)
 
 class TestDuke_3(TestLabelSeqWF):
     def load_dataset(self):
-        return = d_loader.duke_seq('DUKE-test', 'DukeMTMC/test/test.csv', SeqLength, data_aug=False)
+        return d_loader.duke_seq('DUKE-test', 'DukeMTMC/test/test.csv', TestConfig['seq_length'], data_aug=False)
 
 def select_WF(TestType):
     # avoid multiple instance of logger in WorkFlow
@@ -98,10 +98,11 @@ def select_WF(TestType):
 def main():
     """ Train and validate new model """
     # 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
-    TestType = 3
+    TestType = 0
 
     try:
         wf = select_WF(TestType)
+        wf.prepare_dataset(d_loader)
         wf.proceed()
 
     except WFException as e:

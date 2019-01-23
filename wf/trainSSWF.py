@@ -23,12 +23,12 @@ class TrainSSWF(TrainWF):
         self.add_plotter("label_loss", ['train_label', 'val_label'], [True, True])
         self.add_plotter("unlabel_loss", ['train_unlabel', 'val_unlabel'], [True, True])
 
-    def prepare_dataset(self):
+    def prepare_dataset(self, dloader):
         label_dts, unlabel_dts, val_dts = self.load_dataset()
 
-        self.train_loader = d_loader.loader(label_dts, self.batch)
-        self.train_unlabel_loader = d_loader.loader(unlabel_dts, self.batch_unlabel)
-        self.val_loader = d_loader.loader(val_dts, self.batch_val)
+        self.train_loader = dloader.loader(label_dts, self.batch)
+        self.train_unlabel_loader = dloader.loader(unlabel_dts, self.batch_unlabel)
+        self.val_loader = dloader.loader(val_dts, self.batch_val)
 
     def train(self):
         """ train model (one batch) """
