@@ -32,7 +32,7 @@ class AccumulatedValuePlotter(object):
 
         # plot name & axes
         self.title = self.name
-        self.xlabel = "steps"
+        self.xlabel = "iteration"
         self.ylabel = "loss"
 
     def write_image(self, outDir):

@@ -5,7 +5,6 @@ import os
 import torch
 import torch.optim as optim
 
-from workflow import WorkFlow
 from netWF import TrainWF
 
 LearningRate = 0.001  # to tune
@@ -64,9 +63,6 @@ class TrainSSWF(TrainWF):
     def validate(self):
         """ update val loss history """
         self.logger.info("validation")
-
-        # val one batch by calculating next sample loss
-        WorkFlow.test(self)
 
         losses = []
         for count in range(self.valStep):

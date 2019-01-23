@@ -5,7 +5,7 @@ from netWF import TestWF
 from utils import get_path, seq_show
 
 LabelSeqLength = 24  # 32
-TestStep = 5000 # number of test() calls, 5000
+TestStep = 1000 # number of test() calls, 5000
 ShowFreq = 25
 Snapshot = 500
 

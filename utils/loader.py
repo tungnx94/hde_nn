@@ -27,7 +27,7 @@ class ModelLoader(object):
 
     def load_trained(self, modelType, trained_params):
         model = self.load(modelType) 
-        model.load_pretrained(trained_model)
+        model.load_pretrained(trained_params)
 
         print "Loaded weights from ", trained_params
         return model

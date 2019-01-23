@@ -4,9 +4,6 @@ from utils import ModelLoader, DatasetLoader
 
 ExpPrefix = 'sample'  # model name, should be unique
 
-# 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
-TestType = 0
-
 # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
 ModelType = 2
 
@@ -62,13 +59,13 @@ class TrainDuke(TrainSSWF):
         val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', SeqLength)
         self.val_loader = d_loader.loader(val_dts, 1)
 
-TestModelType = 0
-TestFolder = "./log/sample_"
-TestModel = 'facing_37.pkl'#
+TestModelType = 2
+TestFolder = "./log/sample_01-22_19:37"
+TestModel = 'facing_20000.pkl'
 
 class TestDuke_1(TestLabelWF):
     def load_dataset(self):
-        test_dts = d_loader.single_label('DRONE_test', 'DRONE_label', data_aug=False)
+        test_dts = d_loader.single_label('DRONE_test', 'DRONE_label/test.csv', data_aug=False)
         self.test_loader = d_loader.loader(test_dts, TestBatch)
 
 class TestDuke_2(TestUnlabelWF):
@@ -78,11 +75,10 @@ class TestDuke_2(TestUnlabelWF):
 
 class TestDuke_3(TestLabelSeqWF):
     def load_dataset(self):
-        self.test = d_loader.duke_seq('DUKE-test', 'DukeMTMC/test/test.csv', SeqLength, data_aug=False)
+        test_dts = d_loader.duke_seq('DUKE-test', 'DukeMTMC/test/test.csv', SeqLength, data_aug=False)
         self.test_loader = d_loader.loader(test_dts, 1)
 
 def select_WF(TestType):
-    """ choose WF from test type """
     # avoid multiple instance of logger in WorkFlow
     if TestType == 0:
         return TrainDuke("./log", ExpPrefix)
@@ -96,8 +92,10 @@ def select_WF(TestType):
 
 def main():
     """ Train and validate new model """
+    # 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
+    TestType = 3
+
     try:
-        # Instantiate workflow.
         wf = select_WF(TestType)
         wf.proceed()
 

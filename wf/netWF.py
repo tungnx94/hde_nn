@@ -57,13 +57,16 @@ class TrainWF(WorkFlow):
     def run(self):
         """ train on all samples """
         self.logger.info("Started training")
-        WorkFlow.train(self)
+        # WorkFlow.train(self)
 
         self.model.train()
         for iteration in range(1, self.trainStep + 1):
+            WorkFlow.train(self)
             self.train()
 
             if iteration % self.valFreq == 0:
+                WorkFlow.test(self)
+
                 self.model.eval()
                 self.validate()
                 self.model.train()
@@ -98,7 +101,7 @@ class TestWF(WorkFlow):
 
         self.testStep = testStep
         self.model_type = model_type
-        self.trained_model = trained_model
+        self.trained_model = os.path.join(self.modeldir, trained_model)
         WorkFlow.__init__(self, "test.log", saveFreq=saveFreq, showFreq=showFreq)
 
     def load_model(self):
@@ -115,10 +118,10 @@ class TestWF(WorkFlow):
 
     def run(self):
         self.logger.info("Started testing")
-        WorkFlow.test(self)
-
+        
         self.model.eval()
         for iteration in range(1, self.testStep + 1):
+            WorkFlow.test(self)
             self.test()
 
             # output screen
