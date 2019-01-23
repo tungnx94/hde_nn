@@ -1,4 +1,5 @@
-from wf import *
+from wf import WFException, TrainSSWF, TestLabelWF, TestUnlabelWF, TestLabelSeqWF
+# from wf import *
 from utils import ModelLoader, DatasetLoader
 
 ExpPrefix = 'sample'  # model name, should be unique
@@ -7,7 +8,7 @@ ExpPrefix = 'sample'  # model name, should be unique
 TestType = 0
 
 # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
-ModelType = 0
+ModelType = 2
 
 MobileModel = 'network/pretrained_models/mobilenet_v1_0.50_224.pth'
 MobileModel = None
@@ -28,14 +29,13 @@ ValBatch = 0 #
 d_loader = DatasetLoader(Mean, Std)
 m_loader = ModelLoader()
 
-def TrainDuke(TrainSSWF):
+class TrainDuke(TrainSSWF):
 
-    def load_dataset(self):
+    def load_model(self):
         if TrainedModel is not None:
             return m_loader.load_trained(ModelType, TrainedModel)
         else:
             return m_loader.load(ModelType, MobileModel)
-
 
     def load_dataset(self):
         train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
@@ -66,17 +66,17 @@ TestModelType = 0
 TestFolder = "./log/sample_"
 TestModel = 'facing_37.pkl'#
 
-def TestDuke_1(TestLabelWF):
+class TestDuke_1(TestLabelWF):
     def load_dataset(self):
         test_dts = d_loader.single_label('DRONE_test', 'DRONE_label', data_aug=False)
         self.test_loader = d_loader.loader(test_dts, TestBatch)
 
-def TestDuke_2(TestUnlabelSeqWF):
+class TestDuke_2(TestUnlabelWF):
     def load_dataset(self):
         test_dts = d_loader.folder_unlabel('DRONE-seq', 'DRONE_seq', data_aug=False)
         self.test_loader = d_loader.loader(test_dts, 1)
 
-def TestDuke_3(TestLabelSeqWF):
+class TestDuke_3(TestLabelSeqWF):
     def load_dataset(self):
         self.test = d_loader.duke_seq('DUKE-test', 'DukeMTMC/test/test.csv', SeqLength, data_aug=False)
         self.test_loader = d_loader.loader(test_dts, 1)

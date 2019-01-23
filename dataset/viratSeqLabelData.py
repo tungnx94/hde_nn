@@ -1,12 +1,8 @@
-import sys
-sys.path.insert(0, "..")
-
 import os
 import numpy as np
 import pandas as pd
 
 from sequenceData import SequenceLabelDataset
-from utils import one_hot
 
 SAFE_DISTANCE = 40.0
 
@@ -33,7 +29,7 @@ class ViratSeqLabelDataset(SequenceLabelDataset):
             img_path = os.path.join(base_folder, point['path'])
             label = np.array(
                 [point['sin'], point['cos']], dtype=np.float32)
-            d = one_hot(point['direction'])
+            d = point['direction']
             entry = (img_path, label, d)
 
             parts = os.path.basename(img_path).split('.')[0].split('_')
@@ -42,7 +38,7 @@ class ViratSeqLabelDataset(SequenceLabelDataset):
             key = parts[:f_index]
             key.append(parts[f_index+1])
             key = ''.join(key) 
-            # key = ''.join(parts[:self.f_index].append(parts[self.f_index+1]))
+            
             frame_id = int(parts[f_index])
             position = np.array([int(t) for t in parts[-4:]])
 

@@ -2,26 +2,13 @@ import os
 import sys
 import time
 import signal
-import torch
 import logging
 
 from datetime import datetime
+from exception import WFException
 from accValue import AccumulatedValue
 from avPlotter import AccumulatedValuePlotter
-from visdomPlotter import VisdomPlotter
-
-class WFException(Exception):
-
-    def __init__(self, message, name=None):
-        self.message = message
-        self.name = name
-
-    def __str__(self):
-        if (self.name is not None):
-            return self.name + ": " + self.message
-        else:
-            return self.message
-
+from visdomPlotter import VisdomLinePlotter
 
 class WorkFlow(object):
 
@@ -107,9 +94,9 @@ class WorkFlow(object):
 
     def add_plotter(self, name, name_list, avg_flag_list):
         if self.livePlot:
-            plotter = VisdomLinePlotter(name, self.av, name_list, avg_flag_list)
+            plotter = VisdomLinePlotter(name, self.AV, name_list, avg_flag_list)
         else:
-            plotter = AccumulatedValuePlotter(name, self.av, name_list, avg_flag_list)
+            plotter = AccumulatedValuePlotter(name, self.AV, name_list, avg_flag_list)
 
         self.AVP.append(plotter)
 

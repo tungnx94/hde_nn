@@ -5,15 +5,15 @@ import os
 import torch
 import torch.optim as optim
 
-from utils import get_path
+from workflow import WorkFlow
 from netWF import TrainWF
 
 LearningRate = 0.001  # to tune
-TrainStep = 2000  # number of train() calls 20000
+TrainStep = 20000  # number of train() calls 20000
 ValStep = 50
 
 Snapshot = 500  # 500 model save period
-ValFreq = 200  # do a valing every valFreq steps
+ValFreq = 200  # do a valing every valFreq steps 200
 ShowFreq = 50  # print to screen
 
 ModelName = 'facing'
@@ -33,7 +33,7 @@ class TrainSSWF(TrainWF):
         self.acvs = AccumulateValues
 
         TrainWF.__init__(self, workingDir, prefix, ModelName,
-                         trainStep=TrainStep, valFreq=valFreq, saveFreq=Snapshot, showFreq=ShowFreq, lr=LearningRate)
+                         trainStep=TrainStep, valFreq=ValFreq, saveFreq=Snapshot, showFreq=ShowFreq, lr=LearningRate)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
@@ -45,7 +45,7 @@ class TrainSSWF(TrainWF):
         """ train model (one batch) """
         self.countTrain += 1
         # get next samples
-        inputs, targets = self.train_loader.next_sample()
+        inputs, targets, _ = self.train_loader.next_sample()
         unlabel_seqs = self.train_unlabel_loader.next_sample().squeeze()  # remove 0-dim (=1)
 
         # calculate loss
@@ -75,9 +75,9 @@ class TrainSSWF(TrainWF):
             targets = sample[1].squeeze()
             loss = self.model.forward_combine(inputs, targets, inputs)
 
-            losses.append(loss.unsqueeze(0))
+            losses.append(torch.tensor(loss).unsqueeze(0)) 
 
-        losses = torch.tensor(tuple(losses), dim=0)
+        losses = torch.cat(tuple(losses), dim=0)
         loss_mean = torch.mean(losses, dim=0)
 
         self.AV['val_label'].push_back(loss_mean[0].item(), self.countTrain)

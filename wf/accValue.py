@@ -88,8 +88,8 @@ class AccumulatedValue(object):
         print("stamp: ", self.stamp)
 
     def save_csv(self, outDir):
-        data_dict = {"stamp": self.stamp, "val": self.acc, "avg": self.avg}
+        data_dict = {"stamp": self.stamp, "value": self.acc, "average": self.avg}
         df = pd.DataFrame.from_dict(data_dict)
 
         save_path = os.path.join(outDir, self.name + ".csv")
-        df.to_csv(save_path)
+        df.to_csv(save_path, index=False)

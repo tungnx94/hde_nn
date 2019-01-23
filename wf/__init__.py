@@ -1,4 +1,4 @@
-from workflow import WFException
+from exception import WFException
 
 from trainSSWF import TrainSSWF
-from testSSWF import TestLabelWF, TestLabelSeqWF, TestUnlabelSeqWF
+from testSSWF import TestLabelWF, TestUnlabelWF, TestLabelSeqWF

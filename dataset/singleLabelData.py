@@ -30,7 +30,7 @@ class SingleLabelDataset(SingleDataset):
             img_path = os.path.join(base_folder, point['path'])
             label = np.array(
                 [point['sin'], point['cos']], dtype=np.float32)
-            group = one_hot(point['direction'])
+            group = point['direction']
 
             self.items.append((img_path, label, group))
 
@@ -41,7 +41,7 @@ class SingleLabelDataset(SingleDataset):
 
         out_img = self.augment_image(img, flip)
         out_label = self.augment_label(label, flip)
-        out_gr = self.augment_direction(gr, flip)
+        out_gr = one_hot(self.augment_direction(gr, flip))
 
         return (out_img, out_label, out_gr)
 

@@ -1,5 +1,5 @@
 import sys
-sys.path.append(0, '..')
+sys.path.insert(0, '..')
 
 from dataset import *
 from network import *
@@ -13,9 +13,10 @@ class ModelLoader(object):
         self.name = "Model-Loader"
 
     def load(self, modelType, mobileNet=None):
-        if modelType == 0:
+        # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
+        if modelType == 2:
             model = MobileReg(lamb=0.1, thresh=Thresh)
-        elif modelType == 1:
+        elif modelType == 3:
             model = MobileEncoderReg(lamb=0.001)
 
         if mobileNet is not None:
@@ -44,8 +45,8 @@ class DatasetLoader(object):
     def set_std(self, std):
         self.std = std
 
-    def loader(self, dataset, batch_size, shuffe=True, num_workers=4):
-        return DataLoader(dataset, batch_size, shuffle=shuffle, num_workers=num_workers)
+    def loader(self, dataset, batch_size, shuffle=True, num_workers=4):
+        return DataLoader(dataset, batch_size, shuffle, num_workers)
 
     def folder_unlabel(self, name, path, data_aug=True):
         return FolderUnlabelDataset(name, img_dir=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
@@ -61,7 +62,7 @@ class DatasetLoader(object):
 
     def mix(self, name, sets, factors=None):
         mixset = MixDataset(name)
-        
+
         if factors == None:
             factors = [1] * len(sets)
 

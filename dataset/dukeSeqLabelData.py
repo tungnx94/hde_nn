@@ -1,11 +1,7 @@
-import sys
-sys.path.insert(0, "..")
-
 import os
 import numpy as np
 import pandas as pd 
 
-from utils import one_hot
 from sequenceData import SequenceLabelDataset
 
 
@@ -32,7 +28,7 @@ class DukeSeqLabelDataset(SequenceLabelDataset):
             img_path = os.path.join(base_folder, point['path'])
             label = np.array(
                 [point['sin'], point['cos']], dtype=np.float32) 
-            group = one_hot(point['direction'])
+            group = point['direction']
 
             # extract frame id
             frame_id = int(img_name.split('_')[1][5:])

@@ -63,7 +63,7 @@ class TestLabelWF(TestSSWF):  # Type 2
         self.AV['label'].push_back(loss.item())
 
 
-class TestUnlabelSeqWF(TestSSWF):  # Type 3
+class TestUnlabelWF(TestSSWF):  # Type 3
 
     def __init__(self, workingDir, prefix, model_type, trained_model):
         self.acvs = {"unlabel": 20}

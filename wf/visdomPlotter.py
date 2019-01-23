@@ -2,7 +2,7 @@ import time
 import numpy as np 
 
 from visdom import Visdom
-from workflow import WFException
+from exception import WFException
 from avPlotter import AccumulatedValuePlotter
 
 

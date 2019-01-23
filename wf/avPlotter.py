@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from workflow import WFException
+from exception import WFException
 
 
 class AccumulatedValuePlotter(object):
@@ -61,3 +61,6 @@ class AccumulatedValuePlotter(object):
 
     def update(self):
         return
+
+    def initialize(self):
+        print "AVPlotter initialized"

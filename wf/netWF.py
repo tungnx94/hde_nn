@@ -1,5 +1,5 @@
 import sys
-sys.path.append(0, '..')
+sys.path.insert(0, '..')
 
 import os
 import torch
