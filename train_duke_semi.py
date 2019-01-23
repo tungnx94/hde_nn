@@ -57,11 +57,11 @@ TestConfig = {
     'dir': './log/sample_01-22_19:37',
     'prefix': '',
     'log': 'test.log',
-    'test_step': 1000,
+    'test_step': 500,
     'show_freq': 25,
     'save_freq': 250,
-    'batch': 64,
-    'seq_length':24,
+    'batch': 1,
+    'seq_length': 24,
     'model': {
         'type': 2,
         'trained': 'facing_20000.pkl',
@@ -98,7 +98,7 @@ def select_WF(TestType):
 def main():
     """ Train and validate new model """
     # 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
-    TestType = 0
+    TestType = 2
 
     try:
         wf = select_WF(TestType)

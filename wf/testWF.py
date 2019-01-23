@@ -21,7 +21,7 @@ class TestWF(WorkFlow):
         self.logdir = self.testdir
         self.logfile = config['log']
 
-        self.modeldir = os.path.join(workingDir, 'models')
+        config['model']['trained'] = os.path.join(self.modeldir, config['model']['trained'])
 
         if not os.path.isdir(self.testdir):
             os.makedirs(self.testdir)
