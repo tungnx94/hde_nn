@@ -3,3 +3,5 @@ from mobileEncoderReg import MobileEncoderReg
 
 from mobileRNN import MobileRNN
 from extractor import BaseExtractor
+
+from loader import ModelLoader

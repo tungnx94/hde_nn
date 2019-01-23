@@ -1,36 +1,12 @@
 import sys
 sys.path.insert(0, '..')
+from utils import get_path
 
-from dataset import *
-from network import *
-from data import get_path
-
-Thresh = 0.005  # unlabel_loss threshold
-
-class ModelLoader(object):
-
-    def __init__(self):
-        self.name = "Model-Loader"
-
-    def load(self, modelType, mobileNet=None):
-        # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
-        if modelType == 2:
-            model = MobileReg(lamb=0.1, thresh=Thresh)
-        elif modelType == 3:
-            model = MobileEncoderReg(lamb=0.001)
-
-        if mobileNet is not None:
-            model.load_mobilenet(mobileNet)
-            print "Loaded MobileNet ", mobileNet
-
-        return model
-
-    def load_trained(self, modelType, trained_params):
-        model = self.load(modelType) 
-        model.load_pretrained(trained_params)
-
-        print "Loaded weights from ", trained_params
-        return model
+from generalData import DataLoader, MixDataset
+from singleLabelData import SingleLabelDataset 
+from folderUnlabelData import FolderUnlabelDataset
+from dukeSeqLabelData import DukeSeqLabelDataset
+from viratSeqLabelData import ViratSeqLabelDataset
 
 class DatasetLoader(object):
 

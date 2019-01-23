@@ -1,6 +1,8 @@
+import sys
+sys.path.insert(0, '..')
+
 import os
 import sys
-import time
 import signal
 import logging
 
@@ -9,6 +11,7 @@ from exception import WFException
 from accValue import AccumulatedValue
 from avPlotter import AccumulatedValuePlotter
 from visdomPlotter import VisdomLinePlotter
+from network import ModelLoader
 
 class WorkFlow(object):
 
@@ -16,19 +19,16 @@ class WorkFlow(object):
     SIG_INT = False
     IS_FINALISING = False
 
-    def __init__(self, logFile, saveFreq=100, showFreq=20, verbose=False, livePlot=False):
+    def __init__(self, config, verbose=False, livePlot=False):
         # True to enable debug_print
+        self.config = config
         self.verbose = verbose
         self.livePlot = livePlot 
-
         self.isInitialized = False
-        self.saveFreq = saveFreq
-        self.showFreq = showFreq
 
         # Accumulated value dictionary & plotter.
         self.AV = {}
         self.AVP = []
-
         for v, w in self.acvs.items():
             self.add_accumulated_value(v, w)
 
@@ -44,7 +44,7 @@ class WorkFlow(object):
         if not os.path.isdir(self.logdir):
             os.makedirs(self.logdir)
 
-        logFilePath = os.path.join(self.logdir, logFile)
+        logFilePath = os.path.join(self.logdir, self.logfile)
 
         fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
         fileHandler.setLevel(logging.DEBUG)
@@ -60,21 +60,22 @@ class WorkFlow(object):
 
         self.logger.info("WorkFlow created.")
 
-        self.load_dataset()
-        self.model = self.load_model()
-        self.countTrain = self.model.countTrain
-
-    def get_log_dir(self):
-        pass
+        self.prepare_dataset()
+        self.load_model()
 
     def run(self):
         pass
 
-    def load_model(self):
-        pass
-
     def load_dataset(self):
         pass
+
+    def prepare_dataset(self):
+        pass
+
+    def load_model(self):
+        loader = ModelLoader()
+        self.model = loader.load(self.config['model'])
+        self.countTrain = self.model.countTrain
 
     def proceed(self):
         self.initialize()
@@ -229,9 +230,8 @@ class WorkFlow(object):
 
         return logstr
 
+
 # Default signal handler.
-
-
 def default_signal_handler(sig, frame):
     if (False == WorkFlow.IS_FINALISING):
         print("This is the default signal handler. Set SIG_INT flag for WorkFlow class.")

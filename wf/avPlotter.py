@@ -36,7 +36,7 @@ class AccumulatedValuePlotter(object):
         self.ylabel = "loss"
 
     def write_image(self, outDir):
-        """ """
+        """ write loss diagramm to image file """
         fig, ax = plt.subplots(nrows=1, ncols=1)
         legend = []
 

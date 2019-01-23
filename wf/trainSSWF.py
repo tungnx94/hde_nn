@@ -1,21 +1,7 @@
-import sys
-sys.path.append("..")
-
-import os
 import torch
 import torch.optim as optim
 
-from netWF import TrainWF
-
-LearningRate = 0.001  # to tune
-TrainStep = 20000  # number of train() calls 20000
-ValStep = 50
-
-Snapshot = 500  # 500 model save period
-ValFreq = 200  # do a valing every valFreq steps 200
-ShowFreq = 50  # print to screen
-
-ModelName = 'facing'
+from trainWF import TrainWF
 
 AccumulateValues = {"train_total": 100,
                     "train_label": 100,
@@ -24,21 +10,25 @@ AccumulateValues = {"train_total": 100,
                     "val_label": 20,
                     "val_unlabel": 20}
 
-
 class TrainSSWF(TrainWF):
 
-    def __init__(self, workingDir, prefix):
-
+    def __init__(self, config):
         self.acvs = AccumulateValues
 
-        TrainWF.__init__(self, workingDir, prefix, ModelName,
-                         trainStep=TrainStep, valFreq=ValFreq, saveFreq=Snapshot, showFreq=ShowFreq, lr=LearningRate)
+        TrainWF.__init__(self, config)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
         self.add_plotter("total_loss", ['train_total', 'val_total'], [True, True])
         self.add_plotter("label_loss", ['train_label', 'val_label'], [True, True])
         self.add_plotter("unlabel_loss", ['train_unlabel', 'val_unlabel'], [True, True])
+
+    def prepare_dataset(self):
+        label_dts, unlabel_dts, val_dts = self.load_dataset()
+
+        self.train_loader = d_loader.loader(label_dts, self.batch)
+        self.train_unlabel_loader = d_loader.loader(unlabel_dts, self.batch_unlabel)
+        self.val_loader = d_loader.loader(val_dts, self.batch_val)
 
     def train(self):
         """ train model (one batch) """
