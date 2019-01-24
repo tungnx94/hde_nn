@@ -15,12 +15,7 @@ class AccumulatedValuePlotter(object):
             exp = WFException("The avNameList is empty.",
                               "AccumulatedValuePlotter")
             raise(exp)
-
-        # Pack the avNameList in to index dictionary.
-        initIndexList = [-1] * len(self.avNameList)
-
-        self.plotIndexDict = dict(zip(self.avNameList, initIndexList))
-
+            
         self.lastIdx = -1
 
     def write_image(self, outDir):

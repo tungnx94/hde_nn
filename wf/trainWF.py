@@ -79,11 +79,14 @@ class TrainWF(WorkFlow):
 
         self.logger.info("Finished training")
 
+    def train_loss(self):
+        pass
+
+    def val_loss(self):
+        pass
+
     def train(self):
         pass
 
     def validate(self):
         pass
-
-
-

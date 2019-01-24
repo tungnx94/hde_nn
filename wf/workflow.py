@@ -27,10 +27,10 @@ class WorkFlow(object):
         self.isInitialized = False
 
         # Accumulated value dictionary & plotter.
-        self.AV = {}
-        self.AVP = []
-        for v, w in self.acvs.items():
-            self.add_accumulated_value(v, w)
+        self.AV = AccumulatedValue(config['acvs'])
+        self.AVP = []        
+        for plot in config['plots']:
+            self.add_plotter(plot['name'], plot['values'], plot['average'])            
 
         ### Init logging
         # Console log
@@ -80,40 +80,24 @@ class WorkFlow(object):
         self.run()
         self.finalize()
 
-    def add_accumulated_value(self, name, avgWidth=2):
-        # Check if there is alread an ojbect whifch has the same name.
-        if (name in self.AV.keys()):
-            # This is an error.
-            desc = "There is already an object registered as \"%s\"." % (name)
-            exp = WFException(desc, "add_accumulated_value")
-            raise(exp)
-
-        # Name is new. Create a new AccumulatedValue object.
-        self.AV[name] = AccumulatedValue(name, avgWidth)
-
-    def add_plotter(self, name, name_list, avg_flag_list):
+    def add_plotter(self, name, avList, plot_average):
         if self.livePlot:
-            plotter = VisdomLinePlotter(name, self.AV, name_list, avg_flag_list)
+            plotter = VisdomLinePlotter(name, self.AV, avList, plot_average)
         else:
-            plotter = AccumulatedValuePlotter(name, self.AV, name_list, avg_flag_list)
+            plotter = AccumulatedValuePlotter(name, self.AV, avList, plot_average)
 
         self.AVP.append(plotter)
 
-    def have_accumulated_value(self, name):
-        return (name in self.AV.keys())
-
     def push_to_av(self, name, value, stamp=None):
         # Check if the name exists.
-        if (False == (name in self.AV.keys())):
+        if not (name in self.AV.keys()):
             # This is an error.
             desc = "No object is registered as %s." % (name)
             exp = WFException(desc, "push_to_av")
             raise(exp)
 
         # Retrieve the AccumulatedValue object.
-        av = self.AV[name]
-
-        av.push_back(value, stamp)
+        self.AV.push_value(name, value, stamp)
 
     def initialize(self):
         # Check the system-wide signal.
@@ -180,13 +164,12 @@ class WorkFlow(object):
 
         self.debug_print("finalize() get called.")
 
+    def write_accumulated_values(self, outDir):
+        self.AV.save_csv(self.logdir)
+
     def plot_accumulated_values(self):
         for avp in self.AVP:
             avp.update()
-
-    def write_accumulated_values(self, outDir):
-        for av in self.AV.itervalues():
-            av.save_csv(outDir)
 
     def draw_accumulated_values(self, outDir):
         for avp in self.AVP:

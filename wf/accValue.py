@@ -6,13 +6,12 @@ import workflow as wf
 
 class AccumulatedValue(object):
 
-    def __init__(self, name, avgWidth):
+    def __init__(self, avgWidth):
         if (avgWidth <= 0):
             exp = wf.WFException(
                 "Averaging width must be a positive integer.", "AccumulatedValue")
             raise(exp)
 
-        self.name = name
         self.avList = list(avgWidth.keys())
 
         self.avgWidth = avgWidth  # average window size
@@ -23,7 +22,10 @@ class AccumulatedValue(object):
         self.avg = {av:[] for av in self.avList}   # average values
         
 
-    def push_value(self, name, value):
+    def push_value(self, name, value, stamp=None):
+        if (self.stamp != []) and (self.stamp[-1] != stamp)
+            self.stamp.append(stamp) 
+
         self.acc[name].append(value)
 
         self.avgCount[name] = self.push_avg(value, self.acc[name], self.avg[name], self.avgCount[name], self.avgWidth[name]) 
@@ -86,7 +88,6 @@ class AccumulatedValue(object):
 
     def show_raw_data(self):
         # for debugging purpose
-        print("%s" % (self.name))
         print("stamp: ", self.stamp)
         print("acc: ", self.acc)
         print("avg: ", self.avg)
@@ -97,6 +98,6 @@ class AccumulatedValue(object):
             data_dict[av] = self.acc[av]
             data_dict[av + '_avg'] = self.avg[av]
 
-        save_path = os.path.join(outDir, self.name + ".csv")
+        save_path = os.path.join(outDir, "values.csv")
         df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(save_path, index=False)

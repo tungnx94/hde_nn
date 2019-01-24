@@ -17,5 +17,32 @@
         "type": 2,
         "mobile": "network/pretrained_models/mobilenet_v1_0.50_224.pth",
         "trained": null
-        }
+        },
+    "acvs": {
+        "train_label": 100,
+        "train_unlabel": 100,
+        "train_total": 100,
+        "val_label": 20,
+        "val_unlabel": 20,
+        "val_total": 20,
+        },
+    "plots": [
+        {   "name": "total_loss",
+            "values": ["train_total", "val_total"],
+            "average":true  },
+        {   "name": "label_loss",
+            "values": ["train_label", "val_label"],
+            "average":true  },
+        {   "name": "unlabel_loss",
+            "values": ["train_unlabel", "val_unlabel"],
+            "average":true  }
+        ],
+    "losses": [
+        "train_label",
+        "train_unlabel",
+        "train_total",
+        "val_label",
+        "val_unlabel",
+        "val_total"
+        ]
 }

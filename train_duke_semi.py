@@ -14,6 +14,12 @@ TestConfig = None
 
 class TrainDuke(TrainSSWF):
 
+    def val_loss(self):
+        sample = self.val_loader.next_sample()
+        inputs = sample[0].squeeze()
+        targets = sample[1].squeeze()
+        return self.model.forward_combine(inputs, targets, inputs)
+
     def load_dataset(self):
         train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
         train_virat = d_loader.single_label('train-virat', 'VIRAT/person/train.csv')
