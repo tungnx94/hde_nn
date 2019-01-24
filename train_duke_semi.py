@@ -1,5 +1,6 @@
 from wf import *
 from dataset import DatasetLoader
+from utils import read_json
 
 Mean = [0.485, 0.456, 0.406]
 Std = [0.229, 0.224, 0.225]
@@ -8,27 +9,8 @@ d_loader = DatasetLoader(Mean, Std)
 # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
 ModelType = 2
 
-TrainConfig = {
-    'dir': './log',
-    'prefix': 'sample',
-    'log': 'train.log',
-    'train_step': 1000,
-    'val_step': 100,
-    'save_freq': 500,
-    'show_freq': 50,
-    'val_freq': 250,
-    'batch': 128,
-    'batch_unlabel': 1,
-    'batch_val': 1,
-    'lr': 0.001, 
-    'seq_length': 24,
-    'model': {
-        'name': 'facing',
-        'type': 2,
-        'mobile': 'network/pretrained_models/mobilenet_v1_0.50_224.pth',
-        'trained': None
-        }
-    }
+TrainConfig = read_json('config/train.json')
+TestConfig = None
 
 class TrainDuke(TrainSSWF):
 
@@ -53,21 +35,6 @@ class TrainDuke(TrainSSWF):
 
         return (label_dts, unlabel_dts, val_dts)
 
-TestConfig = {
-    'dir': './log/sample_01-22_19:37',
-    'prefix': '',
-    'log': 'test.log',
-    'test_step': 500,
-    'show_freq': 25,
-    'save_freq': 250,
-    'batch': 1,
-    'seq_length': 24,
-    'model': {
-        'type': 2,
-        'trained': 'facing_20000.pkl',
-        }
-    }
-
 class TestDuke_1(TestLabelWF):
     def load_dataset(self):
         return d_loader.single_label('DRONE_test', 'DRONE_label/test.csv', data_aug=False)
@@ -85,13 +52,13 @@ def select_WF(TestType):
     if TestType == 0:
         return TrainDuke(TrainConfig)
     elif TestType == 1:
-        TestConfig['prefix'] = 'label'
+        TestConfig = read_json('config/test01.json')
         return TestDuke_1(TestConfig)
     elif TestType == 2:
-        TestConfig['prefix'] = 'unlabel'
+        TestConfig = read_json('config/test02.json')
         return TestDuke_2(TestConfig)
     else:  # 3
-        TestConfig['prefix'] = 'label_seq'
+        TestConfig = read_json('config/test03.json')
         return TestDuke_3(TestConfig)
 
 

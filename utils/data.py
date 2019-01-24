@@ -1,6 +1,7 @@
 import os
 import torch
 import random
+import json
 import numpy as np
 
 from math import pi
@@ -9,6 +10,10 @@ BASE = "/home/airlab/projects/data_icra"
 
 ACC_THRESH = pi/8
 
+def read_json(file):
+    with open(file, 'r') as f:
+        data = json.load(f)
+    return data
 
 def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
