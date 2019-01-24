@@ -6,51 +6,53 @@ import workflow as wf
 
 class AccumulatedValue(object):
 
-    def __init__(self, name, avgWidth=2):
+    def __init__(self, name, avgWidth):
         if (avgWidth <= 0):
             exp = wf.WFException(
                 "Averaging width must be a positive integer.", "AccumulatedValue")
             raise(exp)
 
         self.name = name
+        self.avList = list(avgWidth.keys())
+
         self.avgWidth = avgWidth  # average window size
-        self.avgCount = 0
+        self.avgCount = {av:0 for av in self.avList}
 
-        self.acc = []   # values
-        self.avg = []   # average values
         self.stamp = []  # time stamps
+        self.acc = {av:[] for av in self.avList}   # values
+        self.avg = {av:[] for av in self.avList}   # average values
+        
 
-    def push_back(self, v, stamp=None):
-        self.acc.append(v)
+    def push_value(self, name, value):
+        self.acc[name].append(value)
 
-        if (stamp is not None):
-            self.stamp.append(stamp)
+        self.avgCount[name] = self.push_avg(value, self.acc[name], self.avg[name], self.avgCount[name], self.avgWidth[name]) 
+
+    def push_avg(self, value, acc, avg, avgCount, avgWidth):
+        if avgCount == 0:
+            avg.append(value)
+            avgCount = 1
         else:
-            if (0 == len(self.stamp)):
-                self.stamp.append(0)
+            # calculate new average
+            if avgCount < avgWidth:
+                new_avg = (avg[-1]*avgCount + value) / (avgCount + 1)
             else:
-                self.stamp.append(self.stamp[-1] + 1)
+                new_avg = (avg[-1]*avgCount - acc[-1-avgCount] + value) / avgCount
+            avg.append(new_avg)
+            avgCount = min(avgCount + 1, avgWidth)
 
-        # Calculate new average.
-        if (0 == len(self.avg)):
-            self.avg.append(v)
-            self.avgCount = 1
-        else:
-            if (self.avgCount < self.avgWidth):
-                self.avg.append(
-                    (self.avg[-1]*self.avgCount + self.acc[-1]) / (self.avgCount + 1))
-                self.avgCount += 1
-            else:
-                self.avg.append(
-                    (self.avg[-1]*self.avgCount - self.acc[-1-self.avgCount] + self.acc[-1]) / self.avgCount)
+        return avgCount 
+
+    def push_stamp(self, new_idx):
+        self.stamp.append(new_idx)
 
     def clear(self):
         """ reset all values """
-        self.acc = []
-        self.stamp = []
-        self.avg = []
+        self.acc = {}
+        self.stamp = {}
+        self.avg = {}
 
-    def last(self):
+    def last(self, name):
         """ return last value """
         if (0 == len(self.acc)):
             # This is an error.
@@ -58,9 +60,9 @@ class AccumulatedValue(object):
             exp = wf.WFException(desc, "last")
             raise(exp)
 
-        return self.acc[-1]
+        return self.acc[name][-1]
 
-    def last_avg(self):
+    def last_avg(self, name):
         """ return last average value """
         if (0 == len(self.avg)):
             # This is an error.
@@ -68,28 +70,33 @@ class AccumulatedValue(object):
             exp = wf.WFException(desc, "last_avg")
             raise(exp)
 
-        return self.avg[-1]
+        return self.avg[name][-1]
 
     def get_num_values(self):
         return len(self.acc)
 
-    def get_values(self):
-        return self.acc
-
     def get_stamps(self):
         return self.stamp
 
-    def get_avg(self):
-        return self.avg
+    def get_values(self, name):
+        return self.acc[name]
+
+    def get_avg_values(self, name):
+        return self.avg[name]
 
     def show_raw_data(self):
+        # for debugging purpose
         print("%s" % (self.name))
-        print("acc: ", self.acc)
         print("stamp: ", self.stamp)
+        print("acc: ", self.acc)
+        print("avg: ", self.avg)
 
     def save_csv(self, outDir):
-        data_dict = {"stamp": self.stamp, "value": self.acc, "average": self.avg}
-        df = pd.DataFrame.from_dict(data_dict)
+        data_dict = {"stamp": self.stamp} 
+        for av in self.avList:
+            data_dict[av] = self.acc[av]
+            data_dict[av + '_avg'] = self.avg[av]
 
         save_path = os.path.join(outDir, self.name + ".csv")
+        df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(save_path, index=False)

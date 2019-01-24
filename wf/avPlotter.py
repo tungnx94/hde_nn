@@ -5,10 +5,11 @@ from exception import WFException
 
 class AccumulatedValuePlotter(object):
 
-    def __init__(self, name, av, avNameList, avAvgFlagList=None):
+    def __init__(self, name, av, avNameList, plot_average=True):
         self.name = name
         self.AV = av
         self.avNameList = avNameList
+        self.plot_average = plot_average 
 
         if len(self.avNameList) == 0:
             exp = WFException("The avNameList is empty.",
@@ -20,41 +21,28 @@ class AccumulatedValuePlotter(object):
 
         self.plotIndexDict = dict(zip(self.avNameList, initIndexList))
 
-        if avAvgFlagList is None:
-            avAvgFlagList = [False] * len(self.avNameList)
-        else:
-            if len(self.avNameList) != len(avAvgFlagList):
-                exp = WFException(
-                    "The lenght of avAvgFlagList should be the same with avNameList", "AccumulatedValuePlotter")
-                raise(exp)
-
-        self.avAvgFlagDict = dict(zip(self.avNameList, avAvgFlagList))
-
-        # plot name & axes
-        self.title = self.name
-        self.xlabel = "iteration"
-        self.ylabel = "loss"
+        self.lastIdx = -1
 
     def write_image(self, outDir):
         """ write loss diagramm to image file """
         fig, ax = plt.subplots(nrows=1, ncols=1)
         legend = []
 
+        stamps = self.AV.get_stamps()
         for name in self.avNameList:
-            av = self.AV[name]
-
-            ax.plot(av.get_stamps(), av.get_values())
+            ax.plot(stamps, self.AV.get_values(name)) 
             legend.append(name)
 
-            if self.avAvgFlagDict[name]:
-                ax.plot(av.get_stamps(), av.get_avg())
+            if self.plot_average:
+                ax.plot(stamps, self.AV.get_avg_values(name))
                 legend.append(name + "_avg")
 
+        # plot
         ax.legend(legend)
         ax.grid()
-        ax.set_title(self.title)
-        ax.set_xlabel(self.xlabel)
-        ax.set_ylabel(self.ylabel)
+        ax.set_title(self.name)
+        ax.set_xlabel("iteration")
+        ax.set_ylabel("loss")
 
         fig.savefig(outDir + "/" + self.title + ".png")
         plt.close(fig)

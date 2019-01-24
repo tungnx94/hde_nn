@@ -11,13 +11,12 @@ class VisdomLinePlotter(AccumulatedValuePlotter):
     vis = None
     visStartUpSec = 1
 
-    def __init__(self, name, av, avNameList, avAvgFlagList=None, semiLog=False):
+    def __init__(self, name, av, avNameList, plot_average=True, semiLog=False):
         super(VisdomLinePlotter, self).__init__(
-            name, av, avNameList, avAvgFlagList)
+            name, av, avNameList, plot_average)
 
         self.count = 0
         self.minPlotPoints = 2
-
         self.visLine = None
 
         if (True == semiLog):
@@ -26,6 +25,7 @@ class VisdomLinePlotter(AccumulatedValuePlotter):
             self.plotType = "linear"
 
     def initialize(self):
+        # create new Vis instance
         if (VisdomLinePlotter.vis is not None):
             print("visdom already initialized.")
             return
@@ -59,57 +59,30 @@ class VisdomLinePlotter(AccumulatedValuePlotter):
             raise(exp)
 
         # Gather the data.
-        # nLines = len( self.avNameList )
-        nMaxPoints = 0
-
-        for name in self.avNameList:
-            # Find the AccumulatedVariable object.
-            av = self.AV[name]
-            nPoints = av.get_num_values()
-
-            if (nPoints > nMaxPoints):
-                nMaxPoints = nPoints
+        nMaxPoints = self.AV.get_num_values()
 
         if (nMaxPoints < self.minPlotPoints):
             # Not enough points to plot, do nothing.
             return
 
         # Enough points to plot.
-        # Get the points to be ploted.
-        nameList = []
-        for name in self.avNameList:
-            av = self.AV[name]
-            lastIdx = self.plotIndexDict[name]
-            pointsInAv = av.get_num_values()
-
-            if (pointsInAv - 1 > lastIdx and 0 != pointsInAv):
-                nameList.append(name)
-
-        if (0 == len(nameList)):
-            # No update actions should be performed.
-            return
-
-        # Retreive the Visdom object.
         vis = self.get_vis()
 
-        for i in range(len(nameList)):
-            name = nameList[i]
-            av = self.AV[name]
-            lastIdx = self.plotIndexDict[name]
-
-            x = np.array(av.get_stamps()[lastIdx + 1:])
-
-            if (self.visLine is None):
+        stamps = av.get_stamps()
+        x = np.array(stamps[self.lastIdx + 1:])
+        for name in self.avNameList:
+            y = np.array(self.AV.get_values(name)[self.lastIdx + 1:])
+            if self.visLine is None:
                 # Create the Visdom object.
                 self.visLine = vis.line(
                     X=x,
-                    Y=np.array(av.get_values()[lastIdx + 1:]),
+                    Y=y,
                     name=name,
                     opts=dict(
                         showlegend=True,
-                        title=self.title,
-                        xlabel=self.xlabel,
-                        ylabel=self.ylabel,
+                        title=self.name,
+                        xlabel='iteration',
+                        ylabel='loss',
                         ytype=self.plotType,
                         margintop=30
                     )
@@ -118,7 +91,7 @@ class VisdomLinePlotter(AccumulatedValuePlotter):
                 # Append data to self.visLine.
                 vis.line(
                     X=x,
-                    Y=np.array(av.get_values()[lastIdx + 1:]),
+                    Y=y,
                     win=self.visLine,
                     name=name,
                     update="append",
@@ -127,17 +100,12 @@ class VisdomLinePlotter(AccumulatedValuePlotter):
                     )
                 )
 
-        for i in range(len(nameList)):
-            name = nameList[i]
-            av = self.AV[name]
-            lastIdx = self.plotIndexDict[name]
-
             # Average line.
-            if (True == self.avAvgFlagDict[name]):
+            if self.plot_average:
+                y = np.array(self.AV.get_avg_values(name)[self.lastIdx + 1:])
                 vis.line(
-                    X=np.array(av.get_stamps()[lastIdx + 1:]),
-                    Y=np.array(self.AV[name].get_avg()[
-                               self.plotIndexDict[name] + 1:]),
+                    X=x,
+                    Y=y,
                     win=self.visLine,
                     name=name + "_avg",
                     update="append",
@@ -146,7 +114,4 @@ class VisdomLinePlotter(AccumulatedValuePlotter):
                     )
                 )
 
-            # Update the self.plotIndexDict.
-            self.plotIndexDict[name] = self.AV[name].get_num_values() - 1
-
-        self.count += 1
+        self.lastIdx = self.AV.get_num_values() - 1
