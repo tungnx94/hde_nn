@@ -99,7 +99,7 @@ if __name__ == '__main__':  # test
 
     print stateEncoder
     # data
-    imgdataset = FolderUnlabelDataset("train", img_dir=get_path(
+    imgdataset = FolderUnlabelDataset("train", path=get_path(
         "UCF"), seq_length=seq_length, data_aug=True)
     dataloader = DataLoader(imgdataset)  # batch_size = 1
 

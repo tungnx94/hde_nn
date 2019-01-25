@@ -10,5 +10,16 @@
     "model": {
         "type": 2,
         "trained": "facing_20000.pkl",
-        }
+        },
+    "acvs": {
+        "unlabel": 20,
+        },
+    "plots": [
+        {   "name": "unlabel_loss",
+            "values": ["unlabel"],
+            "average":true  }
+        ],
+    "losses": [
+        "unlabel"
+        ]
 }

@@ -85,8 +85,32 @@ class TrainWF(WorkFlow):
     def val_loss(self):
         pass
 
-    def train(self):
+    def backward_loss(self):
         pass
 
+    def train(self):
+        """ train on one batch """
+        self.countTrain += 1
+        loss = self.backward_loss()
+
+        # backpropagate
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
     def validate(self):
-        pass
+        """ update val loss history """
+        self.logger.info("validation")
+
+        losses = []
+        for count in range(self.valStep):
+            loss_t = self.train_loss()
+            loss_v = self.val_loss()
+            losses.append(torch.tensor(tuple(loss_t) + tuple(loss_v))).unsqueeze(0) # correct ?
+
+        losses = torch.cat(tuple(losses), dim=0)
+        loss_mean = torch.mean(losses, dim=0)
+
+        for idx, av in enumerate self.config['losses']
+            self.push_to_av(av, loss[idx].item(), self.countTrain)
+    

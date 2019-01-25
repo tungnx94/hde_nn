@@ -23,11 +23,10 @@ class AccumulatedValue(object):
         
 
     def push_value(self, name, value, stamp=None):
-        if (self.stamp != []) and (self.stamp[-1] != stamp)
+        if (self.stamp == []) or ((self.stamp != []) and (self.stamp[-1] != stamp)):
             self.stamp.append(stamp) 
 
         self.acc[name].append(value)
-
         self.avgCount[name] = self.push_avg(value, self.acc[name], self.avg[name], self.avgCount[name], self.avgWidth[name]) 
 
     def push_avg(self, value, acc, avg, avgCount, avgWidth):

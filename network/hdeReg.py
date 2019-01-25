@@ -13,23 +13,25 @@ StridesDF = [2, 2, 3, 2, 1]
 
 class HDEReg(HDENet):
 
-    def __init__(self, hidNum=256, output_type="reg", device=None, init=True):
+    def __init__(self, hidNum=256, output_type="reg", device=None, init=True, testing=False):
         # input size should be [192x192]
         HDENet.__init__(self, device)
         
+        self.testing = testing
         self.feature = BaseExtractor(hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF)
 
         # self.reg = nn.Linear(256, 2)
+        x = 'none' if testing else 'mean'
 
         if output_type == "reg": # regressor
-            self.criterion = nn.MSELoss()  # L2    
+            self.criterion = nn.MSELoss(reduction=reduct)  # L2    
             self.reg = nn.Sequential(
                 nn.Linear(hidNum, 64),
                 nn.ReLU(),
                 nn.Linear(64, 2)
             )
         else: # current dirty fix
-            self.criterion = nn.CrossEntropyLoss()
+            self.criterion = nn.CrossEntropyLoss(reduction=reduct)
             self.reg = nn.Sequential(
                 nn.Linear(hidNum, 32),
                 nn.ReLU(),
@@ -68,7 +70,7 @@ if __name__ == '__main__':
 
     net = HDEReg()
     dataset = SingleLabelDataset(
-        "duke", data_file=get_path('DukeMTMC/test/test.csv'), img_size=64)
+        "duke", path=get_path('DukeMTMC/test/test.csv'), img_size=64)
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=32)
 

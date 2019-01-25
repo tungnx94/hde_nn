@@ -80,7 +80,7 @@ if __name__ == "__main__":
     import torch.optim as optim
 
     dataset = DukeSeqLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/test/test.csv'), seq_length=8, data_aug=True)
+        "duke-test", path=get_path('DukeMTMC/test/test.csv'), seq_length=8, data_aug=True)
     dataset.shuffle()
     dataset.resize(5000)
     loader = DataLoader(dataset)

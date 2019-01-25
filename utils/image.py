@@ -63,6 +63,9 @@ def put_arrow(img, dir, center_x=150, center_y=96):
     return img
 
 
+# TODO: fix usage
+WAIT = 1000
+
 def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
     """ 
     display images (optional with arrow)
@@ -88,7 +91,7 @@ def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
 
     imgshow = cv2.resize(imgshow, (0, 0), fx=scale, fy=scale)
     cv2.imshow('img', imgshow)
-    cv2.waitKey(0)
+    cv2.waitKey(WAIT)
 
 
 # amigo add for data augmentation before normalization

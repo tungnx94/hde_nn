@@ -8,18 +8,11 @@ SAFE_DISTANCE = 40.0
 
 class ViratSeqLabelDataset(SequenceLabelDataset):
 
-    def __init__(self, name, data_file=None, 
-                img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=24, saved_file=None):
-
-        self.data_file = data_file
-
-        SequenceLabelDataset.__init__(
-            self, name, img_size, data_aug, 0, mean, std, seq_length, saved_file)
-
     def init_data(self):
+        data_file = self.path
 
-        data = pd.read_csv(self.data_file).to_dict(orient='records')
-        base_folder = os.path.dirname(self.data_file)
+        data = pd.read_csv(data_file).to_dict(orient='records')
+        base_folder = os.path.dirname(data_file)
         # each element is (image, label, direction)
 
         line_dict = {}
@@ -83,10 +76,10 @@ if __name__ == '__main__':
     from utils import get_path, seq_show
 
     virat = ViratSeqLabelDataset("virat",
-            data_file=get_path('VIRAT/person/train.csv'), seq_length=24)
+            path=get_path('VIRAT/person/train.csv'), seq_length=12)
 
     pes = ViratSeqLabelDataset("3dpes",
-            data_file=get_path('3DPES/train.csv'), seq_length=24)
+            path=get_path('3DPES/train.csv'), seq_length=12, data_aug=True)
 
     for dataset in [virat, pes]:
         print dataset
@@ -98,19 +91,17 @@ if __name__ == '__main__':
             angleseq = angleseq.squeeze().numpy()
 
             seq_show(imgseq, dir_seq=angleseq, scale=0.8)
-
-    """
+    
     virat = ViratSeqLabelDataset("virat-train",
-            data_file=get_path('VIRAT/person/train.csv'), seq_length=24)
+            path=get_path('VIRAT/person/train.csv'), seq_length=12, data_aug=True)
     virat = ViratSeqLabelDataset("virat-val",
-            data_file=get_path('VIRAT/person/val.csv'), seq_length=24)
+            path=get_path('VIRAT/person/val.csv'), seq_length=12, data_aug=True)
     virat = ViratSeqLabelDataset("virat-test",
-            data_file=get_path('VIRAT/person/test.csv'), seq_length=24)
+            path=get_path('VIRAT/person/test.csv'), seq_length=12, data_aug=True)
 
     pes = ViratSeqLabelDataset("3dpes-train",
-            data_file=get_path('3DPES/train.csv'), seq_length=24)
+            path=get_path('3DPES/train.csv'), seq_length=12, data_aug=True)
     pes = ViratSeqLabelDataset("3dpes-val",
-            data_file=get_path('3DPES/val.csv'), seq_length=24)
+            path=get_path('3DPES/val.csv'), seq_length=12, data_aug=True)
     pes = ViratSeqLabelDataset("3dpes-test",
-            data_file=get_path('3DPES/test.csv'), seq_length=24)
-    """
+            path=get_path('3DPES/test.csv'), seq_length=12, data_aug=True)

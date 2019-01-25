@@ -23,28 +23,7 @@ class TrainSSWF(TrainWF):
 
         return self.model.forward_combine(inputs, targets, unlabel_seqs)
 
-    def train(self):
-        """ train on one batch """
-        self.countTrain += 1
+    def backward_loss(self):
+        # return combined loss
         loss = self.train_loss()
-
-        # backpropagate
-        self.optimizer.zero_grad()
-        loss[2].backward()
-        self.optimizer.step()
-
-    def validate(self):
-        """ update val loss history """
-        self.logger.info("validation")
-
-        losses = []
-        for count in range(self.valStep):
-            loss_t = self.train_loss()
-            loss_v = self.val_loss()
-            losses.append(torch.tensor(tuple(loss_t, loss_v)).unsqueeze(0)) 
-
-        losses = torch.cat(tuple(losses), dim=0)
-        loss_mean = torch.mean(losses, dim=0)
-
-        for idx, av in enumerate self.config['losses']
-            self.push_to_av(av, loss[idx].item(), self.countTrain)
+        return loss[2] 

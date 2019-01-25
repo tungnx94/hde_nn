@@ -82,7 +82,7 @@ if __name__ == '__main__':
     net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
     dataset = SingleLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/test/test.csv'), data_aug=True)
+        "duke-test", path=get_path('DukeMTMC/test/test.csv'), data_aug=True)
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=32)
     

@@ -7,17 +7,12 @@ from sequenceData import SequenceLabelDataset
 
 class DukeSeqLabelDataset(SequenceLabelDataset):
 
-    def __init__(self, name, data_file=None,
-                 img_size=192, data_aug=False, mean=[0, 0, 0], std=[1, 1, 1], seq_length=24, saved_file=None):
-        self.data_file = data_file
-
-        SequenceLabelDataset.__init__(
-            self, name, img_size, data_aug, 0, mean, std, seq_length, saved_file)
-
     def init_data(self):
+        data_file = self.path
+
         frame_iter = 6
-        base_folder = os.path.dirname(self.data_file)
-        data = pd.read_csv(self.data_file).to_dict(orient='records')
+        base_folder = os.path.dirname(data_file)
+        data = pd.read_csv(data_file).to_dict(orient='records')
 
         last_idx = -1
         last_cam = -1
@@ -41,7 +36,8 @@ class DukeSeqLabelDataset(SequenceLabelDataset):
 
             last_idx = frame_id
             last_cam = cam_num
-            seq.append((img_path, label, group))
+            # seq.append((img_path, label, group))
+            seq.append((img_path, label, group, img_path))
 
         self.save_sequence(seq)
 
@@ -53,9 +49,9 @@ if __name__ == '__main__':  # test
     from generalData import DataLoader
     from utils import get_path, seq_show
 
-    """
+    
     unlabelset = DukeSeqLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/test/person.csv'))
+        "duke-test", path=get_path('DukeMTMC/test/test.csv'))
     dataloader = DataLoader(unlabelset)
 
     for count in range(5):
@@ -63,14 +59,24 @@ if __name__ == '__main__':  # test
         imgseq = sample[0].squeeze()
         labelseq = sample[1].squeeze()
 
-        seq_show(imgseq.numpy(), dir_seq=labelseq)
-    """
+        info = sample[3] 
+        print type(info)
+        print len(info)
+        print info
 
+        fl = sample[4]
+        print fl
+
+        seq_show(imgseq.numpy(), dir_seq=labelseq)
+    
+
+    """
     trainset = DukeSeqLabelDataset(
-        "duke-train", data_file=get_path('DukeMTMC/train/train.csv'))
+        "duke-train", path=get_path('DukeMTMC/train/train.csv'))
 
     valset = DukeSeqLabelDataset(
-        "duke-val", data_file=get_path('DukeMTMC/train/val.csv'))
+        "duke-val", path=get_path('DukeMTMC/train/val.csv'))
 
     testset = DukeSeqLabelDataset(
-        "duke-test", data_file=get_path('DukeMTMC/test/test.csv'))
+        "duke-test", path=get_path('DukeMTMC/test/test.csv'))
+    """

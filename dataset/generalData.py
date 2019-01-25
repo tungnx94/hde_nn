@@ -72,14 +72,19 @@ FlipDir = {0:4, 1:3, 2:2, 3:1, 4:0, 5:7, 6:6, 7:5}
 
 class SingleDataset(GeneralDataset):
 
-    def __init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file=None, auto_shuffle=False):
+    def __init__(self, name, path=None,
+                 img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1],
+                 saved_file=None, auto_shuffle=False, testing=False):
+    
+        GeneralDataset.__init__(self, name, auto_shuffle)
+
+        self.path = path
+        self.img_size = img_size
         self.aug = data_aug
+        self.maxscale = maxscale
         self.mean = mean
         self.std = std
-        self.maxscale = maxscale
-        self.img_size = img_size
-
-        GeneralDataset.__init__(self, name, auto_shuffle)
+        self.testing = testing
 
         if saved_file is not None:
             self.load(saved_file)

@@ -37,7 +37,7 @@ class TrainDuke(TrainSSWF):
         #unlabel_drone.resize()
         unlabel_dts = d_loader.mix('Training-unlabel', [unlabel_duke, unlabel_ucf, unlabel_drone])
         
-        val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', TrainConfig['seq_length'])
+        val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', self.config['seq_length'])
 
         return (label_dts, unlabel_dts, val_dts)
 

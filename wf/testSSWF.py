@@ -2,17 +2,6 @@ from testWF import TestWF
 
 class TestLabelSeqWF(TestWF):  # Type 1
 
-    def __init__(self, config):
-        self.acvs = {"total": 20,
-                     "label": 20,
-                     "unlabel": 20}
-
-        TestWF.__init__(self, config)
-
-        self.add_plotter("total_loss", ['total'], [True])
-        self.add_plotter("label_loss", ['label'], [True])
-        self.add_plotter("unlabel_loss", ['unlabel'], [True])
-
     def test(self):
         sample = self.test_loader.next_sample()
         inputs = sample[0].squeeze()
@@ -26,13 +15,6 @@ class TestLabelSeqWF(TestWF):  # Type 1
 
 class TestLabelWF(TestWF):  # Type 2
 
-    def __init__(self, config):
-        self.acvs = {"label": 20}
-
-        TestWF.__init__(self, config)
-
-        self.add_plotter("label_loss", ['label'], [True])
-
     def test(self):
         sample = self.test_loader.next_sample()
         loss = self.model.forward_label(sample[0], sample[1])
@@ -41,13 +23,6 @@ class TestLabelWF(TestWF):  # Type 2
 
 
 class TestUnlabelWF(TestWF):  # Type 3
-
-    def __init__(self, config):
-        self.acvs = {"unlabel": 20}
-
-        TestWF.__init__(self, config)
-
-        self.add_plotter("unlabel_loss", ['unlabel'], [True])
 
     def test(self):
         sample = self.test_loader.next_sample()

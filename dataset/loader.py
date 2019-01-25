@@ -25,16 +25,16 @@ class DatasetLoader(object):
         return DataLoader(dataset, batch_size, shuffle, num_workers)
 
     def folder_unlabel(self, name, path, data_aug=True):
-        return FolderUnlabelDataset(name, img_dir=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
+        return FolderUnlabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
 
     def single_label(self, name, path, data_aug=True):
-        return SingleLabelDataset(name, data_file=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
+        return SingleLabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
 
     def duke_seq(self, name, path, seq_length, data_aug=True):
-        return DukeSeqLabelDataset(name, data_file=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
+        return DukeSeqLabelDataset(name, path=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
 
     def virat_seq(self, name, path, seq_length, data_aug=True):
-        return ViratSeqLabelDataset(name, data_file=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
+        return ViratSeqLabelDataset(name, path=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
 
     def mix(self, name, sets, factors=None):
         mixset = MixDataset(name)

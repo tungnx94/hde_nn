@@ -10,33 +10,31 @@ from utils import one_hot
 
 class SequenceDataset(SingleDataset):
 
-    def __init__(self, name, img_size, data_aug, maxscale, mean, std, seq_length, saved_file=None, auto_shuffle=False):
-        self.seq_length = seq_length
+    def __init__(self, name, path=None, img_size=192, seq_length=12, 
+                data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1],
+                saved_file=None, auto_shuffle=False, testing=False):
 
-        SingleDataset.__init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file, auto_shuffle)
+        self.seq_length = seq_length
+        SingleDataset.__init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file, auto_shuffle, testing)
 
     def read_debug(self):
         print '{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length)
 
     def save_sequence(self, seq):
         # add new sequence to list if long enough
+        """
         if len(seq) >= self.seq_length:
             for start_t in range(len(seq) - self.seq_length + 1):
                 self.items.append(seq[start_t: start_t + self.seq_length])
+        """
 
+        start = 0
+        while start + self.seq_length < len(seq):
+            self.items.append(seq[start: start + self.seq_length])
+            start += self.seq_length
 
-class SequenceUnlabelDataset(SequenceDataset):
-
-    def __getitem__(self, idx):
-        flip = self.get_flipping()
-
-        out_seq = []
-        for img_path in self.items[idx]:
-            img = cv2.imread(img_path)
-            out_img = self.augment_image(img, flip)
-            out_seq.append(out_img)
-
-        return np.array(out_seq)
+        #if len(seq) >= self.seq_length:
+        #    self.items.append(seq[: self.seq_length])
 
 
 class SequenceLabelDataset(SequenceDataset):
@@ -47,10 +45,15 @@ class SequenceLabelDataset(SequenceDataset):
         out_seq = []
         label_seq = []
         dir_seq = []
+
+        info = []
+        fl = []
+
         for sample in self.items[idx]:
             img_path = sample[0]
             label = sample[1]
             direction = sample[2] # direction
+
 
             img = cv2.imread(img_path)
             out_img = self.augment_image(img, flip)
@@ -61,4 +64,10 @@ class SequenceLabelDataset(SequenceDataset):
             label_seq.append(out_label)
             dir_seq.append(out_direction)
 
-        return (np.array(out_seq), np.array(label_seq), np.array(dir_seq))
+            info.append(sample[3])
+            fl.append(int(flip))
+
+        # return (np.array(out_seq), np.array(label_seq), np.array(dir_seq))
+        return (np.array(out_seq), np.array(label_seq), np.array(dir_seq), info, np.array(fl))
+
+
