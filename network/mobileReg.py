@@ -10,12 +10,12 @@ Lamb = 0.1
 
 class MobileReg(HDEReg):
 
-    def __init__(self, hidNum=256, output_type="reg", lamb=0.1, thresh=0.005, device=None):
+    def __init__(self, hidNum=256, output_type="reg", lamb=0.1, thresh=0.005, device=None, testing=False):
         # input size should be [192x192]
         self.lamb = lamb
         self.thresh = thresh
 
-        HDEReg.__init__(self, hidNum, output_type, device, init=False)
+        HDEReg.__init__(self, hidNum, output_type, device, init=False, testing=testing)
 
         self.feature = MobileExtractor(
             hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better

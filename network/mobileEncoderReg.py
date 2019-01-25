@@ -3,22 +3,24 @@ import torch
 import torch.nn as nn
 
 from hdeNet import HDENet
+from hdeReg import HDEReg
 from mobileReg import MobileReg
 from extractor import MobileExtractor
 
 
 class MobileEncoderReg(MobileReg):
 
-    def __init__(self, hidNum=256, rnnHidNum=128, regNum=2, lamb=0.001, device=None):
+    def __init__(self, hidNum=256, rnnHidNum=128, output_type="reg", lamb=0.001, device=None, testing=False):
         # input tensor should be [Batch, 3, 192, 192]
-        HDENet.__init__(self, device=device)
+
         self.lamb = lamb
         self.hidNum = hidNum
         self.rnnHidNum = rnnHidNum
-        self.criterion = nn.MSELoss()
+
+        HDEReg.__init__(self, hidNum, output_type, device, init=False, testing=testing)
 
         self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device) 
-        self.reg = nn.Linear(hidNum, regNum)  # regression (sine, cosine)
+        # self.reg = nn.Linear(hidNum, regNum)  # regression (sine, cosine)
 
         self.pred_en = nn.GRU(hidNum, rnnHidNum)
         self.pred_de = nn.GRU(hidNum, rnnHidNum)
