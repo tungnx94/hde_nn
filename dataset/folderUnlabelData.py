@@ -20,6 +20,7 @@ class FolderUnlabelDataset(SequenceDataset):
 
             self.save_sequence(seq)
 
+    # TODO: fix
     def __getitem__(self, idx):
         flip = self.get_flipping()
 

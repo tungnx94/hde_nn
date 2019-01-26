@@ -22,9 +22,11 @@
         "train_label": 100,
         "train_unlabel": 100,
         "train_total": 100,
+        "train_angle": 100,
         "val_label": 20,
         "val_unlabel": 20,
         "val_total": 20,
+        "val_angle": 20,
         },
     "plots": [
         {   "name": "total_loss",
@@ -35,14 +37,20 @@
             "average":true  },
         {   "name": "unlabel_loss",
             "values": ["train_unlabel", "val_unlabel"],
-            "average":true  }
+            "average":true  },
+        {
+            "name": "angle",
+            "values": ["train_angle", "val_angle"],
+            "average":true }
         ],
     "losses": [
         "train_label",
         "train_unlabel",
         "train_total",
+        "train_angle",
         "val_label",
         "val_unlabel",
-        "val_total"
+        "val_total",
+        "val_angle"
         ]
 }

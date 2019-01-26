@@ -10,14 +10,13 @@ from extractor import MobileExtractor
 
 class MobileEncoderReg(MobileReg):
 
-    def __init__(self, hidNum=256, rnnHidNum=128, output_type="reg", lamb=0.001, device=None, testing=False):
+    def __init__(self, hidNum=256, rnnHidNum=128, output_type="reg", lamb=0.001, device=None):
         # input tensor should be [Batch, 3, 192, 192]
-
         self.lamb = lamb
         self.hidNum = hidNum
         self.rnnHidNum = rnnHidNum
 
-        HDEReg.__init__(self, hidNum, output_type, device, init=False, testing=testing)
+        HDEReg.__init__(self, hidNum, output_type, device, init=False)
 
         self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device) 
         # self.reg = nn.Linear(hidNum, regNum)  # regression (sine, cosine)
@@ -29,9 +28,6 @@ class MobileEncoderReg(MobileReg):
         self._initialize_weights()
         self.load_to_device()
 
-    def unlabel_loss(self, output):
-        pass
-
     def init_hidden(self, hidden_size, batch_size=1):
         h1 = self.new_variable(torch.zeros(
             1, batch_size, hidden_size))  # hidden state
@@ -40,7 +36,7 @@ class MobileEncoderReg(MobileReg):
 
         return (h1, h2)
 
-    def forward_unlabel(self, inputs):
+    def loss_unlabel(self, inputs):
         # input size is [SeqLength, 3, W, H]
         x_encode = self.feature(inputs)
         seq_length = x_encode.size()[0]  # SeqLength
@@ -96,8 +92,8 @@ if __name__ == "__main__":  # test
         sample = dataloader.next_sample()
         sample_unlabel = unlabelloader.next_sample().squeeze()
 
-        loss = model.forward_combine(
-            sample[0], sample[1], sample_unlabel)
+        loss = model.loss_combine(
+            sample[0], sample[1], sample_unlabel, mean=True)
 
         print "iter {}, loss {} {}".format(ind, loss["label"].item(), loss["unlabel"].item())
 

@@ -38,28 +38,12 @@ class MobileRNN(HDEReg):
         output = self.reg(x)
         return output
 
-        """ # sequential proceeding, same result 
-        h = torch.zeros(self.n_layer, 1, self.rnnHidNum) 
-        h = self.new_variable(h)
-        out_seq = []
-        for t in range(seq_length):
-            y = x[t].view(1,1,-1)
-            o, h = self.rnn(y, h)
+    def loss_weighted(self, inputs, targets, mean=False):
+        seq_length = inputs.shape[0]
 
-            out_t = self.reg(o.view(1, self.rnnHidNum))
-            out_seq.append(out_t) 
-
-        pred_out = torch.cat(tuple(out_seq), dim=0)
-        return pred_out
-        """
-
-    def loss_weighted(self, inputs, targets):
         inputs = inputs.to(self.device)
         targets = targets.to(self.device)
-        outputs = self(inputs)
-        
-        seq_length = outputs.shape[0]
-        diff = torch.norm(targets-outputs, dim=1)
+        loss = self.loss_label(inputs, targets)
         
         weight = [0.1]
         for t in range(seq_length-1):
@@ -68,8 +52,12 @@ class MobileRNN(HDEReg):
 
         weight = torch.tensor(weight).to(self.device)
         weight = torch.exp(weight)
-        loss = weight * diff
-        return torch.mean(loss)
+
+        loss = weight * loss
+
+        if mean:
+            loss = torch.mean(loss)
+        return loss
 
 if __name__ == "__main__":
     import sys
@@ -97,8 +85,8 @@ if __name__ == "__main__":
         labels = sample[1].squeeze()
 
         #loss = model.forward_label(imgseq, labels)
-        loss_w = model.loss_weighted(imgseq, labels)
-        loss = model.forward_label(imgseq, labels)
+        loss_w = model.loss_weighted(imgseq, labels, mean=True)
+        loss = model.loss_label(imgseq, labels, mean=True)
         print loss_w.item() , ' ', loss.item()
 
         optimizer.zero_grad()

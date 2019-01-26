@@ -1,5 +1,6 @@
 import os
 import torch
+import numpy as np 
 
 from datetime import datetime
 from workflow import WorkFlow
@@ -34,6 +35,8 @@ class TrainWF(WorkFlow):
 
         WorkFlow.__init__(self, config)
 
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+
     def save_model(self):
         """ Save :param: model to pickle file (pkl) """
         model_path = os.path.join(
@@ -57,12 +60,12 @@ class TrainWF(WorkFlow):
         self.logger.info("Started training")
         # WorkFlow.train(self)
 
-        self.model.train()
+        self.model.train()p 
         for iteration in range(1, self.trainStep + 1):
             WorkFlow.train(self)
             self.train()
 
-            if iteration % self.valFreq == 0:
+            if iteration % self.valFreq == 0:np
                 WorkFlow.test(self)
 
                 self.model.eval()
@@ -79,19 +82,10 @@ class TrainWF(WorkFlow):
 
         self.logger.info("Finished training")
 
-    def train_loss(self):
-        pass
-
-    def val_loss(self):
-        pass
-
-    def backward_loss(self):
-        pass
-
     def train(self):
         """ train on one batch """
         self.countTrain += 1
-        loss = self.backward_loss()
+        loss = self.train_loss()
 
         # backpropagate
         self.optimizer.zero_grad()
@@ -102,15 +96,18 @@ class TrainWF(WorkFlow):
         """ update val loss history """
         self.logger.info("validation")
 
-        losses = []
+        res = []
         for count in range(self.valStep):
-            loss_t = self.train_loss()
-            loss_v = self.val_loss()
-            losses.append(torch.tensor(tuple(loss_t) + tuple(loss_v))).unsqueeze(0) # correct ?
+            metrics = self.val_metrics()
+            res.append(metrics)
 
-        losses = torch.cat(tuple(losses), dim=0)
-        loss_mean = torch.mean(losses, dim=0)
-
+        loss = np.stack(res)
+        loss = np.mean(loss, axis=0)
         for idx, av in enumerate self.config['losses']
-            self.push_to_av(av, loss[idx].item(), self.countTrain)
-    
+            self.push_to_av(av, loss[idx], self.countTrain)
+
+    def train_loss(self):
+        pass
+
+    def val_metrics():
+        pass

@@ -27,6 +27,7 @@ class SingleLabelDataset(SingleDataset):
 
             self.items.append((img_path, label, group))
 
+    # TODO: fix
     def __getitem__(self, idx):
         img_path, label, gr = self.items[idx]
         img = cv2.imread(img_path)
@@ -34,11 +35,13 @@ class SingleLabelDataset(SingleDataset):
 
         out_img = self.augment_image(img, flip)
         out_label = self.augment_label(label, flip)
-        out_gr = one_hot(self.augment_direction(gr, flip))
-
-        # return (out_img, out_label, out_gr)
-        info = self.items[idx]
-        return (out_img, out_label, out_gr, info[0], flip)
+    
+        return (out_img, out_label)
+        
+        # out_gr = one_hot(self.augment_direction(gr, flip))
+        #return (out_img, out_label, out_gr)
+        #info = self.items[idx]
+        #return (out_img, out_label, out_gr, info[0], flip)
 
 
 if __name__ == '__main__':

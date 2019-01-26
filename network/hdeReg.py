@@ -1,4 +1,5 @@
 # Vanilla model CNN
+import torch
 import torch.nn as nn
 
 from hdeNet import HDENet
@@ -13,25 +14,24 @@ StridesDF = [2, 2, 3, 2, 1]
 
 class HDEReg(HDENet):
 
-    def __init__(self, hidNum=256, output_type="reg", device=None, init=True, testing=False):
+    def __init__(self, hidNum=256, output_type="reg", device=None, init=True):
         # input size should be [192x192]
         HDENet.__init__(self, device)
         
-        self.testing = testing
+        self.output_type = output_type
         self.feature = BaseExtractor(hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF)
 
         # self.reg = nn.Linear(256, 2)
-        x = 'none' if testing else 'mean'
 
         if output_type == "reg": # regressor
-            self.criterion = nn.MSELoss(reduction=reduct)  # L2    
+            self.criterion = nn.MSELoss(reduction='none')  # L2    
             self.reg = nn.Sequential(
                 nn.Linear(hidNum, 64),
                 nn.ReLU(),
                 nn.Linear(64, 2)
             )
         else: # current dirty fix
-            self.criterion = nn.CrossEntropyLoss(reduction=reduct)
+            self.criterion = nn.CrossEntropyLoss(reduction='none')
             self.reg = nn.Sequential(
                 nn.Linear(hidNum, 32),
                 nn.ReLU(),
@@ -48,17 +48,16 @@ class HDEReg(HDENet):
         x = self.reg(x)
         return x
 
-    def forward_label(self, inputs, targets):
+    def loss_label(self, inputs, targets, mean=False):
         inputs = inputs.to(self.device)
         targets = targets.to(self.device)
 
         outputs = self(inputs)
-        return self.criterion(outputs, targets)
+        loss = self.criterion(outputs, targets)
 
-    def loss(self, inputs, targets):
-        return self.forward_label(inputs, targets)
-
-
+        if mean:
+            loss = torch.mean(loss)
+        return loss
 
 if __name__ == '__main__':
     import sys
@@ -80,7 +79,7 @@ if __name__ == '__main__':
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
-        loss = net.forward_label(imgseq, labels)
+        loss = net.loss_label(imgseq, labels)
         print loss.item()
 
         optimizer.zero_grad()

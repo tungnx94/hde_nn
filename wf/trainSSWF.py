@@ -1,13 +1,11 @@
-import torch
-import torch.optim as optim
+import sys
+sys.path.insert(0, '..')
 
+import utils
+import numpy as np 
 from trainWF import TrainWF
 
 class TrainSSWF(TrainWF):
-
-    def __init__(self, config):
-        TrainWF.__init__(self, config)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
     def prepare_dataset(self, dloader):
         label_dts, unlabel_dts, val_dts = self.load_dataset()
@@ -18,12 +16,39 @@ class TrainSSWF(TrainWF):
 
     def train_loss(self):
         # get next samples
-        inputs, targets, _ = self.train_loader.next_sample()
+        inputs, targets = self.train_loader.next_sample()
         unlabel_seqs = self.train_unlabel_loader.next_sample().squeeze()  # remove 0-dim (=1)
 
-        return self.model.forward_combine(inputs, targets, unlabel_seqs)
+        loss = self.model.loss_combine(inputs, targets, unlabel_seqs, mean=True)
+        return loss[2] # total
 
-    def backward_loss(self):
-        # return combined loss
-        loss = self.train_loss()
-        return loss[2] 
+    # TODO: port to implementing class
+    def evaluate(self, inputs, targets, seq) 
+        # return numpy array [loss_label, loss_unlabel, loss_total, acc/angle_diff]
+        outputs = self.model(inputs)
+        loss = self.model.loss_combine(inputs, targets, seq)
+
+        values = [np.mean(loss[0].numpy()), loss[1].item(), loss[2].item()] 
+    
+        if self.model.output_type=="reg":
+            metric = utils.angle_diff(outputs, mean=True)
+        else:
+            metric = utils.cls_accuracy()
+        values.append(metric)
+
+        return np.array(values)
+
+    # TODO: port to implementing class
+    def val_metrics(self):
+        # on train set
+        sample = self.train_loader.next_sample()
+        seq = self.train_unlabel_loader.next_sample().squeeze()  # remove 0-dim (=1)        
+        v1 = self.evaluate(sample[0], sample[1], seq)
+
+        # on val set
+        sample = self.val_loader.next_sample()
+        inputs = sample[0].squeeze()
+        targets = sample[1].squeeze()
+        v2 = self.evaluate(inputs, targets, inputs)
+        
+        return np.concatenate((v1, v2))

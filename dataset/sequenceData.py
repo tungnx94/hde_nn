@@ -39,6 +39,7 @@ class SequenceDataset(SingleDataset):
 
 class SequenceLabelDataset(SequenceDataset):
 
+    # TODO: fix
     def __getitem__(self, idx):
         flip = self.get_flipping()
 
@@ -62,12 +63,13 @@ class SequenceLabelDataset(SequenceDataset):
 
             out_seq.append(out_img)
             label_seq.append(out_label)
-            dir_seq.append(out_direction)
 
-            info.append(sample[3])
-            fl.append(int(flip))
+            #dir_seq.append(out_direction)
+            #info.append(sample[3])
+            #fl.append(int(flip))
 
+        return (np.array(out_seq), np.array(label_seq))
         # return (np.array(out_seq), np.array(label_seq), np.array(dir_seq))
-        return (np.array(out_seq), np.array(label_seq), np.array(dir_seq), info, np.array(fl))
+        # return (np.array(out_seq), np.array(label_seq), np.array(dir_seq), info, np.array(fl))
 
 

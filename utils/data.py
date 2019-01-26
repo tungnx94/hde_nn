@@ -21,15 +21,13 @@ def get_path(data, base_folder=BASE):
 def one_hot(cls):
     return np.array([int(i==cls) for i in range(8)]) 
 
-def angle_diff(outputs, labels):
+def angle_diff(outputs, labels, mean=False):
     """ compute angular difference """
-
-    # calculate angle from coordiate (x, y)
+    # angle from coordiate (x, y)
     output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
     label_angle = np.arctan2(labels[:, 0], labels[:, 1])
 
     diff_angle = output_angle - label_angle
-
     # map to [-pi, pi]
     mask = diff_angle < -pi
     diff_angle[mask] = diff_angle[mask] + 2 * pi
@@ -37,16 +35,13 @@ def angle_diff(outputs, labels):
     mask = diff_angle > pi
     diff_angle[mask] = diff_angle[mask] - 2 * pi
 
-    return diff_angle
+    diff = np.abs(diff_angle)
+    if mean:
+        diff = np.mean(diff)
+    return diff
 
 
-def angle_loss(outputs, labels):
-    """ compute mean angular difference between outputs & labels"""
-    diff_angle = angle_diff(outputs, labels)
-    return np.mean(np.abs(diff_angle))
-
-
-def accuracy_cls(outputs, labels):
+def angle_accuracy(outputs, labels):
     """ 
     compute accuracy 
     :param outputs, labels: numpy array
@@ -56,6 +51,10 @@ def accuracy_cls(outputs, labels):
 
     acc = float(np.sum(acc_angle)) / labels.shape[0]
     return acc
+
+def cls_accuracy(outputs, labels):
+    corrects = np.argmax(outputs, dim=1) == np.argmax(outputs, dim=1)
+    return np.mean(corrects)
 
 
 def angle_metric(outputs, labels):
