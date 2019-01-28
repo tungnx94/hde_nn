@@ -2,7 +2,6 @@
     "dir": "./log/sample_01-22_19:37",
     "prefix": "unlabel-seq",
     "log": "test.log",
-    "test_step": 500,
     "show_freq": 25,
     "save_freq": 250,
     "batch": 1,

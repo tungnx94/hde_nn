@@ -13,7 +13,6 @@ class TestWF(WorkFlow):
         self.modeldir = os.path.join(workingDir, 'models') 
         self.testdir = os.path.join(workingDir, 'test', config['prefix'] + "_" + t)
 
-        self.testStep = config['test_step']
         self.saveFreq = config['save_freq']
         self.showFreq = config['show_freq']
         self.batch = config['batch']
@@ -41,14 +40,17 @@ class TestWF(WorkFlow):
         self.logger.info("Started testing")
         
         self.model.eval()
-        for iteration in range(1, self.testStep + 1):
-            WorkFlow.test(self)
-            self.test()
 
-            # output screen
+        WorkFlow.test(self)
+
+        iteration = 0
+        for sample_batch in self.test_loader:
+
+            self.test(sample_batch)
+
+            iteration += 1
             if iteration % self.showFreq == 0:
                 self.logger.info("#%d %s" % (iteration, self.get_log_str()))
-
             # save temporary values
             if iteration % self.saveFreq == 0:
                 self.save_accumulated_values()

@@ -2,8 +2,7 @@ from testWF import TestWF
 
 class TestLabelSeqWF(TestWF):  # Type 1
 
-    def test(self):
-        sample = self.test_loader.next_sample()
+    def test(self, sample):
         inputs = sample[0].squeeze()
         targets = sample[1].squeeze()
         loss = self.model.forward_combine(inputs, targets, inputs)
@@ -15,7 +14,7 @@ class TestLabelSeqWF(TestWF):  # Type 1
 
 class TestLabelWF(TestWF):  # Type 2
 
-    def test(self):
+    def test(self, sample):
         sample = self.test_loader.next_sample()
         loss = self.model.forward_label(sample[0], sample[1])
 
@@ -24,8 +23,7 @@ class TestLabelWF(TestWF):  # Type 2
 
 class TestUnlabelWF(TestWF):  # Type 3
 
-    def test(self):
-        sample = self.test_loader.next_sample()
+    def test(self, sample):
         inputs = sample.squeeze()
         loss = self.model.forward_unlabel(inputs)
 
