@@ -23,10 +23,6 @@ def one_hot(cls):
 
 def angle_diff(outputs, labels, mean=False):
     """ compute angular difference """
-    # angle from coordiate (x, y)
-    output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
-    label_angle = np.arctan2(labels[:, 0], labels[:, 1])
-
     diff_angle = output_angle - label_angle
     # map to [-pi, pi]
     mask = diff_angle < -pi
@@ -38,19 +34,24 @@ def angle_diff(outputs, labels, mean=False):
     diff = np.abs(diff_angle)
     if mean:
         diff = np.mean(diff)
+
     return diff
 
+def angle_diff_trigo(outputs, labels, mean=False):
+    output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
+    label_angle = np.arctan2(labels[:, 0], labels[:, 1])
+
+    return angle_diff(output_angle, label_angle, mean)    
 
 def angle_accuracy(outputs, labels):
     """ 
     compute accuracy 
     :param outputs, labels: numpy array
     """
-    diff_angle = angle_diff(outputs, labels)
-    acc_angle = diff_angle < ACC_THRESH
+    diff_angle = angle_diff_trigo(outputs, labels)
+    corrects = diff_angle < ACC_THRESH
 
-    acc = float(np.sum(acc_angle)) / labels.shape[0]
-    return acc
+    return np.mean(corrects)
 
 def cls_accuracy(outputs, labels):
     corrects = np.argmax(outputs, dim=1) == np.argmax(outputs, dim=1)
@@ -59,7 +60,15 @@ def cls_accuracy(outputs, labels):
 
 def angle_metric(outputs, labels):
     """ return angle loss and accuracy"""
-    return angle_loss(outputs, labels), accuracy_cls(outputs, labels)
+    return angle_diff_trigo(outputs, labels, mean=True), angle_accuracy(outputs, labels)
+
+def eval(outputs, labels):
+    s = labels.shape
+
+    if s[1] == 2:
+        return angle_diff_trio(outputs, labels, mean=True)
+    else 
+        return cls_accuracy(outputs, labels, mean=True)
 
 
 def groupPlot(data_x, data_y, group=10):

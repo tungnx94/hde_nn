@@ -21,8 +21,9 @@ class SingleLabelDataset(SingleDataset):
         # each element is (image, label)
         for point in data:
             img_path = os.path.join(base_folder, point['path'])
+            angle = point['angle']
             label = np.array(
-                [point['sin'], point['cos']], dtype=np.float32)
+                [np.sin(angle), np.cos(angle)], dtype=np.float32)
             group = point['direction']
 
             self.items.append((img_path, label, group))

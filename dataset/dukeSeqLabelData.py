@@ -21,8 +21,10 @@ class DukeSeqLabelDataset(SequenceLabelDataset):
         for point in data:
             img_name = os.path.basename(point['path']).strip()
             img_path = os.path.join(base_folder, point['path'])
+
+            angle = point['angle']
             label = np.array(
-                [point['sin'], point['cos']], dtype=np.float32) 
+                [np.sin(angle), np.cos(angle)], dtype=np.float32)
             group = point['direction']
 
             # extract frame id

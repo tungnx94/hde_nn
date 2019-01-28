@@ -29,11 +29,7 @@ class TrainSSWF(TrainWF):
         loss = self.model.loss_combine(inputs, targets, seq)
 
         values = [np.mean(loss[0].numpy()), loss[1].item(), loss[2].item()] 
-    
-        if self.model.output_type=="reg":
-            metric = utils.angle_diff(outputs, mean=True)
-        else:
-            metric = utils.cls_accuracy()
+        metric = utils.eval(outputs, targets, mean=True)
         values.append(metric)
 
         return np.array(values)

@@ -4,6 +4,7 @@ sys.path.insert(0, '..')
 import os
 import sys
 import signal
+import json
 import logging
 
 from datetime import datetime
@@ -43,6 +44,12 @@ class WorkFlow(object):
         if not os.path.isdir(self.logdir):
             os.makedirs(self.logdir)
 
+        # Save config params
+        cnfPath = os.path.join(self.logdir, 'config.json')
+        with open(cnfPath, 'w') as fp:
+            json.dump(self.config, fp)
+
+        # Init loggers
         logFilePath = os.path.join(self.logdir, self.logfile)
 
         fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
@@ -119,6 +126,7 @@ class WorkFlow(object):
 
         self.logger.info("WF initialized.")
         self.debug_print("initialize() get called.")
+
 
     def train(self):
         # Check the system-wide signal.

@@ -20,8 +20,9 @@ class ViratSeqLabelDataset(SequenceLabelDataset):
         ind = 0
         for point in data:
             img_path = os.path.join(base_folder, point['path'])
+            angle = point['angle']
             label = np.array(
-                [point['sin'], point['cos']], dtype=np.float32)
+                [np.sin(angle), np.cos(angle)], dtype=np.float32)
             d = point['direction']
             entry = (img_path, label, d)
 
