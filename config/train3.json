@@ -4,7 +4,7 @@
     "log": "train.log",
     "train_step": 10000,
     "val_step": 100,
-    "save_freq": 500,
+    "save_freq": 1000,
     "show_freq": 100,
     "val_freq": 100,
     "batch": 64,
@@ -14,7 +14,7 @@
     "seq_length": 24,
     "model": {
         "name": "facing",
-        "type": 2,
+        "type": 3,
         "mobile": "network/pretrained_models/mobilenet_v1_0.50_224.pth",
         "trained": null
         },

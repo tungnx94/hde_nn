@@ -53,6 +53,8 @@ class MobileRNN(HDEReg):
         weight = torch.tensor(weight).to(self.device)
         weight = torch.exp(weight)
 
+        print weight.shape 
+        print loss.shape
         loss = weight * loss
 
         if mean:
@@ -68,9 +70,9 @@ if __name__ == "__main__":
     import torch.optim as optim
 
     dataset = DukeSeqLabelDataset(
-        "duke-test", path=get_path('DukeMTMC/test/test.csv'), seq_length=8, data_aug=True)
+        "duke", path=get_path('DukeMTMC/train/train.csv'), seq_length=8, data_aug=True)
     dataset.shuffle()
-    dataset.resize(5000)
+    # dataset.resize(5000)
     loader = DataLoader(dataset)
 
     model = MobileRNN(rnn_type="gru", n_layer=2, rnnHidNum=128)
@@ -79,7 +81,7 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=0.0075)
 
     # train
-    for ind in range(1, 10000):
+    for ind in range(1, 2000):
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()

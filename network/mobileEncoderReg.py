@@ -10,7 +10,7 @@ from extractor import MobileExtractor
 
 class MobileEncoderReg(MobileReg):
 
-    def __init__(self, hidNum=256, rnnHidNum=128, output_type="reg", lamb=0.001, device=None):
+    def __init__(self, hidNum=256, rnnHidNum=128, output_type="reg", lamb=0.01, device=None):
         # input tensor should be [Batch, 3, 192, 192]
         self.lamb = lamb
         self.hidNum = hidNum
@@ -25,19 +25,13 @@ class MobileEncoderReg(MobileReg):
         self.pred_de = nn.GRU(hidNum, rnnHidNum)
         self.pred_de_linear = nn.Linear(rnnHidNum, hidNum)  # FC
 
-        self._initialize_weights()
         self.load_to_device()
+        self._initialize_weights()
 
-    def init_hidden(self, hidden_size, batch_size=1):
-        h1 = self.new_variable(torch.zeros(
-            1, batch_size, hidden_size))  # hidden state
-        h2 = self.new_variable(torch.zeros(
-            1, batch_size, hidden_size))  # cell state
-
-        return (h1, h2)
-
-    def loss_unlabel(self, inputs):
+    def loss_unlabel(self, inputs, mean=True):
         # input size is [SeqLength, 3, W, H]
+        inputs = inputs.to(self.device)
+
         x_encode = self.feature(inputs)
         seq_length = x_encode.size()[0]  # SeqLength
 
@@ -47,7 +41,8 @@ class MobileEncoderReg(MobileReg):
         # input of LSTM is [SeqLength x Batch x InputSize]
         # output = [SeqLength x Batch x HiddenSize], (hidden_n, cell_n)
         pred_in = x_encode[:innum].unsqueeze(1)  # add batch=1 dimension
-        hidden_0 = self.init_hidden(self.rnnHidNum, 1)  # batch=1
+        hidden_0 = self.new_variable(torch.zeros(
+            1, 1, self.rnnHidNum))
 
         pred_out = []
         pred_en_out, hidden = self.pred_en(pred_in, hidden_0)
@@ -65,8 +60,10 @@ class MobileEncoderReg(MobileReg):
 
         pred_out = torch.cat(tuple(pred_out), dim=0)
         pred_target = x_encode[seq_length / 2:].detach()
-
-        loss = self.criterion(pred_target, pred_out)
+        
+        loss = self.criterion(pred_out, pred_target)
+        if mean:
+            loss = torch.mean(loss)
         return loss
 
 
@@ -78,7 +75,7 @@ if __name__ == "__main__":  # test
 
     # prepare data
     imgdataset = SingleLabelDataset("duke-train",
-                                    path=get_path("DukeMCMT/train/train.csv"))
+                                    path=get_path("DukeMTMC/train/train.csv"))
     unlabelset = FolderUnlabelDataset(
         "duke-unlabel", path=get_path("DukeMTMC/train/images_unlabel"))
 

@@ -41,6 +41,7 @@ def angle_diff(outputs, labels, mean=False):
     return diff
 
 def angle_diff_trigo(outputs, labels, mean=False):
+    # print outputs.shape, labels.shape
     output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
     label_angle = np.arctan2(labels[:, 0], labels[:, 1])
 

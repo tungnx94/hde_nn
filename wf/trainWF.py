@@ -30,6 +30,9 @@ class TrainWF(WorkFlow):
         self.batch_unlabel = config['batch_unlabel']
         self.batch_val = config['batch_val']
 
+        if 'lamb' in config:
+            self.lamb = lamb
+
         for folder in [workingDir, self.traindir, self.modeldir]:
             if not os.path.isdir(folder):
                 os.makedirs(folder)

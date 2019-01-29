@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0, '..')
-from utils import get_path
 
+from hdeReg import HDEReg
 from mobileReg import MobileReg
 from mobileEncoderReg import MobileEncoderReg
 
@@ -19,10 +17,12 @@ class ModelLoader(object):
         mmobile = config['mobile'] if 'mobile' in config else None
         mtrained = config['trained'] if 'trained' in config else None
 
+        if mtype == 0:
+            model = HDEReg()
         if mtype == 2:
             model = MobileReg(lamb=0.1, thresh=Thresh)
         elif mtype == 3:
-            model = MobileEncoderReg(lamb=0.001)
+            model = MobileEncoderReg(lamb=0.0001)
         
         if mmobile is not None:
             model.load_mobilenet(config['mobile'])

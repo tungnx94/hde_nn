@@ -20,8 +20,8 @@ class MobileReg(HDEReg):
         self.feature = MobileExtractor(
             hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better
 
-        self._initialize_weights()
         self.load_to_device()
+        self._initialize_weights()
 
     def load_mobilenet(self, fname):
         self.feature.load_from_npz(fname)
@@ -80,12 +80,12 @@ if __name__ == '__main__':
     
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
-    for ind in range(1, 5000):
+    for ind in range(1, 50): # 5000
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
-        l = net.loss_label(imgseq, labels)
+        l = net.loss_label(imgseq, labels, mean=True)
         print l.item()
 
         optimizer.zero_grad()

@@ -5,11 +5,11 @@ import torch.nn as nn
 from hdeNet import HDENet
 from extractor import BaseExtractor
 
-SizeDf = [64, 32, 16, 5, 3, 1]
-HiddensDF = [3, 64, 64, 128, 128, 256]  # channels
-KernelsDF = [5, 5, 3, 3, 3]
-PaddingsDF = [2, 2, 1, 1, 0]
-StridesDF = [2, 2, 3, 2, 1]
+SizeDf = [192, 64, 32, 16, 5, 3, 1]
+HiddensDF = [3, 32, 64, 64, 128, 128, 256]  # channels
+KernelsDF = [5, 5, 5, 3, 3, 3]
+PaddingsDF = [1, 2, 2, 1, 1, 0]
+StridesDF = [3, 2, 2, 3, 2, 1]
 
 
 class HDEReg(HDENet):
@@ -69,17 +69,17 @@ if __name__ == '__main__':
 
     net = HDEReg()
     dataset = SingleLabelDataset(
-        "duke", path=get_path('DukeMTMC/test/test.csv'), img_size=64)
+        "duke", path=get_path('DukeMTMC/test/test.csv'), img_size=192)
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=32)
 
     optimizer = optim.Adam(net.parameters(), lr=0.03)
-    for ind in range(1, 20000):
+    for ind in range(1, 100):
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
-        loss = net.loss_label(imgseq, labels)
+        loss = net.loss_label(imgseq, labels, mean=True)
         print loss.item()
 
         optimizer.zero_grad()
