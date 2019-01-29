@@ -20,7 +20,9 @@ class AccumulatedValue(object):
         self.stamp = []  # time stamps
         self.acc = {av:[] for av in self.avList}   # values
         self.avg = {av:[] for av in self.avList}   # average values
-        
+
+    def keys(self):
+        return self.avList 
 
     def push_value(self, name, value, stamp=None):
         if (self.stamp == []) or ((self.stamp != []) and (self.stamp[-1] != stamp)):
@@ -55,7 +57,7 @@ class AccumulatedValue(object):
 
     def last(self, name):
         """ return last value """
-        if (0 == len(self.acc)):
+        if (0 == len(self.acc[name])):
             # This is an error.
             desc = "The length of the current accumulated values is zero"
             exp = wf.WFException(desc, "last")
@@ -65,7 +67,7 @@ class AccumulatedValue(object):
 
     def last_avg(self, name):
         """ return last average value """
-        if (0 == len(self.avg)):
+        if (0 == len(self.avg[name])):
             # This is an error.
             desc = "The length of the current accumulated values is zero"
             exp = wf.WFException(desc, "last_avg")

@@ -48,6 +48,11 @@ class TestWF(WorkFlow):
 
             self.test(sample_batch)
 
+            # update acvs here 
+            
+
+            # save test result here 
+
             iteration += 1
             if iteration % self.showFreq == 0:
                 self.logger.info("#%d %s" % (iteration, self.get_log_str()))

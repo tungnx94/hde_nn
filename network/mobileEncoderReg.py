@@ -95,6 +95,6 @@ if __name__ == "__main__":  # test
         loss = model.loss_combine(
             sample[0], sample[1], sample_unlabel, mean=True)
 
-        print "iter {}, loss {} {}".format(ind, loss["label"].item(), loss["unlabel"].item())
+        print "iter {}, loss {} {}".format(ind, loss[0].item(), loss[1].item())
 
     print "Finished"  # no auto terminate ?

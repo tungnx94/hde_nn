@@ -39,7 +39,7 @@ class AccumulatedValuePlotter(object):
         ax.set_xlabel("iteration")
         ax.set_ylabel("loss")
 
-        fig.savefig(outDir + "/" + self.title + ".png")
+        fig.savefig(outDir + "/" + self.name + ".png")
         plt.close(fig)
 
     def update(self):

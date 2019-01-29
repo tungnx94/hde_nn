@@ -23,15 +23,18 @@ def one_hot(cls):
 
 def angle_diff(outputs, labels, mean=False):
     """ compute angular difference """
-    diff_angle = output_angle - label_angle
+    diff = outputs- labels    
     # map to [-pi, pi]
-    mask = diff_angle < -pi
-    diff_angle[mask] = diff_angle[mask] + 2 * pi
+    mask = diff < -pi
+    diff[mask] = diff[mask] + 2 * pi
 
-    mask = diff_angle > pi
-    diff_angle[mask] = diff_angle[mask] - 2 * pi
+    mask = diff > pi
+    diff[mask] = diff[mask] - 2 * pi
 
-    diff = np.abs(diff_angle)
+    diff = np.abs(diff)
+
+    #print outputs.shape
+    
     if mean:
         diff = np.mean(diff)
 
@@ -48,8 +51,8 @@ def angle_accuracy(outputs, labels):
     compute accuracy 
     :param outputs, labels: numpy array
     """
-    diff_angle = angle_diff_trigo(outputs, labels)
-    corrects = diff_angle < ACC_THRESH
+    diff = angle_diff_trigo(outputs, labels)
+    corrects = diff < ACC_THRESH
 
     return np.mean(corrects)
 
@@ -63,11 +66,15 @@ def angle_metric(outputs, labels):
     return angle_diff_trigo(outputs, labels, mean=True), angle_accuracy(outputs, labels)
 
 def eval(outputs, labels):
+    if type(outputs) == torch.Tensor:
+        outputs = outputs.cpu().detach().numpy()
+        labels = labels.cpu().detach().numpy()
+
     s = labels.shape
 
     if s[1] == 2:
-        return angle_diff_trio(outputs, labels, mean=True)
-    else 
+        return angle_diff_trigo(outputs, labels, mean=True)
+    else:
         return cls_accuracy(outputs, labels, mean=True)
 
 

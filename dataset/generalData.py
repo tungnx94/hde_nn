@@ -62,7 +62,7 @@ class GeneralDataset(Dataset):
         pickle.dump(self.items, file, pickle.HIGHEST_PROTOCOL)
 
     def load(self, fname):
-        file = open(fname, "rb")
+        file = open(fname, 'rb')
         self.items = pickle.load(file)
 
     def read_debug(self):

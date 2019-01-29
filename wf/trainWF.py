@@ -1,6 +1,7 @@
 import os
 import torch
 import numpy as np 
+import torch.optim as optim 
 
 from datetime import datetime
 from workflow import WorkFlow
@@ -60,12 +61,12 @@ class TrainWF(WorkFlow):
         self.logger.info("Started training")
         # WorkFlow.train(self)
 
-        self.model.train()p 
+        self.model.train()
         for iteration in range(1, self.trainStep + 1):
             WorkFlow.train(self)
             self.train()
 
-            if iteration % self.valFreq == 0:np
+            if iteration % self.valFreq == 0:
                 WorkFlow.test(self)
 
                 self.model.eval()
@@ -103,7 +104,7 @@ class TrainWF(WorkFlow):
 
         loss = np.stack(res)
         loss = np.mean(loss, axis=0)
-        for idx, av in enumerate self.config['losses']
+        for idx, av in enumerate(self.config['losses']):
             self.push_to_av(av, loss[idx], self.countTrain)
 
     def train_loss(self):

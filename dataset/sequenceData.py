@@ -15,7 +15,7 @@ class SequenceDataset(SingleDataset):
                 saved_file=None, auto_shuffle=False, testing=False):
 
         self.seq_length = seq_length
-        SingleDataset.__init__(self, name, img_size, data_aug, maxscale, mean, std, saved_file, auto_shuffle, testing)
+        SingleDataset.__init__(self, name, path, img_size, data_aug, maxscale, mean, std, saved_file, auto_shuffle, testing)
 
     def read_debug(self):
         print '{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length)

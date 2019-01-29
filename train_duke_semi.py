@@ -9,16 +9,10 @@ d_loader = DatasetLoader(Mean, Std)
 # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
 ModelType = 2
 
-TrainConfig = read_json('config/train.json')
+TrainConfig = read_json('config/train2.json')
 TestConfig = None
 
 class TrainDuke(TrainSSWF):
-
-    def val_loss(self):
-        sample = self.val_loader.next_sample()
-        inputs = sample[0].squeeze()
-        targets = sample[1].squeeze()
-        return self.model.forward_combine(inputs, targets, inputs)
 
     def load_dataset(self):
         train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
@@ -27,7 +21,10 @@ class TrainDuke(TrainSSWF):
         #train_duke.resize()
         #train_virat.resize()
         #train_manual.resize()
+
         label_dts = d_loader.mix('Training-label', [train_duke, train_virat, train_manual], None)
+        #label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
+
         
         unlabel_duke = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
         unlabel_ucf = d_loader.folder_unlabel('ucf-unlabel', 'UCF')
@@ -35,7 +32,9 @@ class TrainDuke(TrainSSWF):
         #unlabel_duke.resize()
         #unlabel_ucf.resize()
         #unlabel_drone.resize()
+
         unlabel_dts = d_loader.mix('Training-unlabel', [unlabel_duke, unlabel_ucf, unlabel_drone])
+        # unlabel_dts = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
         
         val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', self.config['seq_length'])
 
@@ -71,7 +70,7 @@ def select_WF(TestType):
 def main():
     """ Train and validate new model """
     # 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
-    TestType = 2
+    TestType = 0
 
     try:
         wf = select_WF(TestType)

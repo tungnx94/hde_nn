@@ -7,7 +7,7 @@
     "save_freq": 500,
     "show_freq": 100,
     "val_freq": 100,
-    "batch": 128,
+    "batch": 64,
     "batch_unlabel": 1,
     "batch_val": 1,
     "lr": 0.001, 

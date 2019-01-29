@@ -47,7 +47,7 @@ class WorkFlow(object):
         # Save config params
         cnfPath = os.path.join(self.logdir, 'config.json')
         with open(cnfPath, 'w') as fp:
-            json.dump(self.config, fp)
+            json.dump(self.config, fp, indent=4)
 
         # Init loggers
         logFilePath = os.path.join(self.logdir, self.logfile)
@@ -213,7 +213,7 @@ class WorkFlow(object):
         logstr = ""
         for key in sorted(self.AV.keys()):
             try:
-                logstr += '%s: %.5f ' % (key, self.AV[key].last_avg())
+                logstr += '%s: %.5f ' % (key, self.AV.last_avg(key))
             except WFException as e:
                 continue
 

@@ -1,7 +1,9 @@
 # wrapper for DUKE, UCF unlabel data
 import os
-from os.path import join
+import cv2 
+import numpy as np 
 
+from os.path import join
 from sequenceData import SequenceDataset
 
 class FolderUnlabelDataset(SequenceDataset):
@@ -35,14 +37,14 @@ class FolderUnlabelDataset(SequenceDataset):
 
 if __name__ == '__main__':  # test
     import sys
-    sys.path.insert(0, "..")
+    sys.path.insert(0, '..')
 
     from generalData import DataLoader
     from utils import get_path, seq_show
 
-    duke = FolderUnlabelDataset("duke-unlabel", path=get_path("DukeMTMC/train/images_unlabel"))
-    ucf = FolderUnlabelDataset("ucf-unlabel", path=get_path("UCF"))
-    drone = FolderUnlabelDataset("drone-unlabel", path=get_path("DRONE_seq"))
+    duke = FolderUnlabelDataset('duke-unlabel', path=get_path('DukeMTMC/train/images_unlabel'))
+    ucf = FolderUnlabelDataset('ucf-unlabel', path=get_path('UCF'))
+    drone = FolderUnlabelDataset('drone-unlabel', path=get_path('DRONE_seq'))
 
     for dataset in [duke, ucf, drone]:
         print dataset

@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0, '..')
 
+import torch
 import utils
 import numpy as np 
 from trainWF import TrainWF
@@ -23,13 +24,14 @@ class TrainSSWF(TrainWF):
         return loss[2] # total
 
     # TODO: port to implementing class
-    def evaluate(self, inputs, targets, seq) 
+    def evaluate(self, inputs, targets, seq):
         # return numpy array [loss_label, loss_unlabel, loss_total, acc/angle_diff]
         outputs = self.model(inputs)
         loss = self.model.loss_combine(inputs, targets, seq)
 
-        values = [np.mean(loss[0].numpy()), loss[1].item(), loss[2].item()] 
-        metric = utils.eval(outputs, targets, mean=True)
+        # values = [np.mean(loss[0].detach().numpy()), loss[1].item(), loss[2].item()]
+        values = [torch.mean(loss[0]).item(), loss[1].item(), loss[2].item()]
+        metric = utils.eval(outputs, targets)
         values.append(metric)
 
         return np.array(values)
