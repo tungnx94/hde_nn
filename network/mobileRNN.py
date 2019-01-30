@@ -53,9 +53,10 @@ class MobileRNN(HDEReg):
         weight = torch.tensor(weight).to(self.device)
         weight = torch.exp(weight)
 
-        print weight.shape 
-        print loss.shape
-        loss = weight * loss
+        #print weight.shape 
+        #print loss.shape
+        loss = torch.mean(loss, dim=1) * weight
+        # loss = weight * loss
 
         if mean:
             loss = torch.mean(loss)
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=0.0075)
 
     # train
-    for ind in range(1, 2000):
+    for ind in range(1, 100):
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()

@@ -14,10 +14,14 @@ class TrainSLWF(TrainWF):
         self.train_loader = dloader.loader(train_dts, self.batch)
         self.val_loader = dloader.loader(val_dts, self.batch_val)
 
+    def get_next_sample(self, loader):
+        sample = loader.next_sample()
+        return sample
+
     def train_loss(self):
         # get next samples
-        inputs, targets = self.train_loader.next_sample()
-        loss = self.model.loss_label(inputs, targets, mean=True)
+        sample = self.get_next_sample(self.train_loader)
+        loss = self.model.loss_label(sample[0], sample[1], mean=True)
         return loss
 
     # TODO: port to implementing class
@@ -33,11 +37,18 @@ class TrainSLWF(TrainWF):
     # TODO: port to implementing class
     def val_metrics(self):
         # on train set
-        sample = self.train_loader.next_sample()
+        sample = self.get_next_sample(self.train_loader)
         v1 = self.evaluate(sample[0], sample[1])
 
         # on val set
-        sample = self.val_loader.next_sample()
+        sample = self.get_next_sample(self.val_loader)
         v2 = self.evaluate(sample[0], sample[1])
         
         return np.concatenate((v1, v2))
+
+def TrainRNNWF(TrainSLWF):
+
+    def get_next_sample(self, loader):
+        sample = loader.next_sample()
+        return (sample[0].squeeze(), sample[1].squeeze())
+

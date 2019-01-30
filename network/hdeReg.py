@@ -41,6 +41,9 @@ class HDEReg(HDENet):
         if init:
             self._initialize_weights()
             self.load_to_device()
+            
+    def load_mobilenet(self, fname):
+        self.feature.load_from_npz(fname)
 
     def forward(self, x):
         x = x.to(self.device)

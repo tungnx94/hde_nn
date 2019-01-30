@@ -7,9 +7,9 @@ Std = [0.229, 0.224, 0.225]
 d_loader = DatasetLoader(Mean, Std)
 
 # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
-ModelType = 2
+ModelType = 1
 
-TrainConfig = read_json('config/train0.json')
+TrainConfig = read_json('config/train1.json')
 TestConfig = None
 
 class TrainDuke(TrainSSWF):
@@ -49,12 +49,21 @@ class TrainVanilla(TrainSLWF):
 
         val_duke = d_loader.single_label('val-duke', 'DukeMTMC/train/val.csv')
         test_duke = d_loader.single_label('test-duke', 'DukeMTMC/test/test.csv')
-
         test_dts = d_loader.mix('Training-label', [val_duke, test_duke], None)
-
 
         return (train_duke, test_dts)
 
+class TrainRNN(TrainSLWF):
+
+    def load_dataset(self):
+        train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
+        # train_virat = 
+
+        val_duke = d_loader.single_label('val-duke', 'DukeMTMC/train/val.csv')
+        test_duke = d_loader.single_label('test-duke', 'DukeMTMC/test/test.csv')
+        test_dts = d_loader.mix('Training-label', [val_duke, test_duke], None)
+
+        return (train_duke, test_dts)
 
 class TestDuke_1(TestLabelWF):
     def load_dataset(self):
@@ -72,7 +81,8 @@ def select_WF(TestType):
     # avoid multiple instance of logger in WorkFlow
     if TestType == 0:
         # return TrainDuke(TrainConfig)
-        return TrainVanilla(TrainConfig)
+        # return TrainVanilla(TrainConfig)
+        return TrainRNN(TrainConfig)
     elif TestType == 1:
         TestConfig = read_json('config/test01.json')
         return TestDuke_1(TestConfig)

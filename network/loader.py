@@ -1,5 +1,5 @@
-
 from hdeReg import HDEReg
+from mobileRNN import MobileRNN
 from mobileReg import MobileReg
 from mobileEncoderReg import MobileEncoderReg
 
@@ -19,6 +19,8 @@ class ModelLoader(object):
 
         if mtype == 0:
             model = HDEReg()
+        elif mtype == 1:
+            model = MobileRNN()
         if mtype == 2:
             model = MobileReg(lamb=0.1, thresh=Thresh)
         elif mtype == 3:

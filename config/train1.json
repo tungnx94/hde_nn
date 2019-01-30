@@ -1,0 +1,42 @@
+{
+    "dir": "./log",
+    "prefix": "sample",
+    "log": "train.log",
+    "train_step": 10000,
+    "val_step": 100,
+    "save_freq": 500,
+    "show_freq": 100,
+    "val_freq": 100,
+    "batch": 1,
+    "batch_unlabel": 1,
+    "batch_val": 1,
+    "lr": 0.001, 
+    "seq_length": 16,
+    "model": {
+        "name": "facing",
+        "type": 1,
+        "mobile": "network/pretrained_models/mobilenet_v1_0.50_224.pth",
+        "trained": null
+        },
+    "acvs": {
+        "train_label": 100,
+        "train_angle": 100,
+        "val_label": 20,
+        "val_angle": 20
+        },
+    "plots": [
+        {   "name": "label_loss",
+            "values": ["train_label", "val_label"],
+            "average":true  },
+        {
+            "name": "angle",
+            "values": ["train_angle", "val_angle"],
+            "average":true }
+        ],
+    "losses": [
+        "train_label",
+        "train_angle",
+        "val_label",
+        "val_angle"
+        ]
+}

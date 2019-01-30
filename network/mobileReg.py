@@ -23,9 +23,6 @@ class MobileReg(HDEReg):
         self.load_to_device()
         self._initialize_weights()
 
-    def load_mobilenet(self, fname):
-        self.feature.load_from_npz(fname)
-
     def loss_unlabel(self, inputs):
         """
         :param output: network unlabel output tensor
