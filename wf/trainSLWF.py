@@ -46,7 +46,7 @@ class TrainSLWF(TrainWF):
         
         return np.concatenate((v1, v2))
 
-def TrainRNNWF(TrainSLWF):
+class TrainRNNWF(TrainSLWF):
 
     def get_next_sample(self, loader):
         sample = loader.next_sample()

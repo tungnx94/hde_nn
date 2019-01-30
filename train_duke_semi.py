@@ -53,14 +53,14 @@ class TrainVanilla(TrainSLWF):
 
         return (train_duke, test_dts)
 
-class TrainRNN(TrainSLWF):
+class TrainRNN(TrainRNNWF):
 
     def load_dataset(self):
-        train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
+        train_duke = d_loader.duke_seq('train-duke', 'DukeMTMC/train/train.csv', self.config['seq_length'])
         # train_virat = 
 
-        val_duke = d_loader.single_label('val-duke', 'DukeMTMC/train/val.csv')
-        test_duke = d_loader.single_label('test-duke', 'DukeMTMC/test/test.csv')
+        val_duke = d_loader.duke_seq('val-duke', 'DukeMTMC/train/val.csv', self.config['seq_length'])
+        test_duke = d_loader.duke_seq('test-duke', 'DukeMTMC/test/test.csv', self.config['seq_length'])
         test_dts = d_loader.mix('Training-label', [val_duke, test_duke], None)
 
         return (train_duke, test_dts)

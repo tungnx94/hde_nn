@@ -11,6 +11,7 @@ class MobileRNN(HDEReg):
     def __init__(self, hidNum=256, rnnHidNum=64, n_layer=2, rnn_type="gru", output_type="reg", device=None):
         HDEReg.__init__(self, hidNum, output_type, device, init=False)
 
+        # self.feature = BaseExtractor()
         self.feature = MobileExtractor(
             hidNum, depth_multiplier=0.5, device=device)
 
@@ -87,6 +88,9 @@ if __name__ == "__main__":
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
+        print imgseq.shape
+        print labels.shape
+        
         #loss = model.forward_label(imgseq, labels)
         loss_w = model.loss_weighted(imgseq, labels, mean=True)
         loss = model.loss_label(imgseq, labels, mean=True)
