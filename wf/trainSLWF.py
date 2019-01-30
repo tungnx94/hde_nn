@@ -48,6 +48,12 @@ class TrainSLWF(TrainWF):
 
 class TrainRNNWF(TrainSLWF):
 
+    def train_loss(self):
+        sample = self.get_next_sample(self.train_loader)
+        # loss = self.model.loss_weighted(sample[0], sample[1], mean=True)
+        loss = self.model.loss_label(sample[0], sample[1], mean=True)
+        return loss
+
     def get_next_sample(self, loader):
         sample = loader.next_sample()
         return (sample[0].squeeze(), sample[1].squeeze())

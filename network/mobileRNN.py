@@ -8,7 +8,7 @@ from extractor import MobileExtractor, BaseExtractor
 
 class MobileRNN(HDEReg):
 
-    def __init__(self, hidNum=256, rnnHidNum=64, n_layer=2, rnn_type="gru", output_type="reg", device=None):
+    def __init__(self, hidNum=256, rnnHidNum=128, n_layer=2, rnn_type="gru", output_type="reg", device=None):
         HDEReg.__init__(self, hidNum, output_type, device, init=False)
 
         # self.feature = BaseExtractor()
@@ -54,10 +54,7 @@ class MobileRNN(HDEReg):
         weight = torch.tensor(weight).to(self.device)
         weight = torch.exp(weight)
 
-        #print weight.shape 
-        #print loss.shape
         loss = torch.mean(loss, dim=1) * weight
-        # loss = weight * loss
 
         if mean:
             loss = torch.mean(loss)
