@@ -4,28 +4,8 @@ import random
 import numpy as np
 
 # TODO: examine each image processing method
-
-def normalized_color(x, y, t):
-    return np.clip(1 - math.sqrt(float(x * x + y * y)) / t, 0, 1)
-
-
-def getColor(x, y, max_x, max_y):  # how ?
-    """ :return (r,g,b,a) """
-    # normalize two axis
-    y = y * max_x / max_y
-    max_y = max_x
-
-    R = normalized_color(x, y, max_x)
-    G = normalized_color(max_x - x, y, max_x)
-    B = normalized_color(x, max_y - y, max_x)
-
-    # x1, y1 = max_x-x, max_y-y
-    # a = math.sqrt(float(x1*x1+y1*y1))/t
-    A = 1
-    return (R, G, B, A)
-
-
 # resnet: mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]
+
 def img_normalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
     """ normalize RGB value to range [0..1] """
     img = img[:, :, [2, 1, 0]]  # bgr to rgb
@@ -96,15 +76,17 @@ def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
 
 # amigo add for data augmentation before normalization
 def im_hsv_augmentation(image, Hscale=10, Sscale=60, Vscale=60):
-    """ get HSV-image with noise"""
+    ### add noise in HSV colorspace
 
-    imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    # convert to HSV
+    imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) 
 
-    # introduce noise
+    # introduce noise factor in range [-1..1]
     h = random.random() * 2 - 1
     s = random.random() * 2 - 1
     v = random.random() * 2 - 1
 
+    # add noise while keeping range value [0..255]
     imageHSV[:, :, 0] = np.clip(imageHSV[:, :, 0] + Hscale * h, 0, 255)
     imageHSV[:, :, 1] = np.clip(imageHSV[:, :, 1] + Sscale * s, 0, 255)
     imageHSV[:, :, 2] = np.clip(imageHSV[:, :, 2] + Vscale * v, 0, 255)
@@ -128,9 +110,10 @@ def im_crop(image, maxscale=0.2):
 
 
 def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso=False, down_len=30, flip=False):
+    # apply augmentation by scale, normalization and padding
     # output a numpy array (3, width, height)
 
-    # downsample the image for data augmentation
+    # downsample the image for data augmentation (necessary ?)
     minlen = np.min(img.shape[0:2])
     down_len = random.randint(down_len, down_len * 5)
     if down_reso and minlen > down_len:
@@ -146,17 +129,23 @@ def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_res
     if img.shape[1] * resize_scale < out_size / miniscale:
         x_scale = out_size / miniscale / img.shape[1]
 
+    # guarantee the longer side with be 192 pixel
     img = cv2.resize(img, (0, 0), fx=x_scale, fy=y_scale)
 
+    # flip left-right
     if flip:
         img = np.fliplr(img)
 
+    # normalize
     img = img_normalize(img, mean=mean, std=std)
-    # print img.shape
+    
+    ### put to 192x192 frame with padding zeros 
     imgw = img.shape[2]
     imgh = img.shape[1]
     start_x = (out_size - imgw) / 2
     start_y = (out_size - imgh) / 2
+
+    # print img.shape
     # print start_x, start_y
     out_img = np.zeros((3, out_size, out_size), dtype=np.float32)
     out_img[:, start_y:start_y + imgh, start_x:start_x + imgw] = img
