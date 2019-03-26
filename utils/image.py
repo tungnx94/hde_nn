@@ -139,7 +139,7 @@ def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_res
     # normalize
     img = img_normalize(img, mean=mean, std=std)
     
-    ### put to 192x192 frame with padding zeros 
+    ### (RandomExpand) put to 192x192 frame with padding zeros 
     imgw = img.shape[2]
     imgh = img.shape[1]
     start_x = (out_size - imgw) / 2
