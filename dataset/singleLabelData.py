@@ -44,7 +44,7 @@ if __name__ == '__main__':
     from utils import get_path, seq_show
     from generalData import DataLoader
 
-    duke = SingleLabelDataset("duke", path=get_path('DukeMTMC/train/train.csv'), data_aug=True)
+    duke = SingleLabelDataset("duke", path=get_path('DukeMTMC/train.csv'), data_aug=True)
     pes = SingleLabelDataset("3dpes", path=get_path('3DPES/train.csv'), data_aug=True)
     # virat = SingleLabelDataset("virat", path=get_path('VIRAT/person/train.csv'), data_aug=True)
 

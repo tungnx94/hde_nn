@@ -37,7 +37,7 @@ class ViratSeqLabelDataset(SequenceLabelDataset):
             position = np.array([int(t) for t in parts[-4:]])
 
             if len(position) != 4:
-                print 'error', ind, position, parts
+                print('error', ind, position, parts)
                 return
 
             if key not in line_dict:
@@ -83,11 +83,11 @@ if __name__ == '__main__':
             path=get_path('3DPES/train.csv'), seq_length=12, data_aug=True)
 
     for dataset in [virat, pes]:
-        print dataset
+        print(dataset)
         dataloader = DataLoader(dataset, batch_size=1)
 
         for count in range(3):
-            imgseq, angleseq, _ = dataloader.next_sample()
+            imgseq, angleseq = dataloader.next_sample()
             imgseq = imgseq.squeeze().numpy()
             angleseq = angleseq.squeeze().numpy()
 

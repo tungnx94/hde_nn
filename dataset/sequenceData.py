@@ -18,7 +18,7 @@ class SequenceDataset(SingleDataset):
         SingleDataset.__init__(self, name, path, img_size, data_aug, maxscale, mean, std, saved_file, auto_shuffle, testing)
 
     def read_debug(self):
-        print '{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length)
+        print('{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length))
 
     def save_sequence(self, seq):
         ### add new sequence to list if long enough ###

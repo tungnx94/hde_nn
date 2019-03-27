@@ -1,2 +1,2 @@
-from data import *
-from image import *
+from .data import *
+from .image import *

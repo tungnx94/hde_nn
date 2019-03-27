@@ -46,7 +46,7 @@ if __name__ == '__main__':  # test
     drone = SequenceUnlabelDataset('drone-unlabel', path=get_path('DRONE_seq'))
 
     for dataset in [duke, ucf, drone]:
-        print dataset
+        print(dataset)
         dataloader = DataLoader(dataset, batch_size=1)
 
         for count in range(3):
