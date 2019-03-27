@@ -1,4 +1,4 @@
-# Vanilla model CNN
+### Vanilla model CNN
 import torch
 import torch.nn as nn
 
@@ -72,21 +72,21 @@ if __name__ == '__main__':
 
     net = HDEReg()
     dataset = SingleLabelDataset(
-        "duke", path=get_path('DukeMTMC/test/test.csv'), img_size=192)
+        "duke", path=get_path('DukeMTMC/test.csv'), img_size=192)
     dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=32)
+    loader = DataLoader(dataset, batch_size=16)
 
     optimizer = optim.Adam(net.parameters(), lr=0.03)
-    for ind in range(1, 100):
+    for ind in range(1, 50):
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
         loss = net.loss_label(imgseq, labels, mean=True)
-        print loss.item()
+        print(loss.item())
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-    print "Finished"
+    print("Finished")

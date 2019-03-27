@@ -71,9 +71,9 @@ if __name__ == '__main__':
     net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
     dataset = SingleLabelDataset(
-        "duke-test", path=get_path('DukeMTMC/test/test.csv'), data_aug=True)
+        "duke-test", path=get_path('DukeMTMC/test.csv'), data_aug=True)
     dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=32)
+    loader = DataLoader(dataset, batch_size=16)
     
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
@@ -83,11 +83,11 @@ if __name__ == '__main__':
         labels = sample[1].squeeze()
 
         l = net.loss_label(imgseq, labels, mean=True)
-        print l.item()
+        print(l.item())
 
         optimizer.zero_grad()
         l.backward()
         optimizer.step()
         #seq_show(imgseq.numpy(), dir_seq=output.to("cpu").detach().numpy())
 
-    print "Finished"
+    print("Finished")

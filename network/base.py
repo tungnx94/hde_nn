@@ -1,10 +1,11 @@
+### Not in use, for reference only
+
 import torch
 import torch.nn as nn
 #import torch.nn.init as nn.init
 from torch.autograd import Variable
 import numpy as np
 import math
-import ipdb
 
 class Conv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, relu=True, same_padding=False, bn=False):
@@ -51,21 +52,6 @@ def load_checkpoint(filename, model, optimizer=None):
           .format(filename, checkpoint['epoch']))
     return start_epoch, model, optimizer
 
-def load_checkpoint_a2c(filename, actor_model, critic_model=None, actor_optimizer=None, critic_optimizer=None):
-    checkpoint = torch.load(filename)
-    start_epoch = checkpoint['epoch']
-    #best_prec1 = checkpoint['best_prec1']
-    #ipdb.set_trace()
-    actor_model.load_state_dict(checkpoint['actor_state_dict'])
-    if critic_model is not None:
-        critic_model.load_state_dict(checkpoint['critic_state_dict'])
-    if actor_optimizer is not None:
-        actor_optimizer.load_state_dict(checkpoint['actor_optimizer'])
-    if critic_optimizer is not None:
-        critic_optimizer.load_state_dict(checkpoint['critic_optimizer'])
-    print("=> loaded checkpoint '{}' (epoch {})"
-          .format(filename, checkpoint['epoch']))
-    return start_epoch, actor_model, critic_model, actor_optimizer, critic_optimizer
 
 def save_net(fname, net):
     import h5py

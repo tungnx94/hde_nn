@@ -1,7 +1,3 @@
-# WidthParam = 1.0
-# Remove the last two dw
-# So the output is 14x14x512, same with VGG
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -29,7 +25,7 @@ _CONV_DEFS = [                                          # layer, factor
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 7,    
     DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 8,        32
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 9,    
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 10,       64
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 10,       64, output should be 3x3 with input 192x192
     DepthSepConv(kernel=[3, 3], stride=1, depth=512)    # 11,   
     # DepthSepConv(kernel=[3, 3], stride=2, depth=1024),# 12
     # DepthSepConv(kernel=[3, 3], stride=1, depth=1024) # 13

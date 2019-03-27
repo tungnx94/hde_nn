@@ -36,7 +36,7 @@ class MobileEncoderReg(MobileReg):
         seq_length = x_encode.size()[0]  # SeqLength
 
         # prediction: use first half as input, last half as target
-        innum = seq_length / 2
+        innum = seq_length // 2
 
         # input of LSTM is [SeqLength x Batch x InputSize]
         # output = [SeqLength x Batch x HiddenSize], (hidden_n, cell_n)
@@ -59,7 +59,7 @@ class MobileEncoderReg(MobileReg):
             pred_out.append(pred_de_out)
 
         pred_out = torch.cat(tuple(pred_out), dim=0)
-        pred_target = x_encode[seq_length / 2:].detach()
+        pred_target = x_encode[innum:].detach()
         
         loss = self.criterion(pred_out, pred_target)
         if mean:
@@ -75,9 +75,9 @@ if __name__ == "__main__":  # test
 
     # prepare data
     imgdataset = SingleLabelDataset("duke-train",
-                                    path=get_path("DukeMTMC/train/train.csv"))
+                                    path=get_path("DukeMTMC/train.csv"))
     unlabelset = SequenceUnlabelDataset(
-        "duke-unlabel", path=get_path("DukeMTMC/train/images_unlabel"))
+        "duke-unlabel", path=get_path("DukeMTMC/images"))
 
     dataloader = DataLoader(imgdataset, batch_size=32)
     unlabelloader = DataLoader(unlabelset)
@@ -85,13 +85,13 @@ if __name__ == "__main__":  # test
     model = MobileEncoderReg()
     model.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
 
-    for ind in range(1, 10):
+    for ind in range(1, 50):
         sample = dataloader.next_sample()
         sample_unlabel = unlabelloader.next_sample().squeeze()
 
         loss = model.loss_combine(
             sample[0], sample[1], sample_unlabel, mean=True)
 
-        print "iter {}, loss {} {}".format(ind, loss[0].item(), loss[1].item())
+        print("iter {}, loss {} {}".format(ind, loss[0].item(), loss[1].item()))
 
-    print "Finished"  # no auto terminate ?
+    print("Finished")

@@ -69,7 +69,7 @@ if __name__ == "__main__":
     import torch.optim as optim
 
     dataset = DukeSeqLabelDataset(
-        "duke", path=get_path('DukeMTMC/train/train.csv'), seq_length=8, data_aug=True)
+        "duke", path=get_path('DukeMTMC/train.csv'), seq_length=16, data_aug=True)
     dataset.shuffle()
     # dataset.resize(5000)
     loader = DataLoader(dataset)
@@ -80,25 +80,20 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=0.0075)
 
     # train
-    for ind in range(1, 100):
+    for ind in range(1, 20):
         sample = loader.next_sample()
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
-        print imgseq.shape
-        print labels.shape
+        # print(imgseq.shape, labels.shape)
         
         #loss = model.forward_label(imgseq, labels)
         loss_w = model.loss_weighted(imgseq, labels, mean=True)
         loss = model.loss_label(imgseq, labels, mean=True)
-        print loss_w.item() , ' ', loss.item()
+        print(loss_w.item() , ' ', loss.item())
 
         optimizer.zero_grad()
         loss_w.backward()
         optimizer.step()
 
-    # test
-
-        #seq_show(imgseq.numpy(), dir_seq=output.to("cpu").detach().numpy())
-
-    print "Finished"
+    print("Finished")

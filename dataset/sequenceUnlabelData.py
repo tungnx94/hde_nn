@@ -4,7 +4,7 @@ import cv2
 import numpy as np 
 
 from os.path import join
-from sequenceData import SequenceDataset
+from .sequenceData import SequenceDataset
 
 class SequenceUnlabelDataset(SequenceDataset):
 

@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from sequenceData import SequenceLabelDataset
+from .sequenceData import SequenceLabelDataset
 
 SAFE_DISTANCE = 40.0
 

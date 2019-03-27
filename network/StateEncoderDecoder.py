@@ -23,7 +23,6 @@ class EncoderReg_Pred(HDENet):
 
         self.encoder = BaseExtractor(
             hiddens, kernels, strides, paddings, actfunc, device=device)  # can be replaced using MobileNet
-
         # self.encoder = MobileExtractor(depth_multiplier=0.5)
 
         self.reg = nn.Linear(self.codenum, regnum)
@@ -46,15 +45,14 @@ class EncoderReg_Pred(HDENet):
         return (h1, h2)
 
     def forward(self, x):
-        seq_length = x_encode.size()[0]  # Seq
-
         x_encode = self.encoder(x)  # features
+        seq_length = x_encode.size()[0]  # Seq
         x_encode = x_encode.view(seq_length, -1)  # 2d : Seq x Features
 
         x_reg = self.reg(x_encode)  # (sine, cosine)
 
         # predictor: use first half as input, last half as target (good ?)
-        innum = seq_length / 2
+        innum = seq_length // 2
 
         # input of LSTM is [SeqLength x Batch x InputSize], SeqLength variable
         pred_in = x_encode[:innum].unsqueeze(1)  # add batch=1 dimension
@@ -91,13 +89,13 @@ if __name__ == '__main__':  # test
     paddings = [1, 1, 1, 1, 1, 1, 0]
     strides = [2, 2, 2, 2, 2, 2, 1]
 
-    seq_length = 16
+    seq_length = 8 # 16
     lr = 0.005
     stateEncoder = EncoderReg_Pred(
         hiddens, kernels, strides, paddings, actfunc='leaky', rnnHidNum=128)
     criterion = nn.MSELoss()
 
-    print stateEncoder
+    print(stateEncoder)
     # data
     imgdataset = SequenceUnlabelDataset("train", path=get_path(
         "UCF"), seq_length=seq_length, data_aug=True)
@@ -109,7 +107,7 @@ if __name__ == '__main__':  # test
 
         x, encode, pred = stateEncoder(inputVar)
 
-        pred_target = encode[seq_length / 2:, :].detach()
+        pred_target = encode[seq_length // 2:, :].detach()
         loss_pred = criterion(pred, pred_target)  # unlabel
 
-        print ind, loss_pred.item()
+        print(ind, loss_pred.item())

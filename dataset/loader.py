@@ -2,11 +2,11 @@ import sys
 sys.path.insert(0, '..')
 from utils import get_path
 
-from generalData import DataLoader, MixDataset
-from singleLabelData import SingleLabelDataset 
-from sequenceUnlabelData import SequenceUnlabelDataset
-from dukeSeqLabelData import DukeSeqLabelDataset
-from viratSeqLabelData import ViratSeqLabelDataset
+from .generalData import DataLoader, MixDataset
+from .singleLabelData import SingleLabelDataset 
+from .sequenceUnlabelData import SequenceUnlabelDataset
+from .dukeSeqLabelData import DukeSeqLabelDataset
+from .viratSeqLabelData import ViratSeqLabelDataset
 
 class DatasetLoader(object):
 

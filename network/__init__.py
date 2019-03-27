@@ -1,7 +1,7 @@
-from mobileReg import MobileReg
-from mobileEncoderReg import MobileEncoderReg
+from .hdeReg import HDEReg
+from .mobileReg import MobileReg
 
-from mobileRNN import MobileRNN
-from extractor import BaseExtractor
+from .mobileRNN import MobileRNN
+from .extractor import BaseExtractor
 
-from loader import ModelLoader
+from .loader import ModelLoader
