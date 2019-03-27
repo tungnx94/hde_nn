@@ -84,7 +84,7 @@ if __name__ == '__main__':  # test
     import sys
     sys.path.insert(0, "..")
     from utils import get_path
-    from dataset import DataLoader, FolderUnlabelDataset
+    from dataset import DataLoader, SequenceUnlabelDataset
 
     hiddens = [3, 16, 32, 32, 64, 64, 128, 256]
     kernels = [4, 4, 4, 4, 4, 4, 3]
@@ -99,7 +99,7 @@ if __name__ == '__main__':  # test
 
     print stateEncoder
     # data
-    imgdataset = FolderUnlabelDataset("train", path=get_path(
+    imgdataset = SequenceUnlabelDataset("train", path=get_path(
         "UCF"), seq_length=seq_length, data_aug=True)
     dataloader = DataLoader(imgdataset)  # batch_size = 1
 

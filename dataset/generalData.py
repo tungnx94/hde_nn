@@ -66,7 +66,7 @@ class GeneralDataset(Dataset):
         self.items = pickle.load(file)
 
     def read_debug(self):
-        print "{}: {} samples".format(self, len(self))
+        print("{}: {} samples".format(self, len(self)))
 
 FlipDir = {0:4, 1:3, 2:2, 3:1, 4:0, 5:7, 6:6, 7:5}
 
@@ -100,7 +100,7 @@ class SingleDataset(GeneralDataset):
         return (self.aug and random.random() > 0.5)
 
     def augment_image(self, img, flipping):
-        # to make "new" data
+        # augment image to make "new" data
         if self.aug:
             img = im_hsv_augmentation(img)
             img = im_crop(img, maxscale=self.maxscale)

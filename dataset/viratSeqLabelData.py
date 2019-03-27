@@ -93,16 +93,3 @@ if __name__ == '__main__':
 
             seq_show(imgseq, dir_seq=angleseq, scale=0.8)
     
-    virat = ViratSeqLabelDataset("virat-train",
-            path=get_path('VIRAT/person/train.csv'), seq_length=12, data_aug=True)
-    virat = ViratSeqLabelDataset("virat-val",
-            path=get_path('VIRAT/person/val.csv'), seq_length=12, data_aug=True)
-    virat = ViratSeqLabelDataset("virat-test",
-            path=get_path('VIRAT/person/test.csv'), seq_length=12, data_aug=True)
-
-    pes = ViratSeqLabelDataset("3dpes-train",
-            path=get_path('3DPES/train.csv'), seq_length=12, data_aug=True)
-    pes = ViratSeqLabelDataset("3dpes-val",
-            path=get_path('3DPES/val.csv'), seq_length=12, data_aug=True)
-    pes = ViratSeqLabelDataset("3dpes-test",
-            path=get_path('3DPES/test.csv'), seq_length=12, data_aug=True)

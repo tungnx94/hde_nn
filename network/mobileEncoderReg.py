@@ -71,12 +71,12 @@ if __name__ == "__main__":  # test
     import sys
     sys.path.insert(0, "..")
     from utils import get_path
-    from dataset import SingleLabelDataset, FolderUnlabelDataset, DataLoader
+    from dataset import SingleLabelDataset, SequenceUnlabelDataset, DataLoader
 
     # prepare data
     imgdataset = SingleLabelDataset("duke-train",
                                     path=get_path("DukeMTMC/train/train.csv"))
-    unlabelset = FolderUnlabelDataset(
+    unlabelset = SequenceUnlabelDataset(
         "duke-unlabel", path=get_path("DukeMTMC/train/images_unlabel"))
 
     dataloader = DataLoader(imgdataset, batch_size=32)

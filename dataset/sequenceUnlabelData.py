@@ -6,7 +6,7 @@ import numpy as np
 from os.path import join
 from sequenceData import SequenceDataset
 
-class FolderUnlabelDataset(SequenceDataset):
+class SequenceUnlabelDataset(SequenceDataset):
 
     def init_data(self):
         img_dir = self.path 
@@ -33,7 +33,7 @@ class FolderUnlabelDataset(SequenceDataset):
 
         return np.array(out_seq)
 
-
+# TODO: need to separate duke-train sequence from duke-all
 if __name__ == '__main__':  # test
     import sys
     sys.path.insert(0, '..')
@@ -41,9 +41,9 @@ if __name__ == '__main__':  # test
     from generalData import DataLoader
     from utils import get_path, seq_show
 
-    duke = FolderUnlabelDataset('duke-unlabel', path=get_path('DukeMTMC/train/images_unlabel'))
-    ucf = FolderUnlabelDataset('ucf-unlabel', path=get_path('UCF'))
-    drone = FolderUnlabelDataset('drone-unlabel', path=get_path('DRONE_seq'))
+    duke = SequenceUnlabelDataset('duke-unlabel', path=get_path('DukeMTMC/images'))
+    ucf = SequenceUnlabelDataset('ucf-unlabel', path=get_path('UCF'))
+    drone = SequenceUnlabelDataset('drone-unlabel', path=get_path('DRONE_seq'))
 
     for dataset in [duke, ucf, drone]:
         print dataset

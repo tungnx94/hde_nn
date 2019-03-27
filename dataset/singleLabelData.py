@@ -28,7 +28,6 @@ class SingleLabelDataset(SingleDataset):
 
             self.items.append((img_path, label, group))
 
-    # TODO: fix
     def __getitem__(self, idx):
         img_path, label, gr = self.items[idx]
         img = cv2.imread(img_path)
@@ -38,11 +37,6 @@ class SingleLabelDataset(SingleDataset):
         out_label = self.augment_label(label, flip)
     
         return (out_img, out_label)
-        
-        # out_gr = one_hot(self.augment_direction(gr, flip))
-        #return (out_img, out_label, out_gr)
-        #info = self.items[idx]
-        #return (out_img, out_label, out_gr, info[0], flip)
 
 
 if __name__ == '__main__':
@@ -51,22 +45,14 @@ if __name__ == '__main__':
     from generalData import DataLoader
 
     duke = SingleLabelDataset("duke", path=get_path('DukeMTMC/train/train.csv'), data_aug=True)
-
-    virat = SingleLabelDataset("virat", path=get_path('VIRAT/person/train.csv'), data_aug=True)
-
     pes = SingleLabelDataset("3dpes", path=get_path('3DPES/train.csv'), data_aug=True)
+    # virat = SingleLabelDataset("virat", path=get_path('VIRAT/person/train.csv'), data_aug=True)
 
-    for dataset in [duke, virat, pes]:
-        print dataset
+    for dataset in [duke, pes]:
+        print(dataset)
 
         dataloader = DataLoader(dataset, batch_size=32)
         for count in range(3):
-            img, label, _, info, fl = dataloader.next_sample()
-            print type(info)
-            print len(info)
-            print info
-            #print info[1]
-            #print info[2]
-            print fl
+            img, label = dataloader.next_sample()
             seq_show(img.numpy(),
                      dir_seq=label.numpy(), scale=0.5)

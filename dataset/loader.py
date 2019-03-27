@@ -4,7 +4,7 @@ from utils import get_path
 
 from generalData import DataLoader, MixDataset
 from singleLabelData import SingleLabelDataset 
-from folderUnlabelData import FolderUnlabelDataset
+from sequenceUnlabelData import SequenceUnlabelDataset
 from dukeSeqLabelData import DukeSeqLabelDataset
 from viratSeqLabelData import ViratSeqLabelDataset
 
@@ -25,7 +25,7 @@ class DatasetLoader(object):
         return DataLoader(dataset, batch_size, shuffle, num_workers)
 
     def folder_unlabel(self, name, path, data_aug=True):
-        return FolderUnlabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
+        return SequenceUnlabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
 
     def single_label(self, name, path, data_aug=True):
         return SingleLabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)

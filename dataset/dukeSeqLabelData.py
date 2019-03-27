@@ -38,8 +38,7 @@ class DukeSeqLabelDataset(SequenceLabelDataset):
 
             last_idx = frame_id
             last_cam = cam_num
-            # seq.append((img_path, label, group))
-            seq.append((img_path, label, group, img_path))
+            seq.append((img_path, label, group))
 
         self.save_sequence(seq)
 
@@ -53,7 +52,7 @@ if __name__ == '__main__':  # test
 
     
     unlabelset = DukeSeqLabelDataset(
-        "duke-test", path=get_path('DukeMTMC/test/test.csv'))
+        "duke-test", path=get_path('DukeMTMC/test.csv'))
     dataloader = DataLoader(unlabelset)
 
     for count in range(5):
@@ -61,24 +60,4 @@ if __name__ == '__main__':  # test
         imgseq = sample[0].squeeze()
         labelseq = sample[1].squeeze()
 
-        info = sample[3] 
-        print type(info)
-        print len(info)
-        print info
-
-        fl = sample[4]
-        print fl
-
         seq_show(imgseq.numpy(), dir_seq=labelseq)
-    
-
-    """
-    trainset = DukeSeqLabelDataset(
-        "duke-train", path=get_path('DukeMTMC/train/train.csv'))
-
-    valset = DukeSeqLabelDataset(
-        "duke-val", path=get_path('DukeMTMC/train/val.csv'))
-
-    testset = DukeSeqLabelDataset(
-        "duke-test", path=get_path('DukeMTMC/test/test.csv'))
-    """

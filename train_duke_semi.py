@@ -12,19 +12,17 @@ ModelType = 1
 TrainConfig = read_json('config/train1.json')
 TestConfig = None
 
-class TrainDuke(TrainSSWF):
+class TrainSSL(TrainSSWF):
 
     def load_dataset(self):
+        """
         train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
         train_virat = d_loader.single_label('train-virat', 'VIRAT/person/train.csv')
         train_manual = d_loader.single_label('train-handlabel', 'handlabel/person.csv')
         #train_duke.resize()
         #train_virat.resize()
         #train_manual.resize()
-
         label_dts = d_loader.mix('Training-label', [train_duke, train_virat, train_manual], None)
-        #label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
-
         
         unlabel_duke = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
         unlabel_ucf = d_loader.folder_unlabel('ucf-unlabel', 'UCF')
@@ -32,10 +30,11 @@ class TrainDuke(TrainSSWF):
         #unlabel_duke.resize()
         #unlabel_ucf.resize()
         #unlabel_drone.resize()
-
         unlabel_dts = d_loader.mix('Training-unlabel', [unlabel_duke, unlabel_ucf, unlabel_drone])
-        # unlabel_dts = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
-        
+        """
+
+        label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
+        unlabel_dts = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
         val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', self.config['seq_length'])
 
         return (label_dts, unlabel_dts, val_dts)
@@ -43,13 +42,8 @@ class TrainDuke(TrainSSWF):
 class TrainVanilla(TrainSLWF):
 
     def load_dataset(self):
-        # dts currently "harder"
         train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
-        # train_virat = d_loader.single_label('train-virat', 'VIRAT/person/train.csv')
-
         val_duke = d_loader.single_label('val-duke', 'DukeMTMC/train/val.csv')
-        test_duke = d_loader.single_label('test-duke', 'DukeMTMC/test/test.csv')
-        test_dts = d_loader.mix('Training-label', [val_duke, test_duke], None)
 
         return (train_duke, test_dts)
 
@@ -57,11 +51,7 @@ class TrainRNN(TrainRNNWF):
 
     def load_dataset(self):
         train_duke = d_loader.duke_seq('train-duke', 'DukeMTMC/train/train.csv', self.config['seq_length'])
-        # train_virat = 
-
         val_duke = d_loader.duke_seq('val-duke', 'DukeMTMC/train/val.csv', self.config['seq_length'])
-        test_duke = d_loader.duke_seq('test-duke', 'DukeMTMC/test/test.csv', self.config['seq_length'])
-        test_dts = d_loader.mix('Training-label', [val_duke, test_duke], None)
 
         return (train_duke, test_dts)
 
@@ -80,9 +70,9 @@ class TestDuke_3(TestLabelSeqWF):
 def select_WF(TestType):
     # avoid multiple instance of logger in WorkFlow
     if TestType == 0:
-        # return TrainDuke(TrainConfig)
+        return TrainSSL(TrainConfig)
         # return TrainVanilla(TrainConfig)
-        return TrainRNN(TrainConfig)
+        # return TrainRNN(TrainConfig)
     elif TestType == 1:
         TestConfig = read_json('config/test01.json')
         return TestDuke_1(TestConfig)

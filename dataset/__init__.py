@@ -1,6 +1,6 @@
 from generalData import DataLoader, MixDataset
 from singleLabelData import SingleLabelDataset 
-from folderUnlabelData import FolderUnlabelDataset
+from sequenceUnlabelData import SequenceUnlabelDataset
 from dukeSeqLabelData import DukeSeqLabelDataset
 from viratSeqLabelData import ViratSeqLabelDataset
 

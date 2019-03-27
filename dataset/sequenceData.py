@@ -21,25 +21,23 @@ class SequenceDataset(SingleDataset):
         print '{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length)
 
     def save_sequence(self, seq):
-        # add new sequence to list if long enough
+        ### add new sequence to list if long enough ###
         """
+        # Approach 1: greedy adding -> resulting in very similar sequences
         if len(seq) >= self.seq_length:
             for start_t in range(len(seq) - self.seq_length + 1):
                 self.items.append(seq[start_t: start_t + self.seq_length])
         """
 
+        # Approach 2: adding in segment
         start = 0
         while start + self.seq_length < len(seq):
             self.items.append(seq[start: start + self.seq_length])
             start += self.seq_length
 
-        #if len(seq) >= self.seq_length:
-        #    self.items.append(seq[: self.seq_length])
-
 
 class SequenceLabelDataset(SequenceDataset):
-
-    # TODO: fix
+    
     def __getitem__(self, idx):
         flip = self.get_flipping()
 
@@ -47,29 +45,17 @@ class SequenceLabelDataset(SequenceDataset):
         label_seq = []
         dir_seq = []
 
-        info = []
-        fl = []
-
         for sample in self.items[idx]:
             img_path = sample[0]
             label = sample[1]
             direction = sample[2] # direction
 
-
             img = cv2.imread(img_path)
             out_img = self.augment_image(img, flip)
             out_label = self.augment_label(label, flip)
-            out_direction = one_hot(self.augment_direction(direction, flip))
+            # out_direction = one_hot(self.augment_direction(direction, flip))
 
             out_seq.append(out_img)
             label_seq.append(out_label)
 
-            #dir_seq.append(out_direction)
-            #info.append(sample[3])
-            #fl.append(int(flip))
-
         return (np.array(out_seq), np.array(label_seq))
-        # return (np.array(out_seq), np.array(label_seq), np.array(dir_seq))
-        # return (np.array(out_seq), np.array(label_seq), np.array(dir_seq), info, np.array(fl))
-
-
