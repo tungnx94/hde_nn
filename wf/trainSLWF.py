@@ -1,3 +1,5 @@
+# WF classes for supervised learning
+
 import sys
 sys.path.insert(0, '..')
 
@@ -10,7 +12,6 @@ class TrainSLWF(TrainWF):
 
     def prepare_dataset(self, dloader):
         train_dts, val_dts = self.load_dataset()
-
         self.train_loader = dloader.loader(train_dts, self.batch)
         self.val_loader = dloader.loader(val_dts, self.batch_val)
 
@@ -49,12 +50,14 @@ class TrainSLWF(TrainWF):
 class TrainRNNWF(TrainSLWF):
 
     def train_loss(self):
+        # atm just cloned from superclass
         sample = self.get_next_sample(self.train_loader)
-        # loss = self.model.loss_weighted(sample[0], sample[1], mean=True)
         loss = self.model.loss_label(sample[0], sample[1], mean=True)
+
+        # loss = self.model.loss_weighted(sample[0], sample[1], mean=True)
+
         return loss
 
     def get_next_sample(self, loader):
         sample = loader.next_sample()
         return (sample[0].squeeze(), sample[1].squeeze())
-

@@ -5,6 +5,7 @@ import torch.optim as optim
 
 from datetime import datetime
 from workflow import WorkFlow
+from utils import create_folder
 
 class TrainWF(WorkFlow):
 
@@ -23,7 +24,7 @@ class TrainWF(WorkFlow):
         self.showFreq = config['show_freq']
         self.valFreq = config['val_freq']
         self.trainStep = config['train_step']
-        self.valStep = config['val_step']
+        self.valStep = config['val_step'] # ?
 
         self.lr = config['lr']
         self.batch = config['batch']
@@ -34,8 +35,7 @@ class TrainWF(WorkFlow):
             self.lamb = lamb
 
         for folder in [workingDir, self.traindir, self.modeldir]:
-            if not os.path.isdir(folder):
-                os.makedirs(folder)
+            create_folder(folder)
 
         WorkFlow.__init__(self, config)
 
@@ -66,7 +66,7 @@ class TrainWF(WorkFlow):
 
         self.model.train()
         for iteration in range(1, self.trainStep + 1):
-            WorkFlow.train(self)
+            WorkFlow.train(self) # necessary ?
             self.train()
 
             if iteration % self.valFreq == 0:
@@ -96,6 +96,7 @@ class TrainWF(WorkFlow):
         loss.backward()
         self.optimizer.step()
 
+    # TODO: FIX THISs
     def validate(self):
         """ update val loss history """
         self.logger.info("validation")

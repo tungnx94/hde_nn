@@ -28,10 +28,10 @@ class ModelLoader(object):
         
         if mmobile is not None:
             model.load_mobilenet(config['mobile'])
-            print "Loaded MobileNet ", mmobile
+            print("Loaded MobileNet ", mmobile)
 
         if mtrained is not None:
             model.load_pretrained(mtrained)
-            print "Loaded weights from", mtrained
+            print("Loaded weights from", mtrained)
 
         return model

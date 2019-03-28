@@ -8,7 +8,7 @@ class AccumulatedValuePlotter(object):
     def __init__(self, name, av, avNameList, plot_average=True):
         self.name = name
         self.AV = av
-        self.avNameList = avNameList
+        self.avNameList = avNameList # variables to plot
         self.plot_average = plot_average 
 
         if len(self.avNameList) == 0:
@@ -39,6 +39,7 @@ class AccumulatedValuePlotter(object):
         ax.set_xlabel("iteration")
         ax.set_ylabel("loss")
 
+        # save image & close
         fig.savefig(outDir + "/" + self.name + ".png")
         plt.close(fig)
 
@@ -46,4 +47,4 @@ class AccumulatedValuePlotter(object):
         return
 
     def initialize(self):
-        print "AVPlotter initialized"
+        print("AVPlotter initialized")

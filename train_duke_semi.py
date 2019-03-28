@@ -9,6 +9,7 @@ d_loader = DatasetLoader(Mean, Std)
 # 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
 ModelType = 1
 
+# TODO: pass as command parameter
 TrainConfig = read_json('config/train1.json')
 TestConfig = None
 

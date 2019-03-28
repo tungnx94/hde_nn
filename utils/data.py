@@ -10,6 +10,10 @@ BASE = "/home/tung/projects/data_icra"
 
 ACC_THRESH = pi/8
 
+def create_folder(outdir):
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
+
 def read_json(file):
     with open(file, 'r') as f:
         data = json.load(f)

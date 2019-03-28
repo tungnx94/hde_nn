@@ -8,11 +8,12 @@ import json
 import logging
 
 from datetime import datetime
-from exception import WFException
-from accValue import AccumulatedValue
-from avPlotter import AccumulatedValuePlotter
-from visdomPlotter import VisdomLinePlotter
-from network import ModelLoader
+from utils import create_folder
+from .exception import WFException
+from .accValue import AccumulatedValue
+from .avPlotter import AccumulatedValuePlotter
+from .visdomPlotter import VisdomLinePlotter
+from .network import ModelLoader
 
 class WorkFlow(object):
 
@@ -41,8 +42,7 @@ class WorkFlow(object):
             logging.Formatter('%(levelname)s: %(message)s'))
 
         # File log
-        if not os.path.isdir(self.logdir):
-            os.makedirs(self.logdir)
+        create_folder(self.logdir)
 
         # Save config params
         cnfPath = os.path.join(self.logdir, 'config.json')
@@ -50,7 +50,7 @@ class WorkFlow(object):
             json.dump(self.config, fp, indent=4)
 
         # Init loggers
-        logFilePath = os.path.join(self.logdir, self.logfile)
+        logFilePath = os.path.join(self.logdir, self.logfile) # self.logfile defined by sub-WF
 
         fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
         fileHandler.setLevel(logging.DEBUG)
@@ -95,7 +95,7 @@ class WorkFlow(object):
 
         self.AVP.append(plotter)
 
-    def push_to_av(self, name, value, stamp=None):
+    def push_to_av(self, name, value, stamp):
         # Check if the name exists.
         if not (name in self.AV.keys()):
             # This is an error.

@@ -5,20 +5,19 @@ class TestLabelSeqWF(TestWF):  # Type 1
     def test(self, sample):
         inputs = sample[0].squeeze()
         targets = sample[1].squeeze()
-        loss = self.model.forward_combine(inputs, targets, inputs)
+        loss = self.model.forward_combine(inputs, targets, inputs, mean=True)
 
-        self.AV['label'].push_back(loss[0].item())
-        self.AV['unlabel'].push_back(loss[1].item())
-        self.AV['total'].push_back(loss[2].item())
-
+        self.push_to_av("label", loss[0].item(), self.iteration)
+        self.push_to_av("unlabel", loss[1].item(), self.iteration)
+        self.push_to_av("total", loss[2].item(), self.iteration)
 
 class TestLabelWF(TestWF):  # Type 2
 
     def test(self, sample):
         sample = self.test_loader.next_sample()
-        loss = self.model.forward_label(sample[0], sample[1])
+        loss = self.model.forward_label(sample[0], sample[1], mean=True)
 
-        self.AV['label'].push_back(loss.item())
+        self.push_to_av("label", loss.item(), self.iteration)
 
 
 class TestUnlabelWF(TestWF):  # Type 3
@@ -27,4 +26,4 @@ class TestUnlabelWF(TestWF):  # Type 3
         inputs = sample.squeeze()
         loss = self.model.forward_unlabel(inputs)
 
-        self.AV['unlabel'].push_back(loss.item())
+        self.push_to_av("unlabel", loss.item(), self.iteration)

@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from workflow import WorkFlow
 from dataset import DatasetLoader
+from utils import create_folder
 
 class TestWF(WorkFlow):
 
@@ -13,8 +14,8 @@ class TestWF(WorkFlow):
         self.modeldir = os.path.join(workingDir, 'models') 
         self.testdir = os.path.join(workingDir, 'test', config['prefix'] + "_" + t)
 
-        self.saveFreq = config['save_freq']
-        self.showFreq = config['show_freq']
+        self.saveFreq = config['save_freq'] # av save frequency
+        self.showFreq = config['show_freq'] # log frequency
         self.batch = config['batch']
 
         self.logdir = self.testdir
@@ -22,8 +23,7 @@ class TestWF(WorkFlow):
 
         config['model']['trained'] = os.path.join(self.modeldir, config['model']['trained'])
 
-        if not os.path.isdir(self.testdir):
-            os.makedirs(self.testdir)
+        create_folder(self.testdir)
 
         WorkFlow.__init__(self, config)
 
@@ -38,26 +38,22 @@ class TestWF(WorkFlow):
 
     def run(self):
         self.logger.info("Started testing")
-        
         self.model.eval()
-
         WorkFlow.test(self)
 
-        iteration = 0
+        self.iteration = 0
         for sample_batch in self.test_loader:
+            self.iteration += 1
 
+            # update acvs
             self.test(sample_batch)
 
-            # update acvs here 
-            
+            # log
+            if self.iteration % self.showFreq == 0:
+                self.logger.info("#%d %s" % (self.iteration, self.get_log_str()))
 
-            # save test result here 
-
-            iteration += 1
-            if iteration % self.showFreq == 0:
-                self.logger.info("#%d %s" % (iteration, self.get_log_str()))
             # save temporary values
-            if iteration % self.saveFreq == 0:
+            if self.iteration % self.saveFreq == 0:
                 self.save_accumulated_values()
 
         self.logger.info("Finished testing")
