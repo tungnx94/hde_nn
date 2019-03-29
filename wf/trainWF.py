@@ -22,9 +22,9 @@ class TrainWF(WorkFlow):
 
         self.saveFreq = config['save_freq']
         self.showFreq = config['show_freq']
-        self.valFreq = config['val_freq']
+        # self.valFreq = config['val_freq']
         self.trainStep = config['train_step']
-        self.valStep = config['val_step'] # ?
+        self.valStep = config['val_step'] # to be removed
 
         self.lr = config['lr']
         self.batch = config['batch']
@@ -67,13 +67,25 @@ class TrainWF(WorkFlow):
         self.model.train()
         for iteration in range(1, self.trainStep + 1):
             WorkFlow.train(self) # necessary ?
-            self.train()
 
+            self.countTrain += 1
+            train_sample = self.next_train_sample()
+
+            # backward pass
+            train_error = self.train_error(train_sample)
+            self.optimizer.zero_grad()
+            train_error.backward()
+            self.optimizer.step()
+
+            # Validation step
             if iteration % self.valFreq == 0:
                 WorkFlow.test(self)
-
                 self.model.eval()
-                self.validate()
+                self.logger.info("validation")
+
+                val_sample = self.next_val_sample()
+                self.evaluate(train_sample, val_sample)
+
                 self.model.train()
 
             # output screen
@@ -86,33 +98,24 @@ class TrainWF(WorkFlow):
 
         self.logger.info("Finished training")
 
-    def train(self):
-        """ train on one batch """
-        self.countTrain += 1
-        loss = self.train_loss()
-
-        # backpropagate
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-
-    # TODO: FIX THISs
-    def validate(self):
+    def evaluate(self, train_sample, val_sample):
         """ update val loss history """
-        self.logger.info("validation")
+        train_losses = self.val_metrics(train_sample)
+        val_losses = self.val_metric(val_sample)
 
-        res = []
-        for count in range(self.valStep):
-            metrics = self.val_metrics()
-            res.append(metrics)
+        losses = np.concatenate((train_losses, val_losses))
 
-        loss = np.stack(res)
-        loss = np.mean(loss, axis=0)
         for idx, av in enumerate(self.config['losses']):
-            self.push_to_av(av, loss[idx], self.countTrain)
+            self.push_to_av(av, losses[idx], self.countTrain)
 
-    def train_loss(self):
+    def next_train_sample(self):
         pass
 
-    def val_metrics():
+    def next_val_sample(self):
+        pass
+
+    def train_error(self):
+        pass
+
+    def val_metrics(self, sample):
         pass

@@ -3,7 +3,6 @@
     "prefix": "sample",
     "log": "train.log",
     "train_step": 10000,
-    "val_step": 100,
     "save_freq": 1000,
     "show_freq": 100,
     "val_freq": 100,
