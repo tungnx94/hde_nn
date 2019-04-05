@@ -100,7 +100,7 @@ class TrainWF(WorkFlow):
     def evaluate(self, train_sample, val_sample):
         """ update val loss history """
         train_losses = self.val_metrics(train_sample)
-        val_losses = self.val_metric(val_sample)
+        val_losses = self.val_metrics(val_sample)
 
         losses = np.concatenate((train_losses, val_losses))
 

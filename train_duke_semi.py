@@ -11,19 +11,14 @@ d_loader = DatasetLoader(Mean, Std)
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("-m", dest="model", type=int, default=0,
-                    help="neural network model")
 parser.add_argument("-t", dest="type", type=int, default=0,
                     help="wf run type")
-parser.add_argument("-c", dest="cnf", default="./config/train1.json",
+parser.add_argument("-c", dest="cnf", default="./config/train0.json",
                     help="train/test config")
-
 args = parser.parse_args()
 
-print(args)
 
-# 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
-ModelType = args.model
+# ModelType 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
 
 # 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
 WFType = args.type
@@ -66,7 +61,7 @@ class TrainVanilla(TrainSLWF):
         train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train.csv')
         val_duke = d_loader.single_label('val-duke', 'DukeMTMC/val.csv')
 
-        return (train_duke, test_dts)
+        return (train_duke, val_duke)
 
 
 class TrainRNN(TrainRNNWF):
@@ -77,7 +72,7 @@ class TrainRNN(TrainRNNWF):
         val_duke = d_loader.duke_seq(
             'val-duke', 'DukeMTMC/val.csv', self.config['seq_length'])
 
-        return (train_duke, test_dts)
+        return (train_duke, val_duke)
 
 
 class TestDuke_1(TestLabelWF):
@@ -101,9 +96,16 @@ class TestDuke_3(TestLabelSeqWF):
 def select_WF(WFType):
     # avoid multiple instance of logger in WorkFlow
     if WFType == 0:
-        return TrainSSL(config)
-        # return TrainVanilla(TrainConfig)
-        # return TrainRNN(TrainConfig)
+        net_type = config["model"]["type"]
+        if net_type == 0:
+            return TrainVanilla(config)
+        elif net_type == 1:
+            return TrainRNN(config)
+        elif net_type == 2:
+            return TrainSSL(config)
+        else:
+            return None
+        
     elif WFType == 1:
         return TestDuke_1(config)
     elif WFType == 2:
