@@ -2,8 +2,8 @@
 import torch
 import torch.nn as nn
 
-from hdeNet import HDENet
-from extractor import BaseExtractor
+from .hdeNet import HDENet
+from .extractor import BaseExtractor
 
 SizeDf = [192, 64, 32, 16, 5, 3, 1]
 HiddensDF = [3, 32, 64, 64, 128, 128, 256]  # channels

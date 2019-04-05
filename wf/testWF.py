@@ -1,7 +1,7 @@
 import os
 
 from datetime import datetime
-from workflow import WorkFlow
+from .workflow import WorkFlow
 from dataset import DatasetLoader
 from utils import create_folder
 

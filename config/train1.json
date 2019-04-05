@@ -7,8 +7,8 @@
     "save_freq": 50,
     "show_freq": 20,
     "batch": 8,
-    "batch_unlabel": 1,
-    "batch_val": 1,
+    "batch_unlabel": 8,
+    "batch_val": 8,
     "lr": 0.001, 
     "seq_length": 16,
     "model": {
@@ -18,8 +18,8 @@
         "trained": null
         },
     "acvs": {
-        "train_label": 100,
-        "train_angle": 100,
+        "train_label": 50,
+        "train_angle": 50,
         "val_label": 20,
         "val_angle": 20
         },

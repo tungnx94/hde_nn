@@ -1,6 +1,6 @@
-from hdeReg import HDEReg
-from mobileRNN import MobileRNN
-from mobileReg import MobileReg
+from .hdeReg import HDEReg
+from .mobileRNN import MobileRNN
+from .mobileReg import MobileReg
 # from mobileEncoderReg import MobileEncoderReg
 
 Thresh = 0.005  # unlabel_loss threshold

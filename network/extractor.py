@@ -1,8 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from hdeNet import HDENet
-from mobileNet import MobileNet_v1
+from .hdeNet import HDENet
+from .mobileNet import MobileNet_v1
 
 SizeDf = [192, 96, 32, 10, 4, 1]
 HiddensDF = [3, 32, 32, 64, 64, 256]  # channels

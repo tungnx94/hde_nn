@@ -1,3 +1,5 @@
+import argparse
+
 from wf import *
 from dataset import DatasetLoader
 from utils import read_json
@@ -6,12 +8,27 @@ Mean = [0.485, 0.456, 0.406]
 Std = [0.229, 0.224, 0.225]
 d_loader = DatasetLoader(Mean, Std)
 
-# 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
-ModelType = 1
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-# TODO: pass as command parameter
-TrainConfig = read_json('config/train1.json')
-TestConfig = None
+parser.add_argument("-m", dest="model", type=int, default=0,
+                    help="neural network model")
+parser.add_argument("-t", dest="type", type=int, default=0,
+                    help="wf run type")
+parser.add_argument("-c", dest="cnf", default="./config/train1.json",
+                    help="train/test config")
+
+args = parser.parse_args()
+
+print(args)
+
+# 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
+ModelType = args.model
+
+# 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
+WFType = args.type
+
+config = read_json(args.cnf)
 
 class TrainSSL(TrainSSWF):
 
@@ -24,7 +41,7 @@ class TrainSSL(TrainSSWF):
         #train_virat.resize()
         #train_manual.resize()
         label_dts = d_loader.mix('Training-label', [train_duke, train_virat, train_manual], None)
-        
+
         unlabel_duke = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
         unlabel_ucf = d_loader.folder_unlabel('ucf-unlabel', 'UCF')
         unlabel_drone = d_loader.folder_unlabel('drone-unlabel', 'DRONE_seq') 
@@ -35,10 +52,13 @@ class TrainSSL(TrainSSWF):
         """
 
         label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train.csv')
-        unlabel_dts = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train_unlabel.csv')
-        val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/val.csv', self.config['seq_length'])
+        unlabel_dts = d_loader.folder_unlabel(
+            'duke-unlabel', 'DukeMTMC/train_unlabel.csv')
+        val_dts = d_loader.duke_seq(
+            'val-dukeseq', 'DukeMTMC/val.csv', self.config['seq_length'])
 
         return (label_dts, unlabel_dts, val_dts)
+
 
 class TrainVanilla(TrainSLWF):
 
@@ -48,55 +68,59 @@ class TrainVanilla(TrainSLWF):
 
         return (train_duke, test_dts)
 
+
 class TrainRNN(TrainRNNWF):
 
     def load_dataset(self):
-        train_duke = d_loader.duke_seq('train-duke', 'DukeMTMC/train.csv', self.config['seq_length'])
-        val_duke = d_loader.duke_seq('val-duke', 'DukeMTMC/val.csv', self.config['seq_length'])
+        train_duke = d_loader.duke_seq(
+            'train-duke', 'DukeMTMC/train.csv', self.config['seq_length'])
+        val_duke = d_loader.duke_seq(
+            'val-duke', 'DukeMTMC/val.csv', self.config['seq_length'])
 
         return (train_duke, test_dts)
 
+
 class TestDuke_1(TestLabelWF):
+
     def load_dataset(self):
         return d_loader.single_label('DRONE_test', 'DRONE_label/test.csv', data_aug=False)
 
+
 class TestDuke_2(TestUnlabelWF):
+
     def load_dataset(self):
         return d_loader.folder_unlabel('DRONE-seq', 'DRONE_seq/test.csv', data_aug=False)
 
-class TestDuke_3(TestLabelSeqWF):
-    def load_dataset(self):
-        return d_loader.duke_seq('DUKE-test', 'DukeMTMC/test.csv', TestConfig['seq_length'], data_aug=False)
 
-def select_WF(TestType):
+class TestDuke_3(TestLabelSeqWF):
+
+    def load_dataset(self):
+        return d_loader.duke_seq('DUKE-test', 'DukeMTMC/test.csv', self.config['seq_length'], data_aug=False)
+
+
+def select_WF(WFType):
     # avoid multiple instance of logger in WorkFlow
-    if TestType == 0:
-        return TrainSSL(TrainConfig)
+    if WFType == 0:
+        return TrainSSL(config)
         # return TrainVanilla(TrainConfig)
         # return TrainRNN(TrainConfig)
-    elif TestType == 1:
-        TestConfig = read_json('config/test01.json')
-        return TestDuke_1(TestConfig)
-    elif TestType == 2:
-        TestConfig = read_json('config/test02.json')
-        return TestDuke_2(TestConfig)
+    elif WFType == 1:
+        return TestDuke_1(config)
+    elif WFType == 2:
+        return TestDuke_2(config)
     else:  # 3
-        TestConfig = read_json('config/test03.json')
-        return TestDuke_3(TestConfig)
+        return TestDuke_3(config)
 
 
 def main():
     """ Train and validate new model """
-    # 0: none(train), 1: labeled image, 2: unlabeled sequence, 3: labeled seq
-    TestType = 0
-
     try:
-        wf = select_WF(TestType)
+        wf = select_WF(WFType)
         wf.prepare_dataset(d_loader)
         wf.proceed()
 
     except WFException as e:
-        print "exception", e
+        print("exception", e)
         wf.finalize()
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from testWF import TestWF
+from .testWF import TestWF
 
 class TestLabelSeqWF(TestWF):  # Type 1
 

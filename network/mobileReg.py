@@ -3,8 +3,8 @@ import random
 import torch
 import torch.nn as nn
 
-from hdeReg import HDEReg
-from extractor import MobileExtractor
+from .hdeReg import HDEReg
+from .extractor import MobileExtractor
 
 Lamb = 0.1 
 

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from exception import WFException
+from .exception import WFException
 
 
 class AccumulatedValuePlotter(object):

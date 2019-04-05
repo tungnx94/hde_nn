@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from os.path import join
-from sequenceData import SequenceDataset
+from .sequenceData import SequenceDataset
 
 class SequenceUnlabelDataset(SequenceDataset):
 

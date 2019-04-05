@@ -5,7 +5,7 @@ sys.path.insert(0, '..')
 
 import utils
 import numpy as np 
-from trainWF import TrainWF
+from .trainWF import TrainWF
 
 class TrainSLWF(TrainWF):
 

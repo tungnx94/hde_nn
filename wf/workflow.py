@@ -9,11 +9,13 @@ import logging
 
 from datetime import datetime
 from utils import create_folder
+from network import ModelLoader
+
 from .exception import WFException
 from .accValue import AccumulatedValue
 from .avPlotter import AccumulatedValuePlotter
 from .visdomPlotter import VisdomLinePlotter
-from .network import ModelLoader
+
 
 class WorkFlow(object):
 

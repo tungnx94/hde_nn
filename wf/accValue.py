@@ -1,14 +1,14 @@
 import os
 import numpy as np
 import pandas as pd
-import workflow as wf
 
+from .exception import WFException
 
 class AccumulatedValue(object):
 
     def __init__(self, avgWidth):
-        if (avgWidth <= 0):
-            exp = wf.WFException(
+        if min(avgWidth.values()) <= 0:
+            exp = WFException(
                 "Averaging width must be a positive integer.", "AccumulatedValue")
             raise(exp)
 
@@ -59,7 +59,7 @@ class AccumulatedValue(object):
         if (0 == len(self.acc[name])):
             # This is an error.
             desc = "The length of the current accumulated values is zero"
-            exp = wf.WFException(desc, "last")
+            exp = WFException(desc, "last")
             raise(exp)
 
         return self.acc[name][-1]
@@ -69,7 +69,7 @@ class AccumulatedValue(object):
         if (0 == len(self.avg[name])):
             # This is an error.
             desc = "The length of the current accumulated values is zero"
-            exp = wf.WFException(desc, "last_avg")
+            exp = WFException(desc, "last_avg")
             raise(exp)
 
         return self.avg[name][-1]

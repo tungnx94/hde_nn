@@ -4,7 +4,7 @@ import numpy as np
 import torch.optim as optim 
 
 from datetime import datetime
-from workflow import WorkFlow
+from .workflow import WorkFlow
 from utils import create_folder
 
 class TrainWF(WorkFlow):
@@ -22,9 +22,8 @@ class TrainWF(WorkFlow):
 
         self.saveFreq = config['save_freq']
         self.showFreq = config['show_freq']
-        # self.valFreq = config['val_freq']
+        self.valFreq = config['val_freq']
         self.trainStep = config['train_step']
-        self.valStep = config['val_step'] # to be removed
 
         self.lr = config['lr']
         self.batch = config['batch']

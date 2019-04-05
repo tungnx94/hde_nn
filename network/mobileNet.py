@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from hdeNet import HDENet 
+from .hdeNet import HDENet 
 from collections import namedtuple, OrderedDict
 
 # Conv and DepthSepConv namedtuple define layers of the MobileNet architecture

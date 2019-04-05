@@ -2,8 +2,8 @@ import time
 import numpy as np 
 
 from visdom import Visdom
-from exception import WFException
-from avPlotter import AccumulatedValuePlotter
+from .exception import WFException
+from .avPlotter import AccumulatedValuePlotter
 
 
 class VisdomLinePlotter(AccumulatedValuePlotter):
