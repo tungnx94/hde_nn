@@ -48,7 +48,7 @@ class TrainSSL(TrainSSWF):
 
         label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train.csv')
         unlabel_dts = d_loader.folder_unlabel(
-            'duke-unlabel', 'DukeMTMC/train_unlabel.csv')
+            'duke-unlabel', 'DukeMTMC/train_unlabel.csv', self.config['batch_unlabel'])
         val_dts = d_loader.duke_seq(
             'val-dukeseq', 'DukeMTMC/val.csv', self.config['seq_length'])
 

@@ -21,14 +21,14 @@ class DatasetLoader(object):
     def set_std(self, std):
         self.std = std
 
-    def loader(self, dataset, batch_size, shuffle=True, num_workers=4):
+    def loader(self, dataset, batch_size=1, shuffle=True, num_workers=4):
         return DataLoader(dataset, batch_size, shuffle, num_workers)
-
-    def folder_unlabel(self, name, path, data_aug=True):
-        return SequenceUnlabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
 
     def single_label(self, name, path, data_aug=True):
         return SingleLabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
+
+    def folder_unlabel(self, name, path, seq_length, data_aug=True):
+        return SequenceUnlabelDataset(name, path=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
 
     def duke_seq(self, name, path, seq_length, data_aug=True):
         return DukeSeqLabelDataset(name, path=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)

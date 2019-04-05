@@ -53,6 +53,10 @@ class MobileReg(HDEReg):
         return loss
 
     def loss_combine(self, inputs, targets, inputs_unlabel, mean=False):
+        #print(inputs.shape)
+        #print(targets.shape)
+        #print(inputs_unlabel.shape)
+
         loss_label = self.loss_label(inputs, targets, mean)
         loss_unlabel = self.loss_unlabel(inputs_unlabel)
         loss_total = torch.mean(loss_label) + self.lamb * loss_unlabel

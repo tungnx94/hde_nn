@@ -10,7 +10,7 @@ from utils import one_hot
 
 class SequenceDataset(SingleDataset):
 
-    def __init__(self, name, path=None, img_size=192, seq_length=12, 
+    def __init__(self, name, path=None, img_size=192, seq_length=16, 
                 data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1],
                 saved_file=None, auto_shuffle=False, testing=False):
 

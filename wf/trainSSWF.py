@@ -12,7 +12,8 @@ class TrainSSWF(TrainWF):
     def prepare_dataset(self, dloader):
         label_dts, unlabel_dts, val_dts = self.load_dataset()
         self.train_loader = dloader.loader(label_dts, self.batch)
-        self.train_unlabel_loader = dloader.loader(unlabel_dts, self.batch_unlabel)
+        self.train_unlabel_loader = dloader.loader(unlabel_dts)
+
         self.val_loader = dloader.loader(val_dts, self.batch_val)
 
     def train_error(self, sample):
@@ -36,7 +37,7 @@ class TrainSSWF(TrainWF):
         values = [loss[0].item(), loss[1].item(), loss[2].item()]
 
         outputs = self.model(sample[0])
-        metric = utils.eval(outputs, targets)
+        metric = utils.eval(outputs, sample[1])
         values.append(metric)
 
         return np.array(values)
