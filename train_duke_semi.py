@@ -34,25 +34,25 @@ class TrainSSL(TrainSSWF):
         unlabel_dts = d_loader.mix('Training-unlabel', [unlabel_duke, unlabel_ucf, unlabel_drone])
         """
 
-        label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
-        unlabel_dts = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
-        val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/train/val.csv', self.config['seq_length'])
+        label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train.csv')
+        unlabel_dts = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train_unlabel.csv')
+        val_dts = d_loader.duke_seq('val-dukeseq', 'DukeMTMC/val.csv', self.config['seq_length'])
 
         return (label_dts, unlabel_dts, val_dts)
 
 class TrainVanilla(TrainSLWF):
 
     def load_dataset(self):
-        train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
-        val_duke = d_loader.single_label('val-duke', 'DukeMTMC/train/val.csv')
+        train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train.csv')
+        val_duke = d_loader.single_label('val-duke', 'DukeMTMC/val.csv')
 
         return (train_duke, test_dts)
 
 class TrainRNN(TrainRNNWF):
 
     def load_dataset(self):
-        train_duke = d_loader.duke_seq('train-duke', 'DukeMTMC/train/train.csv', self.config['seq_length'])
-        val_duke = d_loader.duke_seq('val-duke', 'DukeMTMC/train/val.csv', self.config['seq_length'])
+        train_duke = d_loader.duke_seq('train-duke', 'DukeMTMC/train.csv', self.config['seq_length'])
+        val_duke = d_loader.duke_seq('val-duke', 'DukeMTMC/val.csv', self.config['seq_length'])
 
         return (train_duke, test_dts)
 
@@ -62,11 +62,11 @@ class TestDuke_1(TestLabelWF):
 
 class TestDuke_2(TestUnlabelWF):
     def load_dataset(self):
-        return d_loader.folder_unlabel('DRONE-seq', 'DRONE_seq', data_aug=False)
+        return d_loader.folder_unlabel('DRONE-seq', 'DRONE_seq/test.csv', data_aug=False)
 
 class TestDuke_3(TestLabelSeqWF):
     def load_dataset(self):
-        return d_loader.duke_seq('DUKE-test', 'DukeMTMC/test/test.csv', TestConfig['seq_length'], data_aug=False)
+        return d_loader.duke_seq('DUKE-test', 'DukeMTMC/test.csv', TestConfig['seq_length'], data_aug=False)
 
 def select_WF(TestType):
     # avoid multiple instance of logger in WorkFlow
