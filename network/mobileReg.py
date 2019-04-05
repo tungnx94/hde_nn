@@ -64,12 +64,13 @@ class MobileReg(HDEReg):
         return (loss_label, loss_unlabel, loss_total)
 
 if __name__ == '__main__':
+    # TODO: test unlabel loss 
     import sys
     sys.path.insert(0, "..")
     from utils import get_path, seq_show
 
     import torch.optim as optim
-    from dataset import SingleLabelDataset, DukeSeqLabelDataset, DataLoader
+    from dataset import SingleLabelDataset, DukeSeqLabelDataset, SequenceUnlabelDataset, DataLoader
 
     net = MobileReg()
     net.load_mobilenet('pretrained_models/mobilenet_v1_0.50_224.pth')
@@ -77,8 +78,10 @@ if __name__ == '__main__':
     dataset = SingleLabelDataset(
         "duke-test", path=get_path('DukeMTMC/test.csv'), data_aug=True)
     dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=16)
+    loader = DataLoader(dataset, batch_size=64)
     
+    unlabel_set = SequenceUnlabelDataset('duke-unlabel', path=get_path('DukeMTMC/test_unlabel.csv'), seq_length=64)
+    unlabel_loader = DataLoader(unlabel_set) 
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
     for ind in range(1, 50): # 5000
@@ -86,11 +89,13 @@ if __name__ == '__main__':
         imgseq = sample[0].squeeze()
         labels = sample[1].squeeze()
 
-        l = net.loss_label(imgseq, labels, mean=True)
-        print(l.item())
+        unlabel_seq = unlabel_loader.next_sample().squeeze()
+
+        l = net.loss_combine(imgseq, labels, unlabel_seq, mean=True)
+        print(l[0].item(), l[1].item(), l[2].item())
 
         optimizer.zero_grad()
-        l.backward()
+        l[0].backward()
         optimizer.step()
         #seq_show(imgseq.numpy(), dir_seq=output.to("cpu").detach().numpy())
 
