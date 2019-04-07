@@ -80,7 +80,7 @@ class TrainWF(WorkFlow):
             if iteration % self.valFreq == 0:
                 WorkFlow.test(self)
                 self.model.eval()
-                self.logger.info("validation")
+                #self.logger.info("validation")
 
                 val_sample = self.next_val_sample()
                 self.evaluate(train_sample, val_sample)

@@ -2,14 +2,14 @@
     "dir": "./log",
     "prefix": "sample",
     "log": "train.log",
-    "train_step": 100,
-    "save_freq": 50,
-    "show_freq": 20,
-    "val_freq": 10,
-    "batch": 8,
-    "batch_unlabel": 8,
+    "train_step": 20000,
+    "save_freq": 1000,
+    "show_freq": 100,
+    "val_freq": 25,
+    "batch": 64,
+    "batch_unlabel": 64,
     "batch_val": 1,
-    "seq_length": 8,
+    "seq_length": 64,
     "lr": 0.001,
     "model": {
         "name": "facing",
@@ -22,10 +22,10 @@
         "train_unlabel": 100,
         "train_total": 100,
         "train_angle": 100,
-        "val_label": 20,
-        "val_unlabel": 20,
-        "val_total": 20,
-        "val_angle": 20
+        "val_label": 100,
+        "val_unlabel": 100,
+        "val_total": 100,
+        "val_angle": 100
         },
     "plots": [
         {   "name": "total_loss",
@@ -37,8 +37,7 @@
         {   "name": "unlabel_loss",
             "values": ["train_unlabel", "val_unlabel"],
             "average":true  },
-        {
-            "name": "angle",
+        {   "name": "angle",
             "values": ["train_angle", "val_angle"],
             "average":true }
         ],
