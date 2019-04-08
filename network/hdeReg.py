@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 from .hdeNet import HDENet
-from .extractor import BaseExtractor
+from .extractor import BaseExtractor, MobileExtractor
 
 SizeDf = [192, 64, 32, 16, 5, 3, 1]
 HiddensDF = [3, 32, 64, 64, 128, 128, 256]  # channels
@@ -14,12 +14,16 @@ StridesDF = [3, 2, 2, 3, 2, 1]
 
 class HDEReg(HDENet):
 
-    def __init__(self, hidNum=256, output_type="reg", device=None, init=True):
+    def __init__(self, extractor, hidNum=256, output_type="reg", device=None, init=True):
         # input size should be [192x192]
         HDENet.__init__(self, device)
         
         self.output_type = output_type
-        self.feature = BaseExtractor(hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF)
+
+        if extractor == "base":
+            self.feature = BaseExtractor(hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF)
+        else:
+            self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better
 
         # self.reg = nn.Linear(256, 2)
 

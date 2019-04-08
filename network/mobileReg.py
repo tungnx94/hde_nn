@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 
 from .hdeReg import HDEReg
-from .extractor import MobileExtractor
 
 Lamb = 0.1 
 
@@ -15,10 +14,7 @@ class MobileReg(HDEReg):
         self.lamb = lamb
         self.thresh = thresh
 
-        HDEReg.__init__(self, hidNum, output_type, device, init=False)
-
-        self.feature = MobileExtractor(
-            hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better
+        HDEReg.__init__(self, "mobile", hidNum, output_type, device, init=False)
 
         self.load_to_device()
         self._initialize_weights()

@@ -18,13 +18,11 @@ class ModelLoader(object):
         mtrained = config['trained'] if 'trained' in config else None
 
         if mtype == 0:
-            model = HDEReg()
+            model = HDEReg(config["extractor"])
         elif mtype == 1:
-            model = MobileRNN()
+            model = MobileRNN(config["extractor"])
         if mtype == 2:
             model = MobileReg(lamb=0.1, thresh=Thresh)
-        #elif mtype == 3:
-        #    model = MobileEncoderReg(lamb=0.0001)
         
         if mmobile is not None:
             model.load_mobilenet(config['mobile'])

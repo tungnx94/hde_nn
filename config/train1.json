@@ -1,27 +1,28 @@
 {
     "dir": "./log",
-    "prefix": "sample",
+    "prefix": "rnn_duke",
     "log": "train.log",
-    "train_step": 100,
-    "val_freq": 10,
-    "save_freq": 50,
-    "show_freq": 20,
+    "train_step": 60000,
+    "save_freq": 2000,
+    "show_freq": 100,
+    "val_freq": 50,
     "batch": 1,
     "batch_unlabel": 1,
     "batch_val": 1,
-    "lr": 0.001, 
-    "seq_length": 32,
+    "seq_length": 8,
+    "lr": 0.001,
     "model": {
-        "name": "facing",
+        "name": "rnn_duke",
+        "extractor": "base",
         "type": 1,
-        "mobile": "network/pretrained_models/mobilenet_v1_0.50_224.pth",
+        "mobile": null,
         "trained": null
         },
     "acvs": {
-        "train_label": 50,
-        "train_angle": 50,
-        "val_label": 20,
-        "val_angle": 20
+        "train_label": 100,
+        "train_angle": 100,
+        "val_label": 100,
+        "val_angle": 100
         },
     "plots": [
         {   "name": "label_loss",

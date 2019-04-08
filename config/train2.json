@@ -1,20 +1,20 @@
 {
     "dir": "./log",
-    "prefix": "sample",
+    "prefix": "mobilereg_duke",
     "log": "train.log",
-    "train_step": 20000,
+    "train_step": 30000,
     "save_freq": 1000,
     "show_freq": 100,
-    "val_freq": 25,
+    "val_freq": 50,
     "batch": 64,
     "batch_unlabel": 64,
     "batch_val": 1,
     "seq_length": 64,
     "lr": 0.001,
     "model": {
-        "name": "facing",
+        "name": "mobilereg_duke",
         "type": 2,
-        "mobile": "network/pretrained_models/mobilenet_v1_0.50_224.pth",
+        "mobile": null,
         "trained": null
         },
     "acvs": {

@@ -8,12 +8,8 @@ from .extractor import MobileExtractor, BaseExtractor
 
 class MobileRNN(HDEReg):
 
-    def __init__(self, hidNum=256, rnnHidNum=128, n_layer=2, rnn_type="gru", output_type="reg", device=None):
-        HDEReg.__init__(self, hidNum, output_type, device, init=False)
-
-        # self.feature = BaseExtractor()
-        self.feature = MobileExtractor(
-            hidNum, depth_multiplier=0.5, device=device)
+    def __init__(self, extractor, hidNum=256, rnnHidNum=128, n_layer=4, rnn_type="gru", output_type="reg", device=None):
+        HDEReg.__init__(self, extractor, hidNum, output_type, device, init=False)
 
         if rnn_type == "gru":
             self.rnn = nn.GRU(hidNum, rnnHidNum, n_layer)
