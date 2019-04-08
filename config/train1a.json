@@ -1,54 +1,42 @@
 {
     "dir": "./log",
-    "prefix": "mobilereg_duke",
+    "prefix": "rnn_duke",
     "log": "train.log",
     "train_step": 30000,
-    "save_freq": 1000,
+    "save_freq": 2000,
     "show_freq": 100,
     "val_freq": 50,
-    "batch": 64,
-    "batch_unlabel": 64,
+    "batch": 1,
+    "batch_unlabel": 1,
     "batch_val": 1,
-    "seq_length": 64,
+    "seq_length": 8,
     "lr": 0.001,
     "model": {
-        "name": "mobilereg_duke",
-        "type": 2,
+        "name": "rnn_duke",
+        "extractor": "base",
+        "type": 1,
         "mobile": null,
         "trained": null
         },
     "acvs": {
         "train_label": 100,
-        "train_unlabel": 100,
-        "train_total": 100,
         "train_angle": 100,
         "val_label": 100,
-        "val_unlabel": 100,
-        "val_total": 100,
         "val_angle": 100
         },
     "plots": [
-        {   "name": "total_loss",
-            "values": ["train_total", "val_total"],
-            "average":true  },
         {   "name": "label_loss",
             "values": ["train_label", "val_label"],
             "average":true  },
-        {   "name": "unlabel_loss",
-            "values": ["train_unlabel", "val_unlabel"],
-            "average":true  },
-        {   "name": "angle",
+        {
+            "name": "angle",
             "values": ["train_angle", "val_angle"],
             "average":true }
         ],
     "losses": [
         "train_label",
-        "train_unlabel",
-        "train_total",
         "train_angle",
         "val_label",
-        "val_unlabel",
-        "val_total",
         "val_angle"
         ]
 }

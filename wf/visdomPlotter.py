@@ -13,7 +13,8 @@ class VisdomLinePlotter(AccumulatedValuePlotter):
 
     def __init__(self, name, av, avNameList, plot_average=True, semiLog=False):
         AccumulatedValuePlotter.__init__(self, name, av, avNameList, plot_average)
-
+        
+        self.lastIdx = -1
         self.count = 0
         self.minPlotPoints = 2
         self.visLine = None

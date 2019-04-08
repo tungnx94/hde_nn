@@ -48,8 +48,11 @@ class TrainWF(WorkFlow):
 
     def finalize(self):
         """ save model and values after training """
-        WorkFlow.finalize(self)
+        WorkFlow.finalize(self)    
         self.save_snapshot()
+
+        for avp in self.AVP:
+            avp.write_image_final(self.logdir)
 
     def save_snapshot(self):
         """ write accumulated values and save temporal model """

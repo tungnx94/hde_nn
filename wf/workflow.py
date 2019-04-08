@@ -32,9 +32,9 @@ class WorkFlow(object):
 
         # Accumulated value dictionary & plotter.
         self.AV = AccumulatedValue(config['acvs'])
-        self.AVP = []        
+        self.AVP = []
         for plot in config['plots']:
-            self.add_plotter(plot['name'], plot['values'], plot['average'])            
+            self.add_plotter(plot['name'], plot['values'], plot['average'])
 
         ### Init logging
         # Console log

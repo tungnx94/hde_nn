@@ -9,12 +9,12 @@ Lamb = 0.1
 
 class MobileReg(HDEReg):
 
-    def __init__(self, hidNum=256, output_type="reg", lamb=0.1, thresh=0.005, device=None):
+    def __init__(self, extractor="mobile", hidNum=256, output_type="reg", lamb=0.1, thresh=0.005, device=None):
         # input size should be [192x192]
         self.lamb = lamb
         self.thresh = thresh
 
-        HDEReg.__init__(self, "mobile", hidNum, output_type, device, init=False)
+        HDEReg.__init__(self, extractor, hidNum, output_type, device, init=False)
 
         self.load_to_device()
         self._initialize_weights()
