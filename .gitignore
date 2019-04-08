@@ -1,4 +1,6 @@
+*~
 *.pyc
+*.out
 log
 old_logs
 logdata
