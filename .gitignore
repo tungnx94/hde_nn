@@ -2,6 +2,7 @@
 *.pyc
 *.out
 log
+log_lab
 old_logs
 logdata
 models
