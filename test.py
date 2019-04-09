@@ -8,7 +8,7 @@ def test_mobile_reg():
     net.load_mobilenet('network/pretrained_models/mobilenet_v1_0.50_224.pth')
 
     dataset = SingleLabelDataset(
-        "duke-test", path=get_path('DukeMTMC/test.csv'), data_aug=True)
+        "duke-test", path=get_path('DukeMTMC/train.csv'), data_aug=True)
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=16)
     
