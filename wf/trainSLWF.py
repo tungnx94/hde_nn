@@ -23,16 +23,6 @@ class TrainSLWF(TrainWF):
     def next_val_sample(self):
         return self.next_sample(self.val_loader)
 
-    """
-    def next_train_sample(self):
-        sample = self.train_loader.next_sample()
-        return sample
-
-    def next_val_sample(self):
-        sample = self.val_loader.next_sample()
-        return sample
-
-    """
     def train_error(self, sample):
         loss = self.model.loss_label(sample[0], sample[1], mean=True)
         return loss
@@ -57,20 +47,6 @@ class TrainRNNWF(TrainSLWF):
         # uncomment this line will make a difference
         # loss = self.model.loss_weighted(sample[0], sample[1], mean=True)
         return loss
-
-    """
-    def next_train_sample(self):
-        sample = self.train_loader.next_sample()
-        inputs = sample[0].squeeze()
-        targets = sample[1].squeeze()
-        return (inputs, targets)
-
-    def next_val_sample(self):
-        sample = self.val_loader.next_sample()
-        inputs = sample[0].squeeze()
-        targets = sample[1].squeeze()
-        return (inputs, targets)
-    """
 
     def next_sample(self, loader):
         sample = loader.next_sample()

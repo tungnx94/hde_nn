@@ -8,7 +8,7 @@ from .extractor import MobileExtractor, BaseExtractor
 
 class MobileRNN(HDEReg):
 
-    def __init__(self, extractor, hidNum=256, rnnHidNum=128, n_layer=4, rnn_type="gru", output_type="reg", device=None):
+    def __init__(self, extractor, hidNum=256, rnnHidNum=128, n_layer=4, rnn_type="gru", device=None):
         HDEReg.__init__(self, extractor, hidNum, output_type, device, init=False)
 
         if rnn_type == "gru":
@@ -16,10 +16,7 @@ class MobileRNN(HDEReg):
         elif rnn_type == "lstm":
             self.rnn = nn.LSTM(hidNum, rnnHidNum, n_layer)
 
-        if output_type == "reg": # regressor
-            self.reg = nn.Linear(rnnHidNum, 2)
-        else:
-            self.reg = nn.Linear(rnnHidNum, 8)
+        self.reg = nn.Linear(rnnHidNum, 2)
 
         self._initialize_weights()
         self.load_to_device()

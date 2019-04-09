@@ -14,7 +14,7 @@ StridesDF = [3, 2, 2, 3, 2, 1]
 
 class HDEReg(HDENet):
 
-    def __init__(self, extractor, hidNum=256, output_type="reg", device=None, init=True):
+    def __init__(self, extractor, hidNum=256, device=None, init=True):
         # input size should be [192x192]
         HDENet.__init__(self, device)
         
@@ -27,20 +27,12 @@ class HDEReg(HDENet):
 
         # self.reg = nn.Linear(256, 2)
 
-        if output_type == "reg": # regressor
-            self.criterion = nn.MSELoss(reduction='none')  # L2    
-            self.reg = nn.Sequential(
-                nn.Linear(hidNum, 64),
-                nn.ReLU(),
-                nn.Linear(64, 2)
-            )
-        else: # current dirty fix
-            self.criterion = nn.CrossEntropyLoss(reduction='none')
-            self.reg = nn.Sequential(
-                nn.Linear(hidNum, 32),
-                nn.ReLU(),
-                nn.Linear(32, 8)
-            )
+        self.criterion = nn.MSELoss(reduction='none')  # L2    
+        self.reg = nn.Sequential(
+            nn.Linear(hidNum, 64),
+            nn.ReLU(),
+            nn.Linear(64, 2)
+        )
 
         if init:
             self._initialize_weights()
