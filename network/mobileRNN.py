@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as FF
 
 from .hdeReg import HDEReg
-from .extractor import MobileExtractor, BaseExtractor
 
 
 class MobileRNN(HDEReg):

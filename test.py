@@ -1,8 +1,9 @@
+from utils import get_path, seq_show
+import torch.optim as optim
+from network import MobileReg, HDE_RNN
+from dataset import SingleLabelDataset, DukeSeqLabelDataset, SequenceUnlabelDataset, DataLoader
+
 def test_mobile_reg():
-    from utils import get_path, seq_show
-    import torch.optim as optim
-    from network import MobileReg
-    from dataset import SingleLabelDataset, DukeSeqLabelDataset, SequenceUnlabelDataset, DataLoader
 
     net = MobileReg()
     net.load_mobilenet('network/pretrained_models/mobilenet_v1_0.50_224.pth')
@@ -34,5 +35,36 @@ def test_mobile_reg():
 
     print("Finished")
 
+def test_rnn():
+
+    net = HDE_RNN(extractor="base")
+
+    dataset = DukeSeqLabelDataset('duke-seq', path=get_path("DukeMTMC/train.csv"), seq_length=8)
+    loader = DataLoader(dataset, batch_size=1)
+
+    optimizer = optim.Adam(net.parameters(), lr=0.01)
+
+    for ind in range(1, 10):
+        sample = loader.next_sample()
+        inputs = sample[0].squeeze()
+        targets = sample[1].squeeze()
+        outputs = net(inputs)
+
+        #print(outputs.shape, targets.shape)
+
+        l = net.loss_label(inputs, targets, mean=True)
+
+        optimizer.zero_grad()
+        l.backward()
+        optimizer.step()
+
+        seq_show(inputs.numpy(), dir_seq=outputs.to("cpu").detach().numpy())
+
+        # seq_show(inputs.numpy(), dir_seq=targets.numpy())
+        # print(outputs)
+
+    print("Finished")        
+
 if __name__ == '__main__':
-    test_mobile_reg()
+    # test_mobile_reg()
+    test_rnn()

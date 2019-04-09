@@ -1,26 +1,24 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as FF
 
 from .hdeReg import HDEReg
-from .extractor import MobileExtractor, BaseExtractor
-
 
 class HDE_RNN(HDEReg):
 
-    def __init__(self, extractor, hidNum=256, rnnHidNum=1024, rnn_type="gru", device=None):
+    def __init__(self, extractor, hidNum=256, rnnHidNum=1024, device=None):
+        print("SIMPLE RNN")
         self.hidNum = hidNum
         self.rnnHidNum = rnnHidNum
 
-        HDEReg.__init__(self, extractor, hidNum, output_type, device, init=False)
+        HDEReg.__init__(self, extractor, hidNum, device, init=False)
 
         self.i2h = nn.Sequential(
-            nn.Linear(hidNum + rnnHidNum, rnnHidNum),
-            nn.ReLu()
+            nn.Linear(hidNum + rnnHidNum, rnnHidNum)
+            #nn.ReLU()
         )
         self.i2o = nn.Sequential(
-            nn.Linear(hidNum + rnnHidNum, hidNum),
-            nn.ReLu()
+            nn.Linear(hidNum + rnnHidNum, hidNum)
+            #nn.ReLU()
         )
         self.reg = nn.Sequential(
             nn.Linear(hidNum, 64),
@@ -41,6 +39,7 @@ class HDE_RNN(HDEReg):
 
     def forward(self, x):
         seq_length = x.shape[0]
+        #print(seq_length)
         x = x.to(self.device)
         x = self.feature(x).squeeze()
 
@@ -51,4 +50,4 @@ class HDE_RNN(HDEReg):
             out, hidden = self.forward_one_step(x[i], hidden)
             outputs.append(out)
 
-        return torch.stack(out)
+        return torch.stack(outputs)

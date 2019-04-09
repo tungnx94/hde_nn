@@ -1,0 +1,42 @@
+{
+    "dir": "./log",
+    "prefix": "rnn_v_duke",
+    "log": "train.log",
+    "train_step": 5000,
+    "save_freq": 1000,
+    "show_freq": 100,
+    "val_freq": 20,
+    "batch": 1,
+    "batch_unlabel": 1,
+    "batch_val": 1,
+    "seq_length": 8,
+    "lr": 0.001,
+    "model": {
+        "name": "rnn_v_duke",
+        "extractor": "base",
+        "type": 3,
+        "mobile": null,
+        "trained": null
+        },
+    "acvs": {
+        "train_label": 100,
+        "train_angle": 100,
+        "val_label": 100,
+        "val_angle": 100
+        },
+    "plots": [
+        {   "name": "label_loss",
+            "values": ["train_label", "val_label"],
+            "average":true  },
+        {
+            "name": "angle",
+            "values": ["train_angle", "val_angle"],
+            "average":true }
+        ],
+    "losses": [
+        "train_label",
+        "train_angle",
+        "val_label",
+        "val_angle"
+        ]
+}

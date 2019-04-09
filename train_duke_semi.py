@@ -68,9 +68,9 @@ class TrainRNN(TrainRNNWF):
 
     def load_dataset(self):
         train_duke = d_loader.duke_seq(
-            'train-duke', 'DukeMTMC/train.csv', self.config['seq_length'])
+            'train-duke', 'DukeMTMC/train.csv', self.config['seq_length'], data_aug=False)
         val_duke = d_loader.duke_seq(
-            'val-duke', 'DukeMTMC/val.csv', self.config['seq_length'])
+            'val-duke', 'DukeMTMC/val.csv', self.config['seq_length'], data_aug=False)
 
         return (train_duke, val_duke)
 
@@ -99,7 +99,7 @@ def select_WF(WFType):
         net_type = config["model"]["type"]
         if net_type == 0:
             return TrainVanilla(config)
-        elif net_type == 1:
+        elif net_type in [1,3]:
             return TrainRNN(config)
         elif net_type == 2:
             return TrainSSL(config)

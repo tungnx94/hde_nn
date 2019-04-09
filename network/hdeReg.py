@@ -17,15 +17,11 @@ class HDEReg(HDENet):
     def __init__(self, extractor, hidNum=256, device=None, init=True):
         # input size should be [192x192]
         HDENet.__init__(self, device)
-        
-        self.output_type = output_type
 
         if extractor == "base":
             self.feature = BaseExtractor(hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF)
         else:
-            self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better
-
-        # self.reg = nn.Linear(256, 2)
+            self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better, default 0.5
 
         self.criterion = nn.MSELoss(reduction='none')  # L2    
         self.reg = nn.Sequential(

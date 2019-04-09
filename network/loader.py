@@ -1,6 +1,7 @@
 from .hdeReg import HDEReg
 from .mobileRNN import MobileRNN
 from .mobileReg import MobileReg
+from .hdeRNN import HDE_RNN
 
 Thresh = 0.005  # unlabel_loss threshold
 
@@ -20,8 +21,10 @@ class ModelLoader(object):
             model = HDEReg(config["extractor"])
         elif mtype == 1:
             model = MobileRNN(config["extractor"])
-        if mtype == 2:
+        elif mtype == 2:
             model = MobileReg(extractor=config["extractor"], lamb=0.1, thresh=Thresh)
+        elif mtype == 3:
+            model = HDE_RNN(config["extractor"])
         
         if mmobile is not None:
             model.load_mobilenet(config['mobile'])
