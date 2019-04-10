@@ -1,15 +1,23 @@
 {
+    "type": "test",
     "dir": "./log/sample_01-22_19:37",
-    "prefix": "unlabel-seq",
+    "prefix": "",
     "log": "test.log",
     "show_freq": 25,
     "save_freq": 250,
     "batch": 1,
-    "seq_length": 32,
     "model": {
         "type": 2,
         "trained": "facing_20000.pkl",
         },
+    "dataset": {
+        "test": {
+            "name": "",
+            "path": "",
+            "aug": false,
+            "size": null
+        }
+    },
     "acvs": {
         "label": 20,
         "unlabel": 20,

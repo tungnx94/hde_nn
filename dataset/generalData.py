@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 
 from torch.utils.data import Dataset
-from utils import im_scale_norm_pad, im_crop, im_hsv_augmentation
+from utils import get_path, im_scale_norm_pad, im_crop, im_hsv_augmentation
 
 
 class DataLoader(torch.utils.data.DataLoader):
@@ -32,9 +32,9 @@ class DataLoader(torch.utils.data.DataLoader):
 
 class GeneralDataset(Dataset):
 
-    def __init__(self, name, auto_shuffle=False):
+    def __init__(self, config, auto_shuffle=False):
         Dataset.__init__(self)
-        self.name = name
+        self.name = config["name"]
         self.auto_shuffle = auto_shuffle
         self.items = []
 
@@ -72,22 +72,19 @@ FlipDir = {0:4, 1:3, 2:2, 3:1, 4:0, 5:7, 6:6, 7:5}
 
 class SingleDataset(GeneralDataset):
 
-    def __init__(self, name, path=None,
-                 img_size=192, data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1],
-                 saved_file=None, auto_shuffle=False, testing=False):
+    def __init__(self, config, img_size=192, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1], auto_shuffle=False):
     
-        GeneralDataset.__init__(self, name, auto_shuffle)
+        GeneralDataset.__init__(self, config, auto_shuffle)
+        self.path = get_path(config["path"])
 
-        self.path = path
+        self.aug = config["aug"]
         self.img_size = img_size
-        self.aug = data_aug
         self.maxscale = maxscale
         self.mean = mean
         self.std = std
-        self.testing = testing
 
-        if saved_file is not None:
-            self.load(saved_file)
+        if "saved" in config:
+            self.load(config["saved"])
         else:
             self.init_data()
 
@@ -125,10 +122,10 @@ class SingleDataset(GeneralDataset):
 class MixDataset(GeneralDataset):
 
     def __init__(self, name, saved_file=None, auto_shuffle=False):
-        GeneralDataset.__init__(self, name, auto_shuffle)
+        GeneralDataset.__init__(self, config, auto_shuffle)
 
-        if saved_file is not None:
-            self.load(saved_file)
+        if "saved" in config:
+            self.load(config["saved"])
 
     def add(self, dataset, factor=1):
         for idx in range(len(dataset)):

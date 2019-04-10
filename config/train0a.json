@@ -1,4 +1,5 @@
 {
+    "type": "train",
     "dir": "./log",
     "prefix": "vanilla_duke",
     "log": "train.log",
@@ -7,7 +8,6 @@
     "show_freq": 30,
     "val_freq": 10,
     "batch": 30,
-    "batch_unlabel": 32,
     "batch_val": 32,
     "lr": 0.001, 
     "seq_length": 1,
@@ -27,9 +27,9 @@
             "size": null
         },
         "val": {
-            "name": "val-dukeseq",
-            "type": 2,
-            "path": "DukeMTMC/train_unlabel.csv",
+            "name": "val-duke",
+            "type": 0,
+            "path": "DukeMTMC/val.csv",
             "aug": true,
             "size": null
         }

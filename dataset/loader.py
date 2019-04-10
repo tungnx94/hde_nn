@@ -1,12 +1,16 @@
-import sys
-sys.path.insert(0, '..')
-from utils import get_path
-
 from .generalData import DataLoader, MixDataset
 from .singleLabelData import SingleLabelDataset 
 from .sequenceUnlabelData import SequenceUnlabelDataset
 from .dukeSeqLabelData import DukeSeqLabelDataset
 from .viratSeqLabelData import ViratSeqLabelDataset
+
+"""
+Dataset type
+0: single 
+1: sequence unlabel
+2: duke seq
+3: virat seq
+"""
 
 class DatasetLoader(object):
 
@@ -22,21 +26,10 @@ class DatasetLoader(object):
         self.std = std
 
     def loader(self, dataset, batch_size=1, shuffle=True, num_workers=4):
-        return DataLoader(dataset, batch_size, shuffle, num_workers)
-
-    def single_label(self, name, path, data_aug=True):
-        return SingleLabelDataset(name, path=get_path(path), data_aug=data_aug, mean=self.mean, std=self.std)
-
-    def folder_unlabel(self, name, path, seq_length, data_aug=True):
-        return SequenceUnlabelDataset(name, path=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
-
-    def duke_seq(self, name, path, seq_length, data_aug=True):
-        return DukeSeqLabelDataset(name, path=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
-
-    def virat_seq(self, name, path, seq_length, data_aug=True):
-        return ViratSeqLabelDataset(name, path=get_path(path), seq_length=seq_length, data_aug=data_aug, mean=self.mean, std=self.std)
+        return DataLoader(dataset, batch_size, shuffle, num_workers)        
 
     def mix(self, name, sets, factors=None):
+        # currently unused
         mixset = MixDataset(name)
 
         if factors == None:
@@ -47,7 +40,33 @@ class DatasetLoader(object):
 
         return mixset
 
+    def load(self, config):
+        t = config["type"]
+        if t == 0:
+            return SingleLabelDataset(config, mean=self.mean, std=self.std)
+        elif t == 1:
+            return SequenceUnlabelDataset(config mean=self.mean, std=self.std)
+        elif t == 2:
+            return DukeSeqLabelDataset(config, mean=self.mean, std=self.std)
+        elif t ==3:
+            return ViratSeqLabelDataset(config, mean=self.mean, std=self.std)
+
+        return None
+
+    def try_load(self, name, config):
+        dataset = self.load(config[name]) if (name in config) else None
+        return dataset
+
     def load_dataset(self, config):
+        train = self.try_load("train", config)
+        unlabel = self.try_load("unlabel", config)
+        val = self.try_load("val", config)
+        test = self.try_load("test", config)
 
+        if test is not None:
+            return test
 
-        return 
+        if unlabel is not None:
+            return (train, unlabel, val)
+
+        return (train, val)

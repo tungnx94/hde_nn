@@ -1,4 +1,5 @@
 {
+    "type": "train",
     "dir": "./log",
     "prefix": "ssl_m_duke",
     "log": "train.log",
@@ -7,9 +8,8 @@
     "show_freq": 100,
     "val_freq": 50,
     "batch": 64,
-    "batch_unlabel": 64,
+    "batch_unlabel": 1,
     "batch_val": 1,
-    "seq_length": 64,
     "lr": 0.001,
     "model": {
         "name": "ssl_m_duke",
@@ -29,7 +29,8 @@
         "unlabel": {
             "name": "train-duke-unlabel",
             "type": 1,
-            "path": "DukeMTMC/train.csv",
+            "path": "DukeMTMC/train_unlabel.csv",
+            "seq_length": 64,
             "aug": true,
             "size": null
         },
@@ -37,6 +38,7 @@
             "name": "val-dukeseq",
             "type": 2,
             "path": "DukeMTMC/val.csv",
+            "seq_length": 64,
             "aug": true,
             "size": null
         }

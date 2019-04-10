@@ -1,4 +1,5 @@
 {
+    "type": "train",
     "dir": "./log",
     "prefix": "vanilla_m_duke",
     "log": "train.log",
@@ -7,10 +8,8 @@
     "show_freq": 100,
     "val_freq": 50,
     "batch": 64,
-    "batch_unlabel": 64,
     "batch_val": 64,
-    "lr": 0.001, 
-    "seq_length": 1,
+    "lr": 0.001,
     "model": {
         "name": "vanilla_m_duke",
         "extractor": "mobile",
@@ -27,9 +26,9 @@
             "size": null
         },
         "val": {
-            "name": "val-dukeseq",
-            "type": 2,
-            "path": "DukeMTMC/train_unlabel.csv",
+            "name": "val-duke",
+            "type": 0,
+            "path": "DukeMTMC/val.csv",
             "aug": true,
             "size": null
         }

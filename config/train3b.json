@@ -1,4 +1,5 @@
 {
+    "type": "train",
     "dir": "./log",
     "prefix": "rnn_v_m_duke",
     "log": "train.log",
@@ -7,9 +8,7 @@
     "show_freq": 100,
     "val_freq": 20,
     "batch": 1,
-    "batch_unlabel": 1,
     "batch_val": 1,
-    "seq_length": 16,
     "lr": 0.001,
     "model": {
         "name": "rnn_v_m_duke",
@@ -23,6 +22,7 @@
             "name": "train-dukeseq",
             "type": 2,
             "path": "DukeMTMC/train.csv",
+            "seq_length": 16,
             "aug": true,
             "size": null
         },
@@ -30,6 +30,7 @@
             "name": "val-dukeseq",
             "type": 2,
             "path": "DukeMTMC/val.csv",
+            "seq_length": 16,
             "aug": true,
             "size": null
         }

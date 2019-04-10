@@ -5,38 +5,29 @@
     "log": "test.log",
     "show_freq": 100,
     "save_freq": 2000,
-    "batch": 1,
+    "batch": 32,
     "model": {
         "type": 2,
         "trained": ".pkl",
         },
     "dataset": {
         "test": {
-            "name": "dukeseq-test",
+            "name": "duke-test",
             "path": "DukeMTMC/test.csv",
-            "type": 2,
-            "seq_length": 24,
+            "type": 0,
             "aug": false,
             "size": null
         }
     },
     "acvs": {
-        "unlabel": 50,
+        "label": 50
         },
     "plots": [
-        {   "name": "total_loss",
-            "values": ["total"],
-            "average":true  },
         {   "name": "label_loss",
             "values": ["label"],
-            "average":true  },
-        {   "name": "unlabel_loss",
-            "values": ["unlabel"],
             "average":true  }
         ],
     "losses": [
-        "label",
-        "unlabel",
-        "total"
+        "label"
         ]
 }

@@ -10,12 +10,9 @@ from utils import one_hot
 
 class SequenceDataset(SingleDataset):
 
-    def __init__(self, name, path=None, img_size=192, seq_length=16, 
-                data_aug=False, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1],
-                saved_file=None, auto_shuffle=False, testing=False):
-
-        self.seq_length = seq_length
-        SingleDataset.__init__(self, name, path, img_size, data_aug, maxscale, mean, std, saved_file, auto_shuffle, testing)
+    def __init__(self, config, img_size=192, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1], auto_shuffle=False):
+        self.seq_length = config["seq_length"] # should be 16 be default
+        SingleDataset.__init__(self, config, img_size, maxscale, mean, std, auto_shuffle)
 
     def read_debug(self):
         print('{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length))

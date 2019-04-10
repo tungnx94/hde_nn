@@ -1,4 +1,5 @@
 {
+    "type": "train",
     "dir": "./log",
     "prefix": "sample",
     "log": "train.log",

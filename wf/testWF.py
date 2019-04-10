@@ -43,11 +43,11 @@ class TestWF(WorkFlow):
         WorkFlow.test(self)
 
         self.iteration = 0
-        for sample_batch in self.test_loader:
+        for sample in self.test_loader:
             self.iteration += 1
 
             # update acvs
-            self.test(sample_batch)
+            self.test(sample)
 
             # log
             if self.iteration % self.showFreq == 0:

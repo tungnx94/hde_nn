@@ -1,17 +1,29 @@
 {
-    "dir": "./log/sample_01-22_19:37",
-    "prefix": "unlabel",
+    "type": "test",
+    "dir": "./log/",
+    "prefix": "",
     "log": "test.log",
-    "show_freq": 25,
-    "save_freq": 250,
+    "show_freq": 100,
+    "save_freq": 2000,
     "batch": 1,
-    "seq_length": 24,
     "model": {
         "type": 2,
-        "trained": "facing_20000.pkl",
+        "trained": ".pkl",
         },
+    "dataset": {
+        "test": {
+            "name": "dukes-test",
+            "path": "DukeMTMC/test_unlabel.csv",
+            "type": 1,
+            "seq_length": 32,
+            "aug": false,
+            "size": null
+        }
+    },
     "acvs": {
-        "unlabel": 20,
+        "label": 50,
+        "unlabel": 50,
+        "total": 50,
         },
     "plots": [
         {   "name": "unlabel_loss",
