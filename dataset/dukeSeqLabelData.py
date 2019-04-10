@@ -41,23 +41,3 @@ class DukeSeqLabelDataset(SequenceLabelDataset):
             seq.append((img_path, label, group))
 
         self.save_sequence(seq)
-
-
-if __name__ == '__main__':  # test
-    import sys
-    sys.path.insert(0, "..")
-
-    from generalData import DataLoader
-    from utils import get_path, seq_show
-
-    
-    unlabelset = DukeSeqLabelDataset(
-        "duke-test", path=get_path('DukeMTMC/test.csv'))
-    dataloader = DataLoader(unlabelset)
-
-    for count in range(5):
-        sample = dataloader.next_sample()
-        imgseq = sample[0].squeeze()
-        labelseq = sample[1].squeeze()
-
-        seq_show(imgseq.numpy(), dir_seq=labelseq)

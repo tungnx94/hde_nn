@@ -1,14 +1,10 @@
 # Wrapper for Duke & VIRAT single image labeled datasets
-import sys
-sys.path.insert(0, "..")
-
 import os
 import cv2
 import numpy as np
 import pandas as pd
 
 from .generalData import SingleDataset
-from utils import one_hot
 
 
 class SingleLabelDataset(SingleDataset):
@@ -37,22 +33,3 @@ class SingleLabelDataset(SingleDataset):
         out_label = self.augment_label(label, flip)
     
         return (out_img, out_label)
-
-
-if __name__ == '__main__':
-
-    from utils import get_path, seq_show
-    from generalData import DataLoader
-
-    duke = SingleLabelDataset("duke", path=get_path('DukeMTMC/train.csv'), data_aug=True)
-    pes = SingleLabelDataset("3dpes", path=get_path('3DPES/train.csv'), data_aug=True)
-    # virat = SingleLabelDataset("virat", path=get_path('VIRAT/person/train.csv'), data_aug=True)
-
-    for dataset in [duke, pes]:
-        print(dataset)
-
-        dataloader = DataLoader(dataset, batch_size=32)
-        for count in range(3):
-            img, label = dataloader.next_sample()
-            seq_show(img.numpy(),
-                     dir_seq=label.numpy(), scale=0.5)

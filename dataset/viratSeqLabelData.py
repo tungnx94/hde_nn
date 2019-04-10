@@ -67,29 +67,4 @@ class ViratSeqLabelDataset(SequenceLabelDataset):
                 seq.append(entry)
             
             self.save_sequence(seq)
-
-
-if __name__ == '__main__':
-    import sys
-    sys.path.insert(0, "..")
-
-    from generalData import DataLoader
-    from utils import get_path, seq_show
-
-    virat = ViratSeqLabelDataset("virat",
-            path=get_path('VIRAT/person/train.csv'), seq_length=12)
-
-    pes = ViratSeqLabelDataset("3dpes",
-            path=get_path('3DPES/train.csv'), seq_length=12, data_aug=True)
-
-    for dataset in [virat, pes]:
-        print(dataset)
-        dataloader = DataLoader(dataset, batch_size=1)
-
-        for count in range(3):
-            imgseq, angleseq = dataloader.next_sample()
-            imgseq = imgseq.squeeze().numpy()
-            angleseq = angleseq.squeeze().numpy()
-
-            seq_show(imgseq, dir_seq=angleseq, scale=0.8)
     
