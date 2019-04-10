@@ -38,8 +38,10 @@ class HDEReg(HDENet):
         self.feature.load_from_npz(fname)
 
     def forward(self, x):
+        batch = x.shape[0]
         x = x.to(self.device)
-        x = self.feature(x).squeeze()
+        # x = self.feature(x).squeeze() # get rid of the 1-dim
+        x = self.feature(x).view(batch, -1)
         x = self.reg(x)
         return x
 

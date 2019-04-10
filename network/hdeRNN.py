@@ -11,13 +11,6 @@ class HDE_RNN(HDEReg):
 
         HDEReg.__init__(self, extractor, hidNum, device, init=False)
 
-        """
-        self.f2i = nn.Sequential(
-            nn.Linear(fNum, hidNum),
-            nn.ReLU()
-        )
-        """
-
         self.i2h = nn.Sequential(
             nn.Linear(hidNum + rnnHidNum, rnnHidNum),
             nn.ReLU()
@@ -45,15 +38,12 @@ class HDE_RNN(HDEReg):
         return x, hidden
 
     def forward(self, x):
-        seq_length = x.shape[0]
+        batch = x.shape[0]
+        seq_length = x.shape[1]
         x = x.to(self.device)
-        x = self.feature(x).squeeze()
 
         """
-        x = self.f2i(x)
-        x = self.reg(x)
-        return x
-        """
+        x = self.feature(x).squeeze()
         
         hidden = torch.zeros(self.rnnHidNum).to(self.device)
         outputs = []
@@ -64,3 +54,21 @@ class HDE_RNN(HDEReg):
 
         outputs = torch.stack(outputs)
         return outputs
+        """
+
+
+        z = []
+        for i in range(batch):
+            y = self.feature(x[i]).view(seq_length, -1)
+
+            hidden = torch.zeros(self.rnnHidNum).to(self.device)
+            outputs = []
+            for j in range(seq_length):
+                out, hidden = self.forward_one_step(y[j], hidden)
+                outputs.append(out)
+
+            outputs = torch.stack(outputs)
+            z.append(outputs)
+
+        z = torch.stack(z)
+        return z

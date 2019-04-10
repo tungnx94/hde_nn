@@ -11,18 +11,17 @@ def test_mobile_reg():
     dataset = SingleLabelDataset(
         "duke-test", path=get_path('DukeMTMC/train.csv'), data_aug=True)
     dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=16)
+    loader = DataLoader(dataset, batch_size=4)
     
     unlabel_set = SequenceUnlabelDataset('duke-unlabel', path=get_path('DukeMTMC/test_unlabel.csv'))
     unlabel_loader = DataLoader(unlabel_set) 
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
-    for ind in range(1, 50): # 5000
+    for ind in range(1, 100): # 5000
         sample = loader.next_sample()
-        imgseq = sample[0].squeeze()
-        labels = sample[1].squeeze()
-
         unlabel_seq = unlabel_loader.next_sample().squeeze()
+
+        imgseq, labels = sample
 
         # l = net.loss_label(imgseq, labels, mean=True)
         l = net.loss_combine(imgseq, labels, unlabel_seq, mean=True)
@@ -36,23 +35,19 @@ def test_mobile_reg():
 def test_hde_rnn():
     net = HDE_RNN(extractor="base")
 
-    dataset = DukeSeqLabelDataset('duke-seq', path=get_path("DukeMTMC/train.csv"), seq_length=8)
-    loader = DataLoader(dataset, batch_size=1)
+    dataset = DukeSeqLabelDataset('duke-seq', path=get_path("DukeMTMC/train.csv"), seq_length=1)
+    loader = DataLoader(dataset, batch_size=32)
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
-    for ind in range(1, 10):
+    for ind in range(1, 100):
         sample = loader.next_sample()
-        inputs = sample[0].squeeze()
-        targets = sample[1].squeeze()
-        outputs = net(inputs)
+        inputs, targets = sample
 
         l = net.loss_label(inputs, targets, mean=True)
-
+        print(l)
         optimizer.zero_grad()
         l.backward()
         optimizer.step()
-
-        seq_show(inputs.numpy(), dir_seq=outputs.to("cpu").detach().numpy())
 
 def test_mobile_rnn():
     dataset = DukeSeqLabelDataset(
@@ -81,18 +76,17 @@ def test_mobile_rnn():
 
     print("Finished")
 
-def test_hde_reg()
-    net = HDEReg()
+def test_hde_reg():
+    net = HDEReg(extractor="base")
     dataset = SingleLabelDataset(
         "duke", path=get_path('DukeMTMC/test.csv'), img_size=192)
     dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=16)
+    loader = DataLoader(dataset, batch_size=32)
 
-    optimizer = optim.Adam(net.parameters(), lr=0.03)
-    for ind in range(1, 50):
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    for ind in range(1, 200):
         sample = loader.next_sample()
-        imgseq = sample[0].squeeze()
-        labels = sample[1].squeeze()
+        imgseq, labels = sample
 
         loss = net.loss_label(imgseq, labels, mean=True)
         print(loss.item())
@@ -153,10 +147,11 @@ def test_virat_seq_data():
             seq_show(imgseq, dir_seq=angleseq, scale=0.8)
 
 if __name__ == '__main__':
-    # test_mobile_reg()
+    test_hde_reg()
     # test_hde_rnn()
+    # test_mobile_reg()
     # test_mobile_rnn()
-    # test_hde_reg()
+    
     # test_single_data()
     # test_duke_seq_data()
     # test_virat_seq_data()
