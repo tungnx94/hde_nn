@@ -6,8 +6,8 @@ import numpy as np
 
 from math import pi
 
-# BASE = "/home/tungnguyen/projects/data_icra"
-BASE = "/home/tung/projects/data_icra"
+BASE = "/home/tungnguyen/projects/data_icra"
+#BASE = "/home/tung/projects/data_icra"
 
 ACC_THRESH = pi/8
 
@@ -46,9 +46,8 @@ def angle_diff(outputs, labels, mean=False):
     return diff
 
 def angle_diff_trigo(outputs, labels, mean=False):
-    # print outputs.shape, labels.shape
-    output_angle = np.arctan2(outputs[:, 0], outputs[:, 1])
-    label_angle = np.arctan2(labels[:, 0], labels[:, 1])
+    output_angle = np.arctan2(outputs[..., 0], outputs[..., 1])
+    label_angle = np.arctan2(labels[..., 0], labels[..., 1])
 
     return angle_diff(output_angle, label_angle, mean)    
 
@@ -76,12 +75,14 @@ def eval(outputs, labels):
         outputs = outputs.cpu().detach().numpy()
         labels = labels.cpu().detach().numpy()
 
-    s = labels.shape
+    return angle_diff_trigo(outputs, labels, mean=True) # dirty fix for now 
 
-    if s[1] == 2:
+    """
+    if # regression
         return angle_diff_trigo(outputs, labels, mean=True)
-    else:
-        return cls_accuracy(outputs, labels, mean=True)
+    else: # classification
+        return cls_accuracy(outputs, labels)
+    """
 
 
 def groupPlot(data_x, data_y, group=10):
