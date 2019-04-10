@@ -159,5 +159,5 @@ if __name__ == '__main__':
     # test_hde_reg()
     # test_single_data()
     # test_duke_seq_data()
-    test_virat_seq_data()
+    # test_virat_seq_data()
     # test_seq_unlabel_data()
