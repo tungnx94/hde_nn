@@ -10,10 +10,10 @@ from .trainWF import TrainWF
 class TrainSSWF(TrainWF):
 
     def prepare_dataset(self, dloader):
-        label_dts, unlabel_dts, val_dts = self.load_dataset()
+        label_dts, unlabel_dts, val_dts = dloader.load_dataset(self.config["dataset"])
+
         self.train_loader = dloader.loader(label_dts, self.batch)
         self.train_unlabel_loader = dloader.loader(unlabel_dts)
-
         self.val_loader = dloader.loader(val_dts, self.batch_val)
 
     def train_error(self, sample):

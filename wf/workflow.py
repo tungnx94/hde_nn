@@ -73,9 +73,6 @@ class WorkFlow(object):
     def run(self):
         pass
 
-    def load_dataset(self):
-        pass
-
     def prepare_dataset(self, dloader):
         pass
 

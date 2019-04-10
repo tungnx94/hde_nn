@@ -17,6 +17,29 @@
         "mobile": "network/pretrained_models/mobilenet_v1_0.50_224.pth",
         "trained": null
         },
+    "dataset": {
+        "train": {
+            "name": "train-duke",
+            "type": 0,
+            "path": "DukeMTMC/train.csv",
+            "aug": true,
+            "size": null
+        },
+        "unlabel": {
+            "name": "train-duke-unlabel",
+            "type": 1,
+            "path": "DukeMTMC/train.csv",
+            "aug": true,
+            "size": null
+        },
+        "val": {
+            "name": "val-dukeseq",
+            "type": 2,
+            "path": "DukeMTMC/val.csv",
+            "aug": true,
+            "size": null
+        }
+    },
     "acvs": {
         "train_label": 100,
         "train_unlabel": 100,

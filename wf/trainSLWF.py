@@ -10,7 +10,8 @@ from .trainWF import TrainWF
 class TrainSLWF(TrainWF):
 
     def prepare_dataset(self, dloader):
-        train_dts, val_dts = self.load_dataset()
+        train_dts, val_dts = dloader.load_dataset(self.config["dataset"])
+
         self.train_loader = dloader.loader(train_dts, self.batch)
         self.val_loader = dloader.loader(val_dts, self.batch_val)
 

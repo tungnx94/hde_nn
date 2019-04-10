@@ -29,28 +29,28 @@ class TrainSSL(TrainSSWF):
 
     def load_dataset(self):
         """
-        train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train/train.csv')
-        train_virat = d_loader.single_label('train-virat', 'VIRAT/person/train.csv')
-        train_manual = d_loader.single_label('train-handlabel', 'handlabel/person.csv')
+        train_duke = d_loader.single_label("train-duke", "DukeMTMC/train/train.csv")
+        train_virat = d_loader.single_label("train-virat", "VIRAT/person/train.csv")
+        train_manual = d_loader.single_label("train-handlabel", "handlabel/person.csv")
         #train_duke.resize()
         #train_virat.resize()
         #train_manual.resize()
-        label_dts = d_loader.mix('Training-label', [train_duke, train_virat, train_manual], None)
+        label_dts = d_loader.mix("Training-label", [train_duke, train_virat, train_manual], None)
 
-        unlabel_duke = d_loader.folder_unlabel('duke-unlabel', 'DukeMTMC/train/images_unlabel')
-        unlabel_ucf = d_loader.folder_unlabel('ucf-unlabel', 'UCF')
-        unlabel_drone = d_loader.folder_unlabel('drone-unlabel', 'DRONE_seq') 
+        unlabel_duke = d_loader.folder_unlabel("duke-unlabel", "DukeMTMC/train/images_unlabel")
+        unlabel_ucf = d_loader.folder_unlabel("ucf-unlabel", "UCF")
+        unlabel_drone = d_loader.folder_unlabel("drone-unlabel", "DRONE_seq") 
         #unlabel_duke.resize()
         #unlabel_ucf.resize()
         #unlabel_drone.resize()
-        unlabel_dts = d_loader.mix('Training-unlabel', [unlabel_duke, unlabel_ucf, unlabel_drone])
+        unlabel_dts = d_loader.mix("Training-unlabel", [unlabel_duke, unlabel_ucf, unlabel_drone])
         """
 
-        label_dts = d_loader.single_label('train-duke', 'DukeMTMC/train.csv')
+        label_dts = d_loader.single_label("train-duke", "DukeMTMC/train.csv")
         unlabel_dts = d_loader.folder_unlabel(
-            'duke-unlabel', 'DukeMTMC/train_unlabel.csv', self.config['batch_unlabel'])
+            "duke-unlabel", "DukeMTMC/train_unlabel.csv", self.config["batch_unlabel"])
         val_dts = d_loader.duke_seq(
-            'val-dukeseq', 'DukeMTMC/val.csv', self.config['seq_length'])
+            "val-dukeseq", "DukeMTMC/val.csv", self.config["seq_length"])
 
         return (label_dts, unlabel_dts, val_dts)
 
@@ -58,8 +58,8 @@ class TrainSSL(TrainSSWF):
 class TrainVanilla(TrainSLWF):
 
     def load_dataset(self):
-        train_duke = d_loader.single_label('train-duke', 'DukeMTMC/train.csv')
-        val_duke = d_loader.single_label('val-duke', 'DukeMTMC/val.csv')
+        train_duke = d_loader.single_label("train-duke", "DukeMTMC/train.csv")
+        val_duke = d_loader.single_label("val-duke", "DukeMTMC/val.csv")
 
         return (train_duke, val_duke)
 
@@ -68,9 +68,9 @@ class TrainRNN(TrainRNNWF):
 
     def load_dataset(self):
         train_duke = d_loader.duke_seq(
-            'train-duke', 'DukeMTMC/train.csv', self.config['seq_length'], data_aug=False)
+            "train-duke", "DukeMTMC/train.csv", self.config["seq_length"], data_aug=False)
         val_duke = d_loader.duke_seq(
-            'val-duke', 'DukeMTMC/val.csv', self.config['seq_length'], data_aug=False)
+            "val-duke", "DukeMTMC/val.csv", self.config["seq_length"], data_aug=False)
 
         return (train_duke, val_duke)
 
@@ -78,19 +78,19 @@ class TrainRNN(TrainRNNWF):
 class TestDuke_1(TestLabelWF):
 
     def load_dataset(self):
-        return d_loader.single_label('DRONE_test', 'DRONE_label/test.csv', data_aug=False)
+        return d_loader.single_label("DRONE_test", "DRONE_label/test.csv", data_aug=False)
 
 
 class TestDuke_2(TestUnlabelWF):
 
     def load_dataset(self):
-        return d_loader.folder_unlabel('DRONE-seq', 'DRONE_seq/test.csv', data_aug=False)
+        return d_loader.folder_unlabel("DRONE-seq", "DRONE_seq/test.csv", data_aug=False)
 
 
 class TestDuke_3(TestLabelSeqWF):
 
     def load_dataset(self):
-        return d_loader.duke_seq('DUKE-test', 'DukeMTMC/test.csv', self.config['seq_length'], data_aug=False)
+        return d_loader.duke_seq("DUKE-test", "DukeMTMC/test.csv", self.config["seq_length"], data_aug=False)
 
 
 def select_WF(WFType):

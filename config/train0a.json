@@ -18,6 +18,22 @@
         "mobile": null,
         "trained": null
         },
+    "dataset": {
+        "train": {
+            "name": "train-duke",
+            "type": 0,
+            "path": "DukeMTMC/train.csv",
+            "aug": true,
+            "size": null
+        },
+        "val": {
+            "name": "val-dukeseq",
+            "type": 2,
+            "path": "DukeMTMC/train_unlabel.csv",
+            "aug": true,
+            "size": null
+        }
+    },
     "acvs": {
         "train_label": 100,
         "train_angle": 100,
