@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from .hdeReg import HDEReg
 
-# TODO: update like HDE_RNN
+# TODO: fix forward()
 class MobileRNN(HDEReg):
 
     def __init__(self, config, device=None):
@@ -27,8 +27,11 @@ class MobileRNN(HDEReg):
         self._initialize_weights()
         self.load_to_device()
 
+    # need to fix this to allow batch size > 1 
     def forward(self, x):
-        seq_length = x.shape[0]
+        batch = x.shape[0]
+        seq_length = x.shape[1]
+
         x = x.to(self.device)
         x = self.feature(x).squeeze()
         

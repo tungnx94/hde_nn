@@ -91,13 +91,19 @@ class AccumulatedValue(object):
         data_dict = {"stamp": self.stamp} 
         for av in self.avList:
             data_dict[av] = self.acc[av]
-            data_dict[av + '_avg'] = self.avg[av]
+            data_dict[av + "_avg"] = self.avg[av]
 
         save_path = os.path.join(outDir, "values.csv")
         df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(save_path, index=False)
 
-    def load_csv(self):
+    def load_csv(self, data_file):
+        data = pd.read_csv(data_file).to_dict(orient="list")
+        
+        self.stamp = data["stamp"] 
+        # load only values specified by config
+        for av in self.avList:
+            self.acc[av] = data[av]
+            self.avg[av] = data[av + "_avg"] 
 
-        pass
-
+            self.avgCount[av] = min(self.avgWidth, len(self.stamp))

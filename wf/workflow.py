@@ -27,7 +27,7 @@ class WorkFlow(object):
         # True to enable debug_print
         self.config = config
         self.verbose = verbose
-        self.livePlot = livePlot 
+        self.livePlot = livePlot
         self.isInitialized = False
 
         # Accumulated value dictionary & plotter.
@@ -36,7 +36,7 @@ class WorkFlow(object):
         for plot in config["plots"]:
             self.add_plotter(plot["name"], plot["values"], plot["average"])
 
-        ### Init logging
+        # Init logging
         # Console log
         streamHandler = logging.StreamHandler()
         streamHandler.setLevel(logging.DEBUG)
@@ -52,7 +52,8 @@ class WorkFlow(object):
             json.dump(self.config, fp, indent=4)
 
         # Init loggers
-        logFilePath = os.path.join(self.logdir, self.logfile) # self.logfile defined by sub-WF
+        # self.logfile defined by sub-WF
+        logFilePath = os.path.join(self.logdir, self.logfile)
 
         fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
         fileHandler.setLevel(logging.DEBUG)
@@ -80,11 +81,13 @@ class WorkFlow(object):
         loader = ModelLoader()
         mconfig = self.config["model"]
         self.model = loader.load(mconfig)
-        self.countTrain = self.model.countTrain
+        self.countTrain = 0
 
-        if self.countTrain > 0 and mconfig["trained"]["continue"]: # loaded a pretrained model -> update AVs
+        if (mconfig["trained"] is not None) and mconfig["trained"]["continue"]:
+            self.countTrain = self.model.countTrain
+
             AV_file = os.join(mconfig["trained"]["path"], "models", mconfig["trained"]["weights"])
-            self.AV.load_csv(AV_file) 
+            self.AV.load_csv(AV_file)
 
     def proceed(self):
         self.initialize()
@@ -95,7 +98,8 @@ class WorkFlow(object):
         if self.livePlot:
             plotter = VisdomLinePlotter(name, self.AV, avList, plot_average)
         else:
-            plotter = AccumulatedValuePlotter(name, self.AV, avList, plot_average)
+            plotter = AccumulatedValuePlotter(
+                name, self.AV, avList, plot_average)
 
         self.AVP.append(plotter)
 
