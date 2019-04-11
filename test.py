@@ -69,7 +69,6 @@ def test_hde_rnn():
         l.backward()
         optimizer.step()
 
-# TODO
 def test_mobile_rnn():
     config = read_json("config/train1a.json")
 
