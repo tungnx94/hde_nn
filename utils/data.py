@@ -6,8 +6,8 @@ import numpy as np
 
 from math import pi
 
-BASE = "/home/tungnguyen/projects/data_icra"
-#BASE = "/home/tung/projects/data_icra"
+#BASE = "/home/tungnguyen/projects/data_icra"
+BASE = "/home/tung/projects/data_icra"
 
 ACC_THRESH = pi/8
 
@@ -24,7 +24,7 @@ def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
 
 def detach_to_numpy(data):
-    if type(data) = torch.Tensor:
+    if type(data) == torch.Tensor:
         data = data.cpu().detach().numpy()
     return data
 

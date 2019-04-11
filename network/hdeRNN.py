@@ -8,7 +8,7 @@ class HDE_RNN(HDEReg):
     def __init__(self, config, device=None):
         HDEReg.__init__(self, config, device, init=False)
 
-        self.rnnHidNum = self.config["rnn_hid_num"]
+        self.rnnHidNum = self.params["rnn_hid_num"]
 
         self.i2h = nn.Sequential(
             nn.Linear(self.hidNum + self.rnnHidNum, self.rnnHidNum),
@@ -35,7 +35,7 @@ class HDE_RNN(HDEReg):
         batch = x.shape[0]
         seq_length = x.shape[1]
         x = x.to(self.device)
-
+        # x = [batch x seq_length x 192x192x3]
         z = []
         for i in range(batch):
             y = self.feature(x[i]).view(seq_length, -1)

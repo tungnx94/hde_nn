@@ -45,7 +45,7 @@ class DatasetLoader(object):
         if t == 0:
             return SingleLabelDataset(config, mean=self.mean, std=self.std)
         elif t == 1:
-            return SequenceUnlabelDataset(config mean=self.mean, std=self.std)
+            return SequenceUnlabelDataset(config, mean=self.mean, std=self.std)
         elif t == 2:
             return DukeSeqLabelDataset(config, mean=self.mean, std=self.std)
         elif t ==3:

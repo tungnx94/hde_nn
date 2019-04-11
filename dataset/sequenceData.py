@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from .generalData import SingleDataset
-from utils import one_hot
 
 class SequenceDataset(SingleDataset):
 

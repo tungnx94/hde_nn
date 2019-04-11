@@ -1,23 +1,41 @@
-from utils import get_path, seq_show
 import torch.optim as optim
 
+from utils import *
 from network import *
 from dataset import *
 
-def test_mobile_reg():
-    net = MobileReg()
-    net.load_mobilenet('network/pretrained_models/mobilenet_v1_0.50_224.pth')
+def test_hde_reg():
+    config = read_json("config/train0a.json")
+    net = HDEReg(config["model"])
+    dataset = SingleLabelDataset(config["dataset"]["train"])
+    dataset.shuffle()
+    loader = DataLoader(dataset, batch_size=16)
 
-    dataset = SingleLabelDataset(
-        "duke-test", path=get_path('DukeMTMC/train.csv'), data_aug=True)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    for ind in range(1, 20):
+        sample = loader.next_sample()
+        imgseq, labels = sample
+
+        loss = net.loss_label(imgseq, labels, mean=True)
+        print(loss.item())
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+def test_mobile_reg():
+    config = read_json("config/train2a.json")
+    net = MobileReg(config["model"])
+
+    dataset = SingleLabelDataset(config["dataset"]["train"])
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=4)
     
-    unlabel_set = SequenceUnlabelDataset('duke-unlabel', path=get_path('DukeMTMC/test_unlabel.csv'))
+    unlabel_set = SequenceUnlabelDataset(config["dataset"]["unlabel"])
     unlabel_loader = DataLoader(unlabel_set) 
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
-    for ind in range(1, 100): # 5000
+    for ind in range(1, 20): # 5000
         sample = loader.next_sample()
         unlabel_seq = unlabel_loader.next_sample().squeeze()
 
@@ -33,10 +51,11 @@ def test_mobile_reg():
         #seq_show(imgseq.numpy(), dir_seq=output.to("cpu").detach().numpy())
 
 def test_hde_rnn():
-    net = HDE_RNN(extractor="base")
+    config = read_json("config/train3a.json")
+    net = HDE_RNN(config["model"])
 
-    dataset = DukeSeqLabelDataset('duke-seq', path=get_path("DukeMTMC/train.csv"), seq_length=1)
-    loader = DataLoader(dataset, batch_size=32)
+    dataset = DukeSeqLabelDataset(config["dataset"]["train"])
+    loader = DataLoader(dataset, batch_size=8)
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
     for ind in range(1, 100):
@@ -45,72 +64,53 @@ def test_hde_rnn():
 
         l = net.loss_label(inputs, targets, mean=True)
         print(l)
+
         optimizer.zero_grad()
         l.backward()
         optimizer.step()
 
+# TODO
 def test_mobile_rnn():
-    dataset = DukeSeqLabelDataset(
-        "duke", path=get_path('DukeMTMC/train.csv'), seq_length=16, data_aug=True)
+    config = read_json("config/train1a.json")
+
+    dataset = DukeSeqLabelDataset(config["dataset"]["train"])
     dataset.shuffle()
-    # dataset.resize(5000)
-    loader = DataLoader(dataset)
+    loader = DataLoader(dataset, batch_size=4)
 
-    model = MobileRNN(rnn_type="gru", n_layer=2, rnnHidNum=128)
+    net = MobileRNN(config["model"])
 
-    optimizer = optim.Adam(model.parameters(), lr=0.0075)
+    optimizer = optim.Adam(net.parameters(), lr=0.003)
     # train
     for ind in range(1, 20):
         sample = loader.next_sample()
-        imgseq = sample[0].squeeze()
-        labels = sample[1].squeeze()
-        
-        #loss = model.forward_label(imgseq, labels)
-        loss_w = model.loss_weighted(imgseq, labels, mean=True)
-        loss = model.loss_label(imgseq, labels, mean=True)
-        print(loss_w.item() , ' ', loss.item())
+        inputs, targets = sample
+
+        l = net.loss_label(inputs, targets, mean=True)
+        print(l)
 
         optimizer.zero_grad()
-        loss_w.backward()
+        l.backward()
         optimizer.step()
 
     print("Finished")
 
-def test_hde_reg():
-    net = HDEReg(extractor="base")
-    dataset = SingleLabelDataset(
-        "duke", path=get_path('DukeMTMC/test.csv'), img_size=192)
-    dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=32)
-
-    optimizer = optim.Adam(net.parameters(), lr=0.001)
-    for ind in range(1, 200):
-        sample = loader.next_sample()
-        imgseq, labels = sample
-
-        loss = net.loss_label(imgseq, labels, mean=True)
-        print(loss.item())
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
 def test_single_data():
-    duke = SingleLabelDataset("duke", path=get_path('DukeMTMC/train.csv'), data_aug=True)
-    pes = SingleLabelDataset("3dpes", path=get_path('3DPES/train.csv'), data_aug=True)
-    # virat = SingleLabelDataset("virat", path=get_path('VIRAT/person/train.csv'), data_aug=True)
+    config = read_json("config/data.json")["single"]
+    duke = SingleLabelDataset(config["duke"])
+    pes = SingleLabelDataset(config["pes"])
 
     for dataset in [duke, pes]:
         print(dataset)
-        dataloader = DataLoader(dataset, batch_size=32)
+        dataloader = DataLoader(dataset, batch_size=16)
         for count in range(3):
             img, label = dataloader.next_sample()
             seq_show(img.numpy(),
                      dir_seq=label.numpy(), scale=0.5)
 
 def test_duke_seq_data():
-    unlabelset = DukeSeqLabelDataset("duke-test", path=get_path('DukeMTMC/test.csv'))
-    dataloader = DataLoader(unlabelset)
+    config = read_json("config/data.json")["duke_seq"]
+    dts = DukeSeqLabelDataset(config)
+    dataloader = DataLoader(dts)    
 
     for count in range(5):
         sample = dataloader.next_sample()
@@ -120,9 +120,11 @@ def test_duke_seq_data():
         seq_show(imgseq.numpy(), dir_seq=labelseq)
 
 def test_seq_unlabel_data():
-    duke = SequenceUnlabelDataset('duke-unlabel', path=get_path('DukeMTMC/train_unlabel.csv'))
-    ucf = SequenceUnlabelDataset('ucf-unlabel', path=get_path('UCF/train.csv'))
-    drone = SequenceUnlabelDataset('drone-unlabel', path=get_path('DRONE_seq/train.csv'))
+    config = read_json("config/data.json")["unlabel"]
+
+    duke = SequenceUnlabelDataset(config["duke"])
+    ucf = SequenceUnlabelDataset(config["ucf"])
+    drone = SequenceUnlabelDataset(config["drone"])
 
     for dataset in [duke, ucf, drone]:
         print(dataset)
@@ -131,28 +133,13 @@ def test_seq_unlabel_data():
             sample = dataloader.next_sample()
             seq_show(sample.squeeze().numpy(), scale=0.8)
 
-def test_virat_seq_data():
-    virat = ViratSeqLabelDataset("virat", path=get_path('VIRAT/person/train.csv'), seq_length=12)
-    pes = ViratSeqLabelDataset("3dpes", path=get_path('3DPES/train.csv'), seq_length=12, data_aug=True)
-
-    for dataset in [virat, pes]:
-        print(dataset)
-        dataloader = DataLoader(dataset, batch_size=1)
-
-        for count in range(3):
-            imgseq, angleseq = dataloader.next_sample()
-            imgseq = imgseq.squeeze().numpy()
-            angleseq = angleseq.squeeze().numpy()
-
-            seq_show(imgseq, dir_seq=angleseq, scale=0.8)
-
 if __name__ == '__main__':
-    test_hde_reg()
-    # test_hde_rnn()
+    # test_hde_reg()
     # test_mobile_reg()
-    # test_mobile_rnn()
+
+    # test_hde_rnn()
+    test_mobile_rnn()
     
     # test_single_data()
     # test_duke_seq_data()
-    # test_virat_seq_data()
     # test_seq_unlabel_data()
