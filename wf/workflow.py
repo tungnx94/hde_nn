@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '..')
+sys.path.insert(0, "..")
 
 import os
 import sys
@@ -31,24 +31,24 @@ class WorkFlow(object):
         self.isInitialized = False
 
         # Accumulated value dictionary & plotter.
-        self.AV = AccumulatedValue(config['acvs'])
+        self.AV = AccumulatedValue(config["acvs"])
         self.AVP = []
-        for plot in config['plots']:
-            self.add_plotter(plot['name'], plot['values'], plot['average'])
+        for plot in config["plots"]:
+            self.add_plotter(plot["name"], plot["values"], plot["average"])
 
         ### Init logging
         # Console log
         streamHandler = logging.StreamHandler()
         streamHandler.setLevel(logging.DEBUG)
         streamHandler.setFormatter(
-            logging.Formatter('%(levelname)s: %(message)s'))
+            logging.Formatter("%(levelname)s: %(message)s"))
 
         # File log
         create_folder(self.logdir)
 
         # Save config params
-        cnfPath = os.path.join(self.logdir, 'config.json')
-        with open(cnfPath, 'w') as fp:
+        cnfPath = os.path.join(self.logdir, "config.json")
+        with open(cnfPath, "w") as fp:
             json.dump(self.config, fp, indent=4)
 
         # Init loggers
@@ -57,7 +57,7 @@ class WorkFlow(object):
         fileHandler = logging.FileHandler(filename=logFilePath, mode="w")
         fileHandler.setLevel(logging.DEBUG)
         fileHandler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s'))
+            "%(asctime)s %(levelname)s: %(message)s"))
 
         # Logger
         self.logger = logging.getLogger(__name__)
@@ -78,8 +78,13 @@ class WorkFlow(object):
 
     def load_model(self):
         loader = ModelLoader()
-        self.model = loader.load(self.config['model'])
+        mconfig = self.config["model"]
+        self.model = loader.load(mconfig)
         self.countTrain = self.model.countTrain
+
+        if self.countTrain > 0 and mconfig["trained"]["continue"]: # loaded a pretrained model -> update AVs
+            AV_file = os.join(mconfig["trained"]["path"], "models", mconfig["trained"]["weights"])
+            self.AV.load_csv(AV_file) 
 
     def proceed(self):
         self.initialize()
@@ -109,56 +114,20 @@ class WorkFlow(object):
         # Check the system-wide signal.
         self.check_signal()
 
-        if self.isInitialized:
-            # This should be an error.
-            desc = "The work flow is already initialized."
-            exp = WFException(desc, "initialize")
-            raise(exp)
-
         # Initialize AVP.
         if len(self.AVP) > 0:
-            self.AVP[0].initialize()
+            for avp in self.AVP:
+                avp.initialize()
+
             self.logger.info("AVP initialized.")
 
         self.isInitialized = True
         self.startTime = datetime.now()
 
         self.logger.info("WF initialized.")
-        self.debug_print("initialize() get called.")
-
-
-    def train(self):
-        # Check the system-wide signal.
-        self.check_signal()
-
-        if (False == self.isInitialized):  # only train after initilized
-            # This should be an error.
-            desc = "The work flow is not initialized yet."
-            exp = WFException(desc, "tain")
-            raise(exp)
-
-        self.debug_print("train() get called.")
-
-    def test(self):
-        # Check the system-wide signal.
-        self.check_signal()
-
-        if (False == self.isInitialized):  # only test after initialized
-            # This should be an error.
-            desc = "The work flow is not initialized yet."
-            exp = WFException(desc, "test")
-            raise(exp)
-
-        self.debug_print("test() get called.")
 
     def finalize(self):
         WorkFlow.IS_FINALISING = True
-
-        if not self.isInitialized:
-            # This should be an error.
-            desc = "The work flow is not initialized yet."
-            exp = WFException(desc, "finalize")
-            raise(exp)
 
         self.logger.info("FINISHED")
 
@@ -169,23 +138,17 @@ class WorkFlow(object):
         self.isInitialized = False
         WorkFlow.IS_FINALISING = False
 
-        self.debug_print("finalize() get called.")
-
-    def write_accumulated_values(self, outDir):
+    def save_accumulated_values(self):
+        # save AVs to .csv
         self.AV.save_csv(self.logdir)
 
-    def plot_accumulated_values(self):
+        # save plots
+        for avp in self.AVP:
+            avp.write_image(self.logdir)
+
+        # plot live
         for avp in self.AVP:
             avp.update()
-
-    def draw_accumulated_values(self, outDir):
-        for avp in self.AVP:
-            avp.write_image(outDir)
-
-    def save_accumulated_values(self):
-        self.write_accumulated_values(self.logdir)
-        self.draw_accumulated_values(self.logdir)
-        self.plot_accumulated_values()
 
     def is_initialized(self):
         return self.isInitialized
@@ -198,21 +161,11 @@ class WorkFlow(object):
         if (True == WorkFlow.SIG_INT):
             raise WFException("SIGINT received.", "SigIntExp")
 
-    def print_delimeter(self, title="", c="=", n=10, leading="\n", ending="\n"):
-        d = [c for i in range(int(n))]
-
-        if (0 == len(title)):
-            s = "".join(d) + "".join(d)
-        else:
-            s = "".join(d) + " " + title + " " + "".join(d)
-
-        print("%s%s%s" % (leading, s, ending))
-
     def get_log_str(self):
         logstr = ""
         for key in sorted(self.AV.keys()):
             try:
-                logstr += '%s: %.5f ' % (key, self.AV.last_avg(key))
+                logstr += "%s: %.5f " % (key, self.AV.last_avg(key))
             except WFException as e:
                 continue
 

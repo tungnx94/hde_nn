@@ -1,39 +1,40 @@
 {
     "type": "train",
     "dir": "./log",
-    "prefix": "rnn_v_m_duke",
+    "prefix": "vanilla_duke",
     "log": "train.log",
-    "train_step": 5000,
-    "save_freq": 1000,
-    "show_freq": 100,
-    "val_freq": 20,
-    "batch": 1,
-    "batch_val": 1,
-    "lr": 0.001,
+    "train_step": 30000,
+    "save_freq": 2000,
+    "show_freq": 30,
+    "val_freq": 10,
+    "batch": 30,
+    "batch_val": 32,
+    "lr": 0.001, 
     "model": {
-        "name": "rnn_v_m_duke",
-        "extractor": "mobile",
-        "type": 3,
+        "name": "vanilla_duke",
+        "extractor": "base",
+        "type": 0,
         "params": {
             "hid_num": 256,
-            "rnn_hid_num": 128
         },
-        "trained": null
-        },
+        "trained": {
+            "path": "./log/xxxxx", 
+            "weights": "xxxyyyzzz",
+            "continue": true
+        }
+    },
     "dataset": {
         "train": {
-            "name": "train-dukeseq",
-            "type": 2,
+            "name": "train-duke",
+            "type": 0,
             "path": "DukeMTMC/train.csv",
-            "seq_length": 16,
             "aug": true,
             "size": null
         },
         "val": {
-            "name": "val-dukeseq",
-            "type": 2,
+            "name": "val-duke",
+            "type": 0,
             "path": "DukeMTMC/val.csv",
-            "seq_length": 16,
             "aug": true,
             "size": null
         }

@@ -14,9 +14,11 @@
         "name": "vanilla_m_duke",
         "extractor": "mobile",
         "type": 0,
-        "mobile": null,
-        "trained": null
+        "params": {
+            "hid_num": 256
         },
+        "trained": null
+    },
     "dataset": {
         "train": {
             "name": "train-duke",

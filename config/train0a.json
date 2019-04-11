@@ -10,14 +10,15 @@
     "batch": 30,
     "batch_val": 32,
     "lr": 0.001, 
-    "seq_length": 1,
     "model": {
         "name": "vanilla_duke",
         "extractor": "base",
         "type": 0,
-        "mobile": null,
-        "trained": null
+        "params": {
+            "hid_num": 256
         },
+        "trained": null
+    },
     "dataset": {
         "train": {
             "name": "train-duke",

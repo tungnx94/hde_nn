@@ -70,7 +70,7 @@ class TrainWF(WorkFlow):
 
         self.model.train()
         for iteration in range(1, self.trainStep + 1):
-            WorkFlow.train(self) # necessary ?
+            self.check_signal()
 
             self.countTrain += 1
             train_sample = self.next_train_sample()
@@ -83,9 +83,8 @@ class TrainWF(WorkFlow):
 
             # Validation step
             if iteration % self.valFreq == 0:
-                WorkFlow.test(self)
+                self.check_signal()
                 self.model.eval()
-                #self.logger.info("validation")
 
                 val_sample = self.next_val_sample()
                 self.evaluate(train_sample, val_sample)

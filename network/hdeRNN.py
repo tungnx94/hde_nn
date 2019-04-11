@@ -5,26 +5,20 @@ from .hdeReg import HDEReg
 
 class HDE_RNN(HDEReg):
 
-    def __init__(self, extractor, hidNum=256, rnnHidNum=128, device=None):
-        self.hidNum = hidNum
-        self.rnnHidNum = rnnHidNum
+    def __init__(self, config, device=None):
+        HDEReg.__init__(self, config, device, init=False)
 
-        HDEReg.__init__(self, extractor, hidNum, device, init=False)
+        self.rnnHidNum = self.config["rnn_hid_num"]
 
         self.i2h = nn.Sequential(
-            nn.Linear(hidNum + rnnHidNum, rnnHidNum),
+            nn.Linear(self.hidNum + self.rnnHidNum, self.rnnHidNum),
             nn.ReLU()
         )
         self.i2o = nn.Sequential(
-            nn.Linear(hidNum + rnnHidNum, hidNum),
+            nn.Linear(self.hidNum + self.rnnHidNum, self.hidNum),
             nn.ReLU()
         )
-
-        self.reg = nn.Sequential(
-            nn.Linear(hidNum, 64),
-            nn.ReLU(),
-            nn.Linear(64, 2)
-        )
+        # self.reg initilized in HDEReg
 
         self._initialize_weights()
         self.load_to_device()
@@ -41,21 +35,6 @@ class HDE_RNN(HDEReg):
         batch = x.shape[0]
         seq_length = x.shape[1]
         x = x.to(self.device)
-
-        """
-        x = self.feature(x).squeeze()
-        
-        hidden = torch.zeros(self.rnnHidNum).to(self.device)
-        outputs = []
-
-        for i in range(seq_length):
-            out, hidden = self.forward_one_step(x[i], hidden)
-            outputs.append(out)
-
-        outputs = torch.stack(outputs)
-        return outputs
-        """
-
 
         z = []
         for i in range(batch):

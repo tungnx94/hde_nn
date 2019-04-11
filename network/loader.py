@@ -13,25 +13,20 @@ class ModelLoader(object):
     def load(self, config):
         model = None
 
-        mtype = config['type']
-        mmobile = config['mobile'] if 'mobile' in config else None
-        mtrained = config['trained'] if 'trained' in config else None
+        mtype = config["type"]
+        mtrained = config["trained"]
 
         if mtype == 0:
-            model = HDEReg(config["extractor"])
+            model = HDEReg(config)
         elif mtype == 1:
-            model = MobileRNN(config["extractor"])
+            model = MobileRNN(config)
         elif mtype == 2:
-            model = MobileReg(extractor=config["extractor"], lamb=0.1, thresh=Thresh)
+            model = MobileReg(config)
         elif mtype == 3:
-            model = HDE_RNN(config["extractor"])
-        
-        if mmobile is not None:
-            model.load_mobilenet(config['mobile'])
-            print("Loaded MobileNet ", mmobile)
+            model = HDE_RNN(config)
 
-        if mtrained is not None:
+        if mtrained is not None: # TODO: fix path 
             model.load_pretrained(mtrained)
-            print("Loaded weights from", mtrained)
+            print("Loaded weights from", mtrained) # TODO: put to logger
 
         return model

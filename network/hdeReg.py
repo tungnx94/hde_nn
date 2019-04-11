@@ -14,18 +14,22 @@ StridesDF = [3, 2, 2, 3, 2, 1]
 
 class HDEReg(HDENet):
 
-    def __init__(self, extractor, hidNum=256, device=None, init=True):
+    def __init__(self, config, device=None, init=True):
         # input size should be [192x192]
         HDENet.__init__(self, device)
 
-        if extractor == "base":
+        self.params = config["params"]
+        self.hidNum = self.params["hid_num"] # size of feature vector
+
+        if config["extractor"] == "base":
             self.feature = BaseExtractor(hiddens=HiddensDF, kernels=KernelsDF, strides=StridesDF, paddings=PaddingsDF)
         else:
-            self.feature = MobileExtractor(hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better, default 0.5
+            self.feature = MobileExtractor(self.hidNum, depth_multiplier=0.5, device=device)    # reinited, could be better, default 0.5
 
         self.criterion = nn.MSELoss(reduction='none')  # L2    
+
         self.reg = nn.Sequential(
-            nn.Linear(hidNum, 64),
+            nn.Linear(self.hidNum, 64),
             nn.ReLU(),
             nn.Linear(64, 2)
         )
@@ -33,14 +37,11 @@ class HDEReg(HDENet):
         if init:
             self._initialize_weights()
             self.load_to_device()
-            
-    def load_mobilenet(self, fname):
-        self.feature.load_from_npz(fname)
 
     def forward(self, x):
         batch = x.shape[0]
         x = x.to(self.device)
-        # x = self.feature(x).squeeze() # get rid of the 1-dim
+    
         x = self.feature(x).view(batch, -1)
         x = self.reg(x)
         return x

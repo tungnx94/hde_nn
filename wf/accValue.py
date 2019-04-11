@@ -97,8 +97,7 @@ class AccumulatedValue(object):
         df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(save_path, index=False)
 
-    def show_raw_data(self):
-        # for debugging purpose
-        print("stamp: ", self.stamp)
-        print("acc: ", self.acc)
-        print("avg: ", self.avg)
+    def load_csv(self):
+
+        pass
+

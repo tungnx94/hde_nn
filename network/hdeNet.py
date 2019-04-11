@@ -37,15 +37,6 @@ class HDENet(torch.nn.Module):
         model_dict.update(preTrainDict)
         self.load_state_dict(model_dict)
 
-        """
-        print 'preTrainDict:',preTrainDict.keys()
-        print 'modelDict:',model_dict.keys()
-        for item in preTrainDict:
-            print '  Load pretrained layer: ', item
-        for item in model_dict:
-            print '  Model layer: ',item
-        """
-
     def load_pretrained(self, file):
         # file needs to point to a relative path
         modelname = os.path.splitext(os.path.basename(file))[0]

@@ -15,7 +15,11 @@
         "name": "ssl_duke",
         "extractor": "base",
         "type": 2,
-        "mobile": null,
+        "params": {
+            "hid_num": 256,
+            "lamb": 0.1,
+            "thresh": 0.005
+        },
         "trained": null
         },
     "dataset": {

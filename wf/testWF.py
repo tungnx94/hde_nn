@@ -12,7 +12,7 @@ class TestWF(WorkFlow):
 
         workingDir = config['dir']
         self.modeldir = os.path.join(workingDir, 'models') 
-        self.testdir = os.path.join(workingDir, 'test', config['prefix'] + "_" + t)
+        self.testdir = os.path.join(workingDir, 'test', t + "_" + config['prefix'])
 
         self.saveFreq = config['save_freq'] # av save frequency
         self.showFreq = config['show_freq'] # log frequency
@@ -39,10 +39,10 @@ class TestWF(WorkFlow):
     def run(self):
         self.logger.info("Started testing")
         self.model.eval()
-        WorkFlow.test(self)
 
         self.iteration = 0
         for sample in self.test_loader:
+            self.check_signal()
             self.iteration += 1
 
             # update acvs
