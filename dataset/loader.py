@@ -48,8 +48,6 @@ class DatasetLoader(object):
             return SequenceUnlabelDataset(config, mean=self.mean, std=self.std)
         elif t == 2:
             return DukeSeqLabelDataset(config, mean=self.mean, std=self.std)
-        elif t ==3:
-            return ViratSeqLabelDataset(config, mean=self.mean, std=self.std)
 
         return None
 

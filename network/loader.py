@@ -1,7 +1,13 @@
+import sys
+sys.path.insert(0, "..")
+import os
+
 from .hdeReg import HDEReg
 from .mobileRNN import MobileRNN
 from .mobileReg import MobileReg
 from .hdeRNN import HDE_RNN
+
+from utils import read_json
 
 class ModelLoader(object):
 
@@ -10,10 +16,13 @@ class ModelLoader(object):
 
     def load(self, config):
         model = None
-
-        mtype = config["type"]
         mtrained = config["trained"]
 
+        if mtrained is not None: # load a trained config
+            path = os.path.join(mtrained["path"], "train/config.json")
+            config = read_json(path)["model"]
+        
+        mtype = config["type"]
         if mtype == 0:
             model = HDEReg(config)
         elif mtype == 1:
