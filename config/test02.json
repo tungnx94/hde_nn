@@ -1,5 +1,5 @@
 {
-    "type": "test",
+    "type": "duke_unlabel",
     "dir": "./log/",
     "prefix": "",
     "log": "test.log",

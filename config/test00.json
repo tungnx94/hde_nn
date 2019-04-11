@@ -1,5 +1,5 @@
 {
-    "type": "test",
+    "type": "duke_label",
     "dir": "./log/",
     "prefix": "",
     "log": "test.log",
@@ -25,7 +25,7 @@
     "plots": [
         {   "name": "label_loss",
             "values": ["label"],
-            "average":true  }
+            "average": false}
         ],
     "losses": [
         "label"

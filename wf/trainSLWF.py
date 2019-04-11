@@ -33,8 +33,8 @@ class TrainSLWF(TrainWF):
         outputs = self.model(sample[0])
         loss = self.model.loss_label(sample[0], sample[1], mean=True).item()
 
-        metric = utils.eval(outputs, sample[1])
-        values = [loss, metric]
+        angle_loss = utils.angle_err(outputs, sample[1])
+        values = [loss, angle_loss]
 
         return np.array(values)
 

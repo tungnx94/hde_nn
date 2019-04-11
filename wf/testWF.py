@@ -34,7 +34,6 @@ class TestWF(WorkFlow):
 
     def prepare_dataset(self, dloader):
         test_dts = dloader.load_dataset(self.config["dataset"])
-        
         self.test_loader = dloader.loader(test_dts, self.batch)
 
     def run(self):

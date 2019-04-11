@@ -24,7 +24,12 @@ def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
 
 def one_hot(cls):
-    return np.array([int(i==cls) for i in range(8)]) 
+    return np.array([int(i==cls) for i in range(8)])
+
+def detach_to_numpy(data):
+    if type(data) = torch.Tensor:
+        data = data.cpu().detach().numpy()
+    return data
 
 def angle_diff(outputs, labels, mean=False):
     """ compute angular difference """
@@ -45,7 +50,7 @@ def angle_diff(outputs, labels, mean=False):
 
     return diff
 
-def angle_diff_trigo(outputs, labels, mean=False):
+def angle_diff_rad(outputs, labels, mean=False):
     output_angle = np.arctan2(outputs[..., 0], outputs[..., 1])
     label_angle = np.arctan2(labels[..., 0], labels[..., 1])
 
@@ -56,34 +61,30 @@ def angle_accuracy(outputs, labels):
     compute accuracy 
     :param outputs, labels: numpy array
     """
-    diff = angle_diff_trigo(outputs, labels)
+    diff = angle_diff_rad(outputs, labels)
     corrects = diff < ACC_THRESH
 
     return np.mean(corrects)
 
+def angle_err(outputs, labels):
+    outputs = detach_to_numpy(outputs)
+    labels = detach_to_numpy(labels)
+
+    return angle_diff_rad(outputs, labels, mean=True)
+
+# error and accuracy
+def angle_metric(outputs, labels):
+    outputs = detach_to_numpy(outputs)
+    labels = detach_to_numpy(labels)
+
+    diff = angle_diff_rad(outputs, labels)
+    corrects = diff < ACC_THRESH
+
+    return np.mean(diff), np.mean(corrects)
+
 def cls_accuracy(outputs, labels):
     corrects = np.argmax(outputs, dim=1) == np.argmax(outputs, dim=1)
     return np.mean(corrects)
-
-
-def angle_metric(outputs, labels):
-    """ return angle loss and accuracy"""
-    return angle_diff_trigo(outputs, labels, mean=True), angle_accuracy(outputs, labels)
-
-def eval(outputs, labels):
-    if type(outputs) == torch.Tensor:
-        outputs = outputs.cpu().detach().numpy()
-        labels = labels.cpu().detach().numpy()
-
-    return angle_diff_trigo(outputs, labels, mean=True) # dirty fix for now 
-
-    """
-    if # regression
-        return angle_diff_trigo(outputs, labels, mean=True)
-    else: # classification
-        return cls_accuracy(outputs, labels)
-    """
-
 
 def groupPlot(data_x, data_y, group=10):
     def shape_data(data):

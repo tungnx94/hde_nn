@@ -37,7 +37,7 @@ class TrainSSWF(TrainWF):
         values = [loss[0].item(), loss[1].item(), loss[2].item()]
 
         outputs = self.model(sample[0])
-        metric = utils.eval(outputs, sample[1])
-        values.append(metric)
+        angle_loss = utils.angle_err(outputs, sample[1])
+        values.append(angle_loss)
 
         return np.array(values)

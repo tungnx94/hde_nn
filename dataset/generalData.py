@@ -12,9 +12,9 @@ from utils import get_path, im_scale_norm_pad, im_crop, im_hsv_augmentation
 
 class DataLoader(torch.utils.data.DataLoader):
 
-    def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1):
+    def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1, drop_last=True):
         super(DataLoader, self).__init__(dataset, batch_size=batch_size,
-                                         shuffle=shuffle, num_workers=num_workers)
+                                         shuffle=shuffle, num_workers=num_workers, drop_last=drop_last)
         self.epoch = 0
         self.data_iter = iter(self)
 
