@@ -7,9 +7,12 @@
     "save_freq": 2000,
     "batch": 32,
     "model": {
-        "type": 2,
-        "trained": ".pkl",
-        },
+        "trained": {
+            "path": "./log/", 
+            "weights": ".pkl",
+            "continue": false
+        }
+    },
     "dataset": {
         "test": {
             "name": "duke-test",

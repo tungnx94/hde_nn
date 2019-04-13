@@ -7,9 +7,12 @@
     "save_freq": 2000,
     "batch": 1,
     "model": {
-        "type": 2,
-        "trained": ".pkl",
-        },
+        "trained": {
+            "path": "./log/", 
+            "weights": ".pkl",
+            "continue": false
+        }
+    },
     "dataset": {
         "test": {
             "name": "dukeseq-test",
@@ -26,13 +29,13 @@
     "plots": [
         {   "name": "total_loss",
             "values": ["total"],
-            "average":true  },
+            "average":false  },
         {   "name": "label_loss",
             "values": ["label"],
-            "average":true  },
+            "average":false  },
         {   "name": "unlabel_loss",
             "values": ["unlabel"],
-            "average":true  }
+            "average":false  }
         ],
     "losses": [
         "label",

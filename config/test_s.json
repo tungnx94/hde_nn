@@ -7,9 +7,12 @@
     "save_freq": 250,
     "batch": 1,
     "model": {
-        "type": 2,
-        "trained": "facing_20000.pkl",
-        },
+        "trained": {
+            "path": "./log/", 
+            "weights": ".pkl",
+            "continue": false
+        }
+    },
     "dataset": {
         "test": {
             "name": "",

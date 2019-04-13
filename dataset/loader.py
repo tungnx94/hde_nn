@@ -42,14 +42,20 @@ class DatasetLoader(object):
 
     def load(self, config):
         t = config["type"]
+        dts = None
         if t == 0:
-            return SingleLabelDataset(config, mean=self.mean, std=self.std)
+            dts = SingleLabelDataset(config, mean=self.mean, std=self.std)
         elif t == 1:
-            return SequenceUnlabelDataset(config, mean=self.mean, std=self.std)
+            dts = SequenceUnlabelDataset(config, mean=self.mean, std=self.std)
         elif t == 2:
-            return DukeSeqLabelDataset(config, mean=self.mean, std=self.std)
+            dts = DukeSeqLabelDataset(config, mean=self.mean, std=self.std)
 
-        return None
+        size = config["size"]
+        if size is not None:
+            dts.shuffle()
+            dts.resize(size)
+
+        return dts
 
     def try_load(self, name, config):
         dataset = self.load(config[name]) if (name in config) else None
