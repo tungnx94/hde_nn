@@ -24,7 +24,11 @@
         }
     },
     "acvs": {
-        "unlabel": 50,
+        "label": 100,
+        "unlabel": 100,
+        "total": 100,
+        "angle": 100,
+        "accuracy": 100
         },
     "plots": [
         {   "name": "total_loss",
@@ -35,11 +39,16 @@
             "average":false  },
         {   "name": "unlabel_loss",
             "values": ["unlabel"],
+            "average":false  },
+        {   "name": "angle",
+            "values": ["angle"],
             "average":false  }
         ],
     "losses": [
         "label",
         "unlabel",
-        "total"
+        "total",
+        "angle",
+        "accuracy"
         ]
 }

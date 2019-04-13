@@ -37,13 +37,14 @@ class HDENet(torch.nn.Module):
         model_dict.update(preTrainDict)
         self.load_state_dict(model_dict)
 
-        print("Loaded weights from", mtrained) # TODO: put to logger
+        print("Loaded weights from ", file) # TODO: put to logger
 
     def load_pretrained(self, config):
         # config = {"path" : "", "weights": "", "continue": ""}
-        self.countTrain = int(config["weights"].split('_')[-1])
+        w_file = config["weights"]
+        self.countTrain = int(os.path.splitext(w_file)[0])
 
-        w_file = os.path.join(config["path"], "models", config["weights"])
+        w_file = os.path.join(config["path"], "models", w_file)
         self.load_from_npz(w_file)
         self.load_to_device()
 

@@ -14,7 +14,7 @@ class TrainSSWF(TrainWF):
 
         self.train_loader = dloader.loader(label_dts, self.batch)
         self.train_unlabel_loader = dloader.loader(unlabel_dts)
-        self.val_loader = dloader.loader(val_dts, self.batch_val)
+        self.val_loader = dloader.loader(val_dts)
 
     def train_error(self, sample):
         loss = self.model.loss_combine(sample[0], sample[1], sample[2], mean=True)
@@ -27,7 +27,7 @@ class TrainSSWF(TrainWF):
     
     def next_val_sample(self):
         sample = self.val_loader.next_sample()
-        inputs = sample[0].squeeze()
+        inputs = sample[0].squeeze() # squeeze() makes sense here because we validate on DukeSeq data
         targets = sample[1].squeeze()
         return (inputs, targets, inputs)
 

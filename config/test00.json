@@ -1,21 +1,19 @@
 {
-    "type": "duke_label",
-    "dir": "./log/",
-    "prefix": "",
+    "type": "test",
     "log": "test.log",
     "show_freq": 100,
     "save_freq": 2000,
     "batch": 32,
     "model": {
         "trained": {
-            "path": "./log/", 
-            "weights": ".pkl",
+            "path": "./log/04-08_01%3a03_ssl_m_duke", 
+            "weights": "10000.pkl",
             "continue": false
         }
     },
     "dataset": {
         "test": {
-            "name": "duke-test",
+            "name": "duke",
             "path": "DukeMTMC/test.csv",
             "type": 0,
             "aug": false,
@@ -23,7 +21,9 @@
         }
     },
     "acvs": {
-        "label": 50
+        "label": 50,
+        "angle": 50,
+        "accuracy": 50
         },
     "plots": [
         {   "name": "label_loss",
@@ -31,6 +31,8 @@
             "average": false}
         ],
     "losses": [
-        "label"
+        "label",
+        "angle",
+        "accuracy"
         ]
 }

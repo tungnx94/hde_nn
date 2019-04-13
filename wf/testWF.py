@@ -8,22 +8,23 @@ from utils import create_folder
 class TestWF(WorkFlow):
 
     def __init__(self, config):
-        t = datetime.now().strftime('%m-%d_%H:%M')
+        t = datetime.now().strftime("%m-%d_%H-%M")
 
-        workingDir = config['dir']
-        self.modeldir = os.path.join(workingDir, 'models') 
-        self.testdir = os.path.join(workingDir, 'test', t + "_" + config['prefix'])
+        workingDir = config["model"]["trained"]["path"]
+        modelName = config["model"]["trained"]["weights"].split(".")[0]
+        dtsName = config["dataset"]["test"]["name"]
 
-        self.saveFreq = config['save_freq'] # av save frequency
-        self.showFreq = config['show_freq'] # log frequency
-        self.batch = config['batch']
+        self.modeldir = os.path.join(workingDir, "models") 
+
+        self.testdir = os.path.join(workingDir, "test", t + "_" +  + "_" + dtsName)
+        create_folder(self.testdir)
+
+        self.saveFreq = config["save_freq"] # av save frequency
+        self.showFreq = config["show_freq"] # log frequency
+        self.batch = config["batch"]
 
         self.logdir = self.testdir
-        self.logfile = config['log']
-
-        config['model']['trained'] = os.path.join(self.modeldir, config['model']['trained'])
-
-        create_folder(self.testdir)
+        self.logfile = config["log"]
 
         WorkFlow.__init__(self, config)
 
@@ -46,7 +47,7 @@ class TestWF(WorkFlow):
             self.iteration += 1
 
             # update acvs
-            self.test(sample)
+            self.evaluate(sample)
 
             # log
             if self.iteration % self.showFreq == 0:
@@ -58,5 +59,9 @@ class TestWF(WorkFlow):
 
         self.logger.info("Finished testing")
 
-    def test(self):
-        pass
+    def evaluate(self, sample):
+        """ update error history """
+        losses = self.val_metrics(sample)
+
+        for idx, av in enumerate(self.config['losses']):
+            self.push_to_av(av, losses[idx], self.iteration)

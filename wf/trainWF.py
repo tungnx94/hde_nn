@@ -11,14 +11,14 @@ class TrainWF(WorkFlow):
 
     def __init__(self, config):
         # create folders
-        t = datetime.now().strftime('%m-%d_%H:%M')
-
-        # workingDir = os.path.join(config['dir'], config['prefix'] + "_" + t)
-        workingDir = os.path.join(config['dir'], t + "_" + config["prefix"])
+        t = datetime.now().strftime('%m-%d_%H-%M')
+        
+        self.modelName = config['model']['name']
+        workingDir = os.path.join(config['dir'], t + "_" + self.modelName)
 
         self.traindir = os.path.join(workingDir, 'train')
         self.modeldir = os.path.join(workingDir, 'models')
-        self.modelName = config['model']['name']
+        
         self.logdir = self.traindir
         self.logfile = config['log']
 
@@ -29,9 +29,9 @@ class TrainWF(WorkFlow):
 
         self.lr = config['lr']
         self.batch = config['batch']
-        self.batch_unlabel = config['batch_unlabel']
-        self.batch_val = config['batch_val']
 
+        if "batch_val" in config:
+            self.batch_val = config['batch_val']
         if 'lamb' in config:
             self.lamb = lamb
 
@@ -44,8 +44,7 @@ class TrainWF(WorkFlow):
 
     def save_model(self):
         """ Save :param: model to pickle file (pkl) """
-        model_path = os.path.join(
-            self.modeldir, self.modelName + '_' + str(self.countTrain) + ".pkl")
+        model_path = os.path.join(self.modeldir, str(self.countTrain) + ".pkl")
         torch.save(self.model.state_dict(), model_path)
 
     def finalize(self):
@@ -61,7 +60,7 @@ class TrainWF(WorkFlow):
         self.save_accumulated_values()
         self.save_model()
 
-        self.logger.info("Saved snapshot")
+        self.logger.info("Saved snapshot" + str(self.countTrain))
 
     def run(self):
         """ train on all samples """
@@ -93,7 +92,7 @@ class TrainWF(WorkFlow):
 
             # output screen
             if iteration % self.showFreq == 0:
-                self.logger.info("#%d %s" % (iteration, self.get_log_str()))
+                self.logger.info("#%d %s" % (iteration, self.get_log_str_avg()))
 
             # save temporary model
             if iteration % self.saveFreq == 0:

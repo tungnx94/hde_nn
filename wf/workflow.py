@@ -168,6 +168,12 @@ class WorkFlow(object):
     def get_log_str(self):
         logstr = ""
         for key in sorted(self.AV.keys()):
+            logstr += "%s: %.5f " % (key, self.AV.last(key))
+        return logstr
+
+    def get_log_str_avg(self):
+        logstr = ""
+        for key in sorted(self.AV.keys()):
             try:
                 logstr += "%s: %.5f " % (key, self.AV.last_avg(key))
             except WFException as e:

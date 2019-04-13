@@ -138,7 +138,23 @@ def calculate_duke_scales():
 
     mean, std = duke.calculate_mean_std()
     d = {"mean": mean.tolist(), "std": std.tolist()}
-    write_json(d, "config/duke.json")
+    write_json(d, "config/duke1.json")
+
+def calculate_ucf_scales():
+    config = read_json("config/data.json")["single"]
+    ucf = SingleLabelDataset(config["ucf"])
+
+    mean, std = ucf.calculate_mean_std()
+    d = {"mean": mean.tolist(), "std": std.tolist()}
+    write_json(d, "config/ucf2.json")
+
+def calculate_indoor_scales():
+    config = read_json("config/data.json")["single"]
+    indoor = SingleLabelDataset(config["indoor"])
+
+    mean, std = indoor.calculate_mean_std()
+    d = {"mean": mean.tolist(), "std": std.tolist()}
+    write_json(d, "config/indoor.json")    
 
 if __name__ == '__main__':
     #test_hde_reg()
@@ -151,4 +167,6 @@ if __name__ == '__main__':
     #test_duke_seq_data()
     #test_seq_unlabel_data()
 
-    calculate_duke_scales()
+    #calculate_duke_scales()
+    calculate_ucf_scales()
+    #calculate_indor_scales()

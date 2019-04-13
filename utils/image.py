@@ -6,9 +6,9 @@ import numpy as np
 # resnet: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
 
 def img_normalize(img, mean, std):
-    """ normalize RGB value to range [0..1] """
-    img = img.astype(np.float32) / 255.0
-    img = (img - np.array(mean)) / np.array(std)
+    """ normalize RGB value """
+    #img = img.astype(np.float32) / 255.0
+    img = (img - mean) / std
     img = img.transpose(2, 0, 1) # shape = (3, width, height)
     return img
 
@@ -16,11 +16,10 @@ def img_normalize(img, mean, std):
 def img_denormalize(img, mean, std):
     """ denormalize RGB value for visualization"""
     # img.shape = (3, width, height)
-
     img = img.transpose(1, 2, 0)
-    img = img * np.array(std) + np.array(mean)
-    img = img.clip(0, 1)  # network can output values out of range
-    img = (img * 255).astype(np.uint8) # map to [0..255]
+    img = (img * std) + mean
+    img = img.clip(0, 255).astype(np.uint8)
+    #img = (img*255).clip(0, 255).astype(np.uint8)
     return img
 
 

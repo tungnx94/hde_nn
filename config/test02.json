@@ -5,7 +5,7 @@
     "log": "test.log",
     "show_freq": 100,
     "save_freq": 2000,
-    "batch": 1,
+    "batch": 16,
     "model": {
         "trained": {
             "path": "./log/", 
@@ -24,9 +24,7 @@
         }
     },
     "acvs": {
-        "label": 50,
-        "unlabel": 50,
-        "total": 50,
+        "unlabel": 50
         },
     "plots": [
         {   "name": "unlabel_loss",

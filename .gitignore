@@ -3,6 +3,7 @@
 *.out
 log
 log_lab
+lab_log
 old_logs
 logdata
 models

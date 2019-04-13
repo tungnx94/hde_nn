@@ -1,11 +1,18 @@
 {
 	"single": {
-        "mean": [0, 0, 0],
-        "std": [1, 1, 1],
+        "mean": [68.70511627197266, 64.54254150390625, 66.18392181396484],
+        "std": [76.49213639737272, 74.09419876057855, 75.21586759690676],
 		"duke": {
             "name": "duke-train",
             "type": 0,
             "path": "DukeMTMC/train.csv",
+            "aug": false,
+            "size": null
+        },
+        "ucf": {
+            "name": "ucf-train",
+            "type": 0,
+            "path": "UCF_label/train.csv",
             "aug": false,
             "size": null
         },

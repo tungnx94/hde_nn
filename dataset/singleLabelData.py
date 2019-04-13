@@ -43,21 +43,20 @@ class SingleLabelDataset(SingleDataset):
         mean = []
         for img_path in img_paths:
             img = cv2.imread(img_path)
-            img = utils.im_scale_pad(img)
             im_mean = np.mean(img, axis=(0, 1))
             mean.append(im_mean)
 
         mean = np.mean(np.array(mean), axis=0)
 
         # calculate std 
-        std = np.zeros(3)
+        #std = np.zeros(3)
+        std = []
         for img_path in img_paths:
             img = cv2.imread(img_path)
-            img = utils.im_scale_pad(img)
 
             sqr_diff = (img - mean) ** 2
-            std += np.sum(sqr_diff, axis=(0, 1)) 
+            std.append(np.sum(sqr_diff, axis=(0, 1)))
 
-        std = np.sqrt(std / (count-1)) 
+        std = np.sqrt(np.sum(std, axis=0) / (count-1)) 
 
         return (mean, std)

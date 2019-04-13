@@ -8,8 +8,6 @@
     "show_freq": 100,
     "val_freq": 50,
     "batch": 64,
-    "batch_unlabel": 1,
-    "batch_val": 1,
     "lr": 0.001,
     "model": {
         "name": "ssl_duke",

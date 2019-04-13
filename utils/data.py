@@ -22,7 +22,7 @@ def read_json(file):
 
 def write_json(data, file):
     with open(file, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
 
 def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
