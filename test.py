@@ -107,8 +107,8 @@ def test_single_data():
                      dir_seq=label.numpy(), scale=0.5)
 
 def test_duke_seq_data():
-    config = read_json("config/data.json")["duke_seq"]
-    dts = DukeSeqLabelDataset(config)
+    config = read_json("config/data.json")["label_seq"]
+    dts = DukeSeqLabelDataset(config["duke"])
     dataloader = DataLoader(dts)    
 
     for count in range(5):
@@ -132,13 +132,23 @@ def test_seq_unlabel_data():
             sample = dataloader.next_sample()
             seq_show(sample.squeeze().numpy(), scale=0.8)
 
-if __name__ == '__main__':
-    # test_hde_reg()
-    # test_mobile_reg()
+def calculate_duke_scales():
+    config = read_json("config/data.json")["single"]
+    duke = SingleLabelDataset(config["duke"])
 
-    # test_hde_rnn()
-    test_mobile_rnn()
+    mean, std = duke.calculate_mean_std()
+    d = {"mean": mean.tolist(), "std": std.tolist()}
+    write_json(d, "config/duke.json")
+
+if __name__ == '__main__':
+    #test_hde_reg()
+    #test_mobile_reg()
+
+    #test_hde_rnn()
+    #test_mobile_rnn()
     
-    # test_single_data()
-    # test_duke_seq_data()
-    # test_seq_unlabel_data()
+    #test_single_data()
+    #test_duke_seq_data()
+    #test_seq_unlabel_data()
+
+    calculate_duke_scales()

@@ -20,6 +20,8 @@
         "trained": null
     },
     "dataset": {
+        "mean": [0, 0, 0],
+        "std": [0, 0, 0],
         "train": {
             "name": "train-duke",
             "type": 0,

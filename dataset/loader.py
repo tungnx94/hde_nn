@@ -2,7 +2,6 @@ from .generalData import DataLoader, MixDataset
 from .singleLabelData import SingleLabelDataset 
 from .sequenceUnlabelData import SequenceUnlabelDataset
 from .dukeSeqLabelData import DukeSeqLabelDataset
-from .viratSeqLabelData import ViratSeqLabelDataset
 
 """
 Dataset type
@@ -12,54 +11,39 @@ Dataset type
 3: virat seq
 """
 
+#TODO: replace self.mean and self.std
 class DatasetLoader(object):
 
-    def __init__(self, mean, std):
+    def __init__(self, mean=[0, 0, 0], std=[1, 1, 1]):
         self.name = "Dataset-Loader"
-        self.mean = mean
-        self.std = std
-
-    def set_mean(self, mean):
-        self.mean = mean
-
-    def set_std(self, std):
-        self.std = std
 
     def loader(self, dataset, batch_size=1, shuffle=True, num_workers=4):
         return DataLoader(dataset, batch_size, shuffle, num_workers)        
 
-    def mix(self, name, sets, factors=None):
-        # currently unused
-        mixset = MixDataset(name)
+    def try_load(self, name, config):
+        if name not in config:
+            return None 
 
-        if factors == None:
-            factors = [1] * len(sets)
+        mean = config["mean"]
+        std = config["std"]
 
-        for dts, factor in zip(sets, factors):
-            mixset.add(dts, factor) 
+        s_config = config[name]
+        t = s_config["type"]
 
-        return mixset
-
-    def load(self, config):
-        t = config["type"]
         dts = None
         if t == 0:
-            dts = SingleLabelDataset(config, mean=self.mean, std=self.std)
+            dts = SingleLabelDataset(s_config, mean, std)
         elif t == 1:
-            dts = SequenceUnlabelDataset(config, mean=self.mean, std=self.std)
+            dts = SequenceUnlabelDataset(s_config, mean, std)
         elif t == 2:
-            dts = DukeSeqLabelDataset(config, mean=self.mean, std=self.std)
+            dts = DukeSeqLabelDataset(s_config, mean, std)
 
-        size = config["size"]
+        size = s_config["size"]
         if size is not None:
             dts.shuffle()
             dts.resize(size)
 
         return dts
-
-    def try_load(self, name, config):
-        dataset = self.load(config[name]) if (name in config) else None
-        return dataset
 
     def load_dataset(self, config):
         train = self.try_load("train", config)

@@ -9,9 +9,9 @@ from .generalData import SingleDataset
 
 class SequenceDataset(SingleDataset):
 
-    def __init__(self, config, img_size=192, maxscale=0.1, mean=[0, 0, 0], std=[1, 1, 1], auto_shuffle=False):
+    def __init__(self, config, mean=[0,0,0], std=[1,1,1], img_size=192, maxscale=0.1, auto_shuffle=False):
         self.seq_length = config["seq_length"] # should be 16 be default
-        SingleDataset.__init__(self, config, img_size, maxscale, mean, std, auto_shuffle)
+        SingleDataset.__init__(self, config, mean, std, img_size, maxscale, mean, std, auto_shuffle)
 
     def read_debug(self):
         print('{}: {} sequences, {} images'.format(self, len(self), len(self) * self.seq_length))

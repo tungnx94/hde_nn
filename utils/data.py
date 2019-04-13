@@ -16,9 +16,13 @@ def create_folder(outdir):
         os.mkdir(outdir)
 
 def read_json(file):
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         data = json.load(f)
     return data
+
+def write_json(data, file):
+    with open(file, "w") as f:
+        json.dump(data, f)
 
 def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)

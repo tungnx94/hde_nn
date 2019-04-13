@@ -5,10 +5,7 @@ from wf import *
 from dataset import DatasetLoader
 from utils import read_json
 
-# dataset dependent ?
-Mean = [0.485, 0.456, 0.406]
-Std = [0.229, 0.224, 0.225]
-d_loader = DatasetLoader(Mean, Std)
+d_loader = DatasetLoader()
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)

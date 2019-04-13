@@ -1,11 +1,13 @@
 # Wrapper for Duke & VIRAT single image labeled datasets
+import sys
+sys.path.insert(0, "..")
 import os
 import cv2
 import numpy as np
 import pandas as pd
 
 from .generalData import SingleDataset
-
+import utils
 
 class SingleLabelDataset(SingleDataset):
 
@@ -20,12 +22,11 @@ class SingleLabelDataset(SingleDataset):
             angle = point['angle']
             label = np.array(
                 [np.sin(angle), np.cos(angle)], dtype=np.float32)
-            group = point['direction']
 
-            self.items.append((img_path, label, group))
+            self.items.append((img_path, label))
 
     def __getitem__(self, idx):
-        img_path, label, gr = self.items[idx]
+        img_path, label = self.items[idx]
         img = cv2.imread(img_path)
         flip = self.get_flipping()
 
@@ -33,3 +34,30 @@ class SingleLabelDataset(SingleDataset):
         out_label = self.augment_label(label, flip)
     
         return (out_img, out_label)
+
+    def calculate_mean_std(self):
+        img_paths = [item[0] for item in self.items]
+        count = len(img_paths) * 192 * 192
+
+        # calculate mean  
+        mean = []
+        for img_path in img_paths:
+            img = cv2.imread(img_path)
+            img = utils.im_scale_pad(img)
+            im_mean = np.mean(img, axis=(0, 1))
+            mean.append(im_mean)
+
+        mean = np.mean(np.array(mean), axis=0)
+
+        # calculate std 
+        std = np.zeros(3)
+        for img_path in img_paths:
+            img = cv2.imread(img_path)
+            img = utils.im_scale_pad(img)
+
+            sqr_diff = (img - mean) ** 2
+            std += np.sum(sqr_diff, axis=(0, 1)) 
+
+        std = np.sqrt(std / (count-1)) 
+
+        return (mean, std)

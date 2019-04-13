@@ -3,27 +3,24 @@ import math
 import random
 import numpy as np
 
-# TODO: examine each image processing method
-# resnet: mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]
+# resnet: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
 
-def img_normalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
+def img_normalize(img, mean, std):
     """ normalize RGB value to range [0..1] """
-    img = img[:, :, [2, 1, 0]]  # bgr to rgb
     img = img.astype(np.float32) / 255.0
     img = (img - np.array(mean)) / np.array(std)
-    img = img.transpose(2, 0, 1)
+    img = img.transpose(2, 0, 1) # shape = (3, width, height)
     return img
 
 
-def img_denormalize(img, mean=[0, 0, 0], std=[1, 1, 1]):
+def img_denormalize(img, mean, std):
     """ denormalize RGB value for visualization"""
+    # img.shape = (3, width, height)
 
-    # print img.shape
     img = img.transpose(1, 2, 0)
     img = img * np.array(std) + np.array(mean)
     img = img.clip(0, 1)  # network can output values out of range
-    img = (img * 255).astype(np.uint8)
-    img = img[:, :, [2, 1, 0]]
+    img = (img * 255).astype(np.uint8) # map to [0..255]
     return img
 
 
@@ -42,10 +39,7 @@ def put_arrow(img, dir, center_x=150, center_y=96):
 
     return img
 
-
-# TODO: fix usage
 WAIT = 1000
-
 def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
     """ 
     display images (optional with arrow)
@@ -78,7 +72,7 @@ def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
 def im_hsv_augmentation(image, Hscale=10, Sscale=60, Vscale=60):
     ### add noise in HSV colorspace
 
-    # convert to HSV
+    # convert BGR to HSV
     imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) 
 
     # introduce noise factor in range [-1..1]
@@ -109,16 +103,9 @@ def im_crop(image, maxscale=0.2):
     return image[start_y:end_y, start_x:end_x, :]
 
 
-def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_reso=False, down_len=30, flip=False):
+def im_scale_norm_pad(img, mean, std, out_size=192, flip=False):
     # apply augmentation by scale, normalization and padding
     # output a numpy array (3, width, height)
-
-    # downsample the image for data augmentation (necessary ?)
-    minlen = np.min(img.shape[0:2])
-    down_len = random.randint(down_len, down_len * 5)
-    if down_reso and minlen > down_len:
-        resize_scale = float(down_len) / minlen
-        img = cv2.resize(img, (0, 0), fx=resize_scale, fy=resize_scale)
 
     resize_scale = float(out_size) / np.max(img.shape)
     # if the image is too narrow, make it more square
@@ -145,9 +132,33 @@ def im_scale_norm_pad(img, out_size=192, mean=[0, 0, 0], std=[1, 1, 1], down_res
     start_x = (out_size - imgw) // 2
     start_y = (out_size - imgh) // 2
 
-    # print img.shape
-    # print start_x, start_y
     out_img = np.zeros((3, out_size, out_size), dtype=np.float32)
+
     out_img[:, start_y:start_y + imgh, start_x:start_x + imgw] = img
+
+    return out_img
+
+def im_scale_pad(img, out_size=192):
+    # output a numpy array (width, height, 3)
+
+    resize_scale = float(out_size) / np.max(img.shape)
+    # if the image is too narrow, make it more square
+    miniscale = 1.8
+    x_scale, y_scale = resize_scale, resize_scale
+    if img.shape[0] * resize_scale < out_size / miniscale:
+        y_scale = out_size / miniscale / img.shape[0]
+    if img.shape[1] * resize_scale < out_size / miniscale:
+        x_scale = out_size / miniscale / img.shape[1]
+
+    # guarantee the longer side with be 192 pixel
+    img = cv2.resize(img, (0, 0), fx=x_scale, fy=y_scale)
+
+    ### Put to 192x192 frame with padding zeros 
+    imgh, imgw, _ = img.shape
+    start_x = (out_size - imgw) // 2
+    start_y = (out_size - imgh) // 2
+    
+    out_img = np.zeros((out_size, out_size, 3), dtype=np.float32)
+    out_img[start_y:start_y + imgh, start_x:start_x + imgw] = img
 
     return out_img
