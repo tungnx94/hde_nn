@@ -4,7 +4,7 @@ from .testWF import TestWF
 import numpy as np
 
 # TODO: need to complete
-class TestLabelWF(TestWF):  # Type 1
+class TestLabelWF(TestWF):  # Type 0
 
     def val_metrics(self, sample):
         outputs = self.model(sample[0])
@@ -17,7 +17,7 @@ class TestLabelWF(TestWF):  # Type 1
 
 
 class TestLabelSeqWF(TestWF):  # Type 2
-
+    ### only used to test MobileReg 
     def val_metrics(self, sample):
         # test a batch of size possible > 1
         losses = []
@@ -34,8 +34,8 @@ class TestLabelSeqWF(TestWF):  # Type 2
         losses = np.mean(np.array(losses), axis=0)
         return losses
 
-class TestUnlabelWF(TestWF):  # Type 3
-
+class TestUnlabelWF(TestWF):  # Type 1
+    # not important atm
     def val_metrics(self, sample):
         losses = []
         for sample_seq in sample:

@@ -54,6 +54,17 @@ class AccumulatedValue(object):
         self.stamp = {}
         self.avg = {}
 
+    def set_limit(self, limit):
+        try:
+            pos = self.stamps.index(limit)
+            for av, values in self.acc:
+                self.acc[av] = values[:limit+1]
+
+            for av, values in self.avg:
+                self.avg[av] = values[:limit+1]
+        except:
+            pass
+
     def last(self, name):
         """ return last value """
         if (0 == len(self.acc[name])):
@@ -106,4 +117,4 @@ class AccumulatedValue(object):
             self.acc[av] = data[av]
             self.avg[av] = data[av + "_avg"] 
 
-            self.avgCount[av] = min(self.avgWidth, len(self.stamp))
+            self.avgCount[av] = min(self.avgWidth[av], len(self.stamp))
