@@ -1,7 +1,6 @@
 {
     "type": "train",
     "dir": "./log",
-    "prefix": "vanilla_m_duke",
     "log": "train.log",
     "train_step": 30000,
     "save_freq": 2000,
@@ -20,6 +19,8 @@
         "trained": null
     },
     "dataset": {
+        "mean": [68.70511627197266, 64.54254150390625, 66.18392181396484],
+        "std": [76.49213639737272, 74.09419876057855, 75.21586759690676],
         "train": {
             "name": "train-duke",
             "type": 0,

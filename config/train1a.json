@@ -1,14 +1,13 @@
 {
     "type": "train",
     "dir": "./log",
-    "prefix": "rnn_duke",
     "log": "train.log",
     "train_step": 30000,
     "save_freq": 2000,
     "show_freq": 100,
-    "val_freq": 50,
-    "batch": 1,
-    "batch_val": 1,
+    "val_freq": 25,
+    "batch": 16,
+    "batch_val": 16,
     "lr": 0.001,
     "model": {
         "name": "rnn_duke",
@@ -16,13 +15,15 @@
         "type": 1,
         "params": {
             "hid_num": 256,
-            "rnn_hid_num": 256,
+            "rnn_hid_num": 512,
             "layers": 2,
             "cell": "gru"
         },
         "trained": null
-        },
+    },
     "dataset": {
+        "mean": [68.70511627197266, 64.54254150390625, 66.18392181396484],
+        "std": [76.49213639737272, 74.09419876057855, 75.21586759690676],
         "train": {
             "name": "train-dukeseq",
             "type": 2,

@@ -1,7 +1,6 @@
 {
     "type": "train",
     "dir": "./log",
-    "prefix": "vanilla_duke",
     "log": "train.log",
     "train_step": 30000,
     "save_freq": 2000,
