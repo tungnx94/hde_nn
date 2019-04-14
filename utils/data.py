@@ -6,8 +6,8 @@ import numpy as np
 
 from math import pi
 
-#BASE = "/home/tungnguyen/projects/data_icra"
-BASE = "/home/tung/projects/data_icra"
+BASE = "/home/tungnguyen/projects/data_icra"
+#BASE = "/home/tung/projects/data_icra"
 
 ACC_THRESH = pi/8
 

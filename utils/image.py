@@ -8,6 +8,7 @@ import numpy as np
 def img_normalize(img, mean, std):
     """ normalize RGB value """
     #img = img.astype(np.float32) / 255.0
+
     img = (img - mean) / std
     img = img.transpose(2, 0, 1) # shape = (3, width, height)
     return img
@@ -18,8 +19,9 @@ def img_denormalize(img, mean, std):
     # img.shape = (3, width, height)
     img = img.transpose(1, 2, 0)
     img = (img * std) + mean
+
     img = img.clip(0, 255).astype(np.uint8)
-    #img = (img*255).clip(0, 255).astype(np.uint8)
+    #img = (img.clip(0, 1) * 255.0).astype(np.uint8)
     return img
 
 

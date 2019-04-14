@@ -10,12 +10,14 @@
     "batch_val": 64,
     "lr": 0.001,
     "model": {
-        "name": "rnn_v_m_duke",
+        "name": "rnn_m_duke",
         "extractor": "mobile",
-        "type": 3,
+        "type": 1,
         "params": {
             "hid_num": 256,
-            "rnn_hid_num": 256
+            "rnn_hid_num": 128,
+            "layers": 2,
+            "cell": "gru"
         },
         "trained": null
     },
