@@ -24,7 +24,7 @@ def select_WF():
     if WFType == "train":
         net_type = config["model"]["type"]
 
-        if net_type in [0, 1, 3]
+        if net_type in [0, 1, 3]:
             return TrainSLWF(config)
         elif net_type == 2:
             return TrainSSWF(config)

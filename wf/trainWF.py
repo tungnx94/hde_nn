@@ -60,7 +60,7 @@ class TrainWF(WorkFlow):
         self.save_accumulated_values()
         self.save_model()
 
-        self.logger.info("Saved snapshot" + str(self.countTrain))
+        self.logger.info("Saved snapshot")
 
     def run(self):
         """ train on all samples """
