@@ -16,6 +16,7 @@ class DataLoader(torch.utils.data.DataLoader):
         super(DataLoader, self).__init__(dataset, batch_size=batch_size,
                                          shuffle=shuffle, num_workers=num_workers, drop_last=drop_last)
         self.epoch = 0
+        self.dataset = dataset
         self.data_iter = iter(self)
 
     def next_sample(self):
@@ -24,6 +25,7 @@ class DataLoader(torch.utils.data.DataLoader):
             sample = self.data_iter.next()
         except:
             self.epoch += 1
+            self.dataset.shuffle()
             self.data_iter = iter(self)
             sample = self.data_iter.next()
 

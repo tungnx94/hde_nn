@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from .workflow import WorkFlow
 from dataset import DatasetLoader
-from utils import create_folder
+from utils import create_folder, write_json
 
 class TestWF(WorkFlow):
 
@@ -16,7 +16,9 @@ class TestWF(WorkFlow):
 
         self.modeldir = os.path.join(workingDir, "models") 
 
-        self.testdir = os.path.join(workingDir, "test", t + "_" +  + "_" + dtsName)
+        self.testdir = os.path.join(workingDir, "test")
+        create_folder(self.testdir)
+        self.testdir = os.path.join(self.testdir, t + "_" + modelName + "_" + dtsName)
         create_folder(self.testdir)
 
         self.saveFreq = config["save_freq"] # av save frequency
@@ -32,6 +34,18 @@ class TestWF(WorkFlow):
         """ save model and values after training """
         WorkFlow.finalize(self)
         self.save_accumulated_values()
+
+        """
+        res = {}
+        for loss in self.config['losses']:
+            res[loss] = self.AV.absolute_avg(loss) 
+        """
+        res = {loss:self.AV.absolute_avg(loss) for loss in self.config['losses']}
+
+        res_file = os.path.join(self.logdir, "results.json")
+        write_json(res, res_file)
+
+        self.logger.info("Saved final results")
 
     def prepare_dataset(self, dloader):
         test_dts = dloader.load_dataset(self.config["dataset"])

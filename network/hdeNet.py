@@ -30,7 +30,7 @@ class HDENet(torch.nn.Module):
     def load_from_npz(self, file):
         model_dict = self.state_dict()
 
-        preTrainDict = torch.load(file)
+        preTrainDict = torch.load(file, map_location=self.device)
         preTrainDict = {k: v for k, v in preTrainDict.items()
                         if k in model_dict}
 

@@ -55,6 +55,8 @@ class TrainWF(WorkFlow):
         for avp in self.AVP:
             avp.write_image_final(self.logdir)
 
+        self.logger.info("Saved final results")
+
     def save_snapshot(self):
         """ write accumulated values and save temporal model """
         self.save_accumulated_values()

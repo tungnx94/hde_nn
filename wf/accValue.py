@@ -85,6 +85,9 @@ class AccumulatedValue(object):
 
         return self.avg[name][-1]
 
+    def absolute_avg(self, name):
+        return np.mean(self.acc[name])
+
     def get_num_values(self):
         return len(self.acc)
 

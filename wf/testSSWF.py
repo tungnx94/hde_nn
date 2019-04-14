@@ -1,7 +1,10 @@
+import sys
+sys.path.insert(0, '..')
 
+import numpy as np
+import utils
 
 from .testWF import TestWF
-import numpy as np
 
 # TODO: need to complete
 class TestLabelWF(TestWF):  # Type 0
@@ -11,7 +14,7 @@ class TestLabelWF(TestWF):  # Type 0
         loss = self.model.loss_label(sample[0], sample[1], mean=True).item()
 
         angle_err, angle_acc = utils.angle_metric(outputs, sample[1])
-        values = [loss, angle_loss, angle_acc]
+        values = [loss, angle_err, angle_acc]
 
         return np.array(values)
 
