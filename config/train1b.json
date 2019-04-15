@@ -2,12 +2,12 @@
     "type": "train",
     "dir": "./log",
     "log": "train.log",
-    "train_step": 2000,
+    "train_step": 20000,
     "save_freq": 1000,
     "show_freq": 100,
-    "val_freq": 25,
-    "batch": 128,
-    "batch_val": 16,
+    "val_freq": 50,
+    "batch": 64,
+    "batch_val": 64,
     "lr": 0.001,
     "model": {
         "name": "rnn_m_duke",
@@ -17,7 +17,7 @@
             "hid_num": 256,
             "rnn_hid_num": 128,
             "layers": 2,
-            "cell": "lstm"
+            "cell": "gru"
         },
         "trained": null
     },

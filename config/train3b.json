@@ -2,7 +2,7 @@
     "type": "train",
     "dir": "./log",
     "log": "train.log",
-    "train_step": 30000,
+    "train_step": 20000,
     "save_freq": 1000,
     "show_freq": 100,
     "val_freq": 50,

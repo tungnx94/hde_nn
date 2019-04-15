@@ -39,7 +39,7 @@ class SingleLabelDataset(SingleDataset):
         img_paths = [item[0] for item in self.items]
         count = len(img_paths) * 192 * 192
 
-        # calculate mean  
+        # calculate mean
         mean = []
         for img_path in img_paths:
             img = cv2.imread(img_path)
@@ -48,8 +48,7 @@ class SingleLabelDataset(SingleDataset):
 
         mean = np.mean(np.array(mean), axis=0)
 
-        # calculate std 
-        #std = np.zeros(3)
+        # calculate std
         std = []
         for img_path in img_paths:
             img = cv2.imread(img_path)

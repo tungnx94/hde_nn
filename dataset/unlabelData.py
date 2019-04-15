@@ -27,18 +27,34 @@ class UnlabelDataset(SingleDataset):
                 folder_path) if file.endswith('.jpg') or file.endswith('png')]
             seq = [join(folder_path, img) for img in sorted(img_list)] # absolute path
 
-            #self.save_sequence(seq)
-
-
-
+            self.items.extend(seq)
 
     def __getitem__(self, idx):
-        flip = self.get_flipping()
+        img = cv2.imread(self.items[idx])
+        return self.augment_image(img, self.get_flipping())
 
-        out_seq = []
-        for img_path in self.items[idx]:
+    def calculate_mean_std(self):
+        img_paths = self.items
+        count = len(img_paths) * 192 * 192
+
+        # calculate mean  
+        mean = []
+        for img_path in img_paths:
             img = cv2.imread(img_path)
-            out_img = self.augment_image(img, flip)
-            out_seq.append(out_img)
+            im_mean = np.mean(img, axis=(0, 1))
+            mean.append(im_mean)
 
-        return np.array(out_seq)
+        mean = np.mean(np.array(mean), axis=0)
+
+        # calculate std 
+        #std = np.zeros(3)
+        std = []
+        for img_path in img_paths:
+            img = cv2.imread(img_path)
+
+            sqr_diff = (img - mean) ** 2
+            std.append(np.sum(sqr_diff, axis=(0, 1)))
+
+        std = np.sqrt(np.sum(std, axis=0) / (count-1)) 
+
+        return (mean, std)
