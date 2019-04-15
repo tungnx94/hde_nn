@@ -104,14 +104,6 @@ class WorkFlow(object):
         self.AVP.append(plotter)
 
     def push_to_av(self, name, value, stamp):
-        # Check if the name exists.
-        if not (name in self.AV.keys()):
-            # This is an error.
-            desc = "No object is registered as %s." % (name)
-            exp = WFException(desc, "push_to_av")
-            raise(exp)
-
-        # Retrieve the AccumulatedValue object.
         self.AV.push_value(name, value, stamp)
 
     def initialize(self):

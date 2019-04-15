@@ -11,28 +11,28 @@ class TrainWF(WorkFlow):
 
     def __init__(self, config):
         # create folders
-        t = datetime.now().strftime('%m-%d_%H-%M')
+        t = datetime.now().strftime("%m-%d_%H-%M")
         
-        self.modelName = config['model']['name']
-        workingDir = os.path.join(config['dir'], t + "_" + self.modelName)
+        self.modelName = config["model"]["name"]
+        workingDir = os.path.join(config["dir"], t + "_" + self.modelName)
 
-        self.traindir = os.path.join(workingDir, 'train')
-        self.modeldir = os.path.join(workingDir, 'models')
+        self.traindir = os.path.join(workingDir, "train")
+        self.modeldir = os.path.join(workingDir, "models")
         
         self.logdir = self.traindir
-        self.logfile = config['log']
+        self.logfile = config["log"]
 
-        self.saveFreq = config['save_freq']
-        self.showFreq = config['show_freq']
-        self.valFreq = config['val_freq']
-        self.trainStep = config['train_step']
+        self.saveFreq = config["save_freq"]
+        self.showFreq = config["show_freq"]
+        self.valFreq = config["val_freq"]
+        self.trainStep = config["train_step"]
 
-        self.lr = config['lr']
-        self.batch = config['batch']
+        self.lr = config["lr"]
+        self.batch = config["batch"]
 
         if "batch_val" in config:
-            self.batch_val = config['batch_val']
-        if 'lamb' in config:
+            self.batch_val = config["batch_val"]
+        if "lamb" in config:
             self.lamb = lamb
 
         for folder in [workingDir, self.traindir, self.modeldir]:
@@ -54,6 +54,12 @@ class TrainWF(WorkFlow):
 
         for avp in self.AVP:
             avp.write_image_final(self.logdir)
+
+        #Save final results
+        losses = self.evaluate_final()
+        res = {"train": losses[0], "val": losses[1]}
+        res_file = os.path.join(self.logdir, "results.json")
+        write_json(res, res_file)        
 
         self.logger.info("Saved final results")
 
@@ -88,7 +94,7 @@ class TrainWF(WorkFlow):
                 self.model.eval()
 
                 val_sample = self.next_val_sample()
-                self.evaluate(train_sample, val_sample)
+                self.evaluate_sample(train_sample, val_sample)
 
                 self.model.train()
 
@@ -102,15 +108,39 @@ class TrainWF(WorkFlow):
 
         self.logger.info("Finished training")
 
-    def evaluate(self, train_sample, val_sample):
+    def evaluate_sample(self, train_sample, val_sample):
         """ update val loss history """
         train_losses = self.val_metrics(train_sample)
         val_losses = self.val_metrics(val_sample)
 
         losses = np.concatenate((train_losses, val_losses))
 
-        for idx, av in enumerate(self.config['losses']):
-            self.push_to_av(av, losses[idx], self.countTrain)
+        for idx, av in enumerate(self.config["losses"]):
+            self.AV.push_value(av, losses[idx], self.countTrain)
+
+    def evaluate_set(self, loader, next_sample_func):
+        loader.reset_iteration()
+        loss_list = []
+        n = loader.max_iteration()
+
+        for i in range(n):
+            sample = next_sample_func(self)
+            loss = self.val_metrics(sample)
+            loss_list.append(loss)
+
+        losses = np.mean(np.array(lost_list), axis=0)
+        return losses
+
+    def evaluate_final(self):
+        train_loss_name, val_loss_name = utils.split_half(self.config["losses"])
+
+        train_loss_values = self.evaluate_set(self.train_loader, next_train_sample)
+        val_loss_values = self.evaluate_set(self.val_loader, next_val_sample)
+
+        train_loss = dict(zip(train_loss_name, train_loss))
+        val_loss = dict(zip(val_loss_name, val_loss))
+
+        return (train_loss, val_loss)
 
     def next_train_sample(self):
         pass

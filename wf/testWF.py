@@ -39,7 +39,6 @@ class TestWF(WorkFlow):
         res_file = os.path.join(self.logdir, "results.json")
         write_json(res, res_file)
 
-        self.logger.info("Results: ", res)
         self.logger.info("Saved final results")
 
     def prepare_dataset(self, dloader):
@@ -73,4 +72,4 @@ class TestWF(WorkFlow):
         losses = self.val_metrics(sample)
 
         for idx, av in enumerate(self.config['losses']):
-            self.push_to_av(av, losses[idx], self.iteration)
+            self.AV.push_value(av, losses[idx], self.iteration)

@@ -29,6 +29,12 @@ def write_json(data, file):
 def get_path(data, base_folder=BASE):
     return os.path.join(base_folder, data)
 
+def split_half(L):
+    """ split a list L in 2 halves """
+    first  = L[: len(L)//2]
+    second = L[len(L)//2 :]
+    return first, second
+
 def detach_to_numpy(data):
     if type(data) == torch.Tensor:
         data = data.cpu().detach().numpy()
