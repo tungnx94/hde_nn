@@ -3,8 +3,6 @@ import math
 import random
 import numpy as np
 
-# resnet: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-
 def img_normalize(img, mean, std):
     """ normalize RGB value """
     #img = img.astype(np.float32) / 255.0

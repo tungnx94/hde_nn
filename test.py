@@ -4,6 +4,7 @@ from utils import *
 from network import *
 from dataset import *
 
+
 def test_hde_reg():
     config = read_json("config/train0a.json")
     net = HDEReg(config["model"])
@@ -23,6 +24,7 @@ def test_hde_reg():
         loss.backward()
         optimizer.step()
 
+
 def test_mobile_reg():
     config = read_json("config/train2a.json")
     net = MobileReg(config["model"])
@@ -30,12 +32,12 @@ def test_mobile_reg():
     dataset = SingleLabelDataset(config["dataset"]["train"])
     dataset.shuffle()
     loader = DataLoader(dataset, batch_size=4)
-    
+
     unlabel_set = SequenceUnlabelDataset(config["dataset"]["unlabel"])
-    unlabel_loader = DataLoader(unlabel_set) 
+    unlabel_loader = DataLoader(unlabel_set)
 
     optimizer = optim.Adam(net.parameters(), lr=0.01)
-    for ind in range(1, 20): # 5000
+    for ind in range(1, 20):  # 5000
         sample = loader.next_sample()
         unlabel_seq = unlabel_loader.next_sample().squeeze()
 
@@ -49,6 +51,7 @@ def test_mobile_reg():
         l[0].backward()
         optimizer.step()
         #seq_show(imgseq.numpy(), dir_seq=output.to("cpu").detach().numpy())
+
 
 def test_hde_rnn():
     config = read_json("config/train3a.json")
@@ -68,6 +71,7 @@ def test_hde_rnn():
         optimizer.zero_grad()
         l.backward()
         optimizer.step()
+
 
 def test_mobile_rnn():
     config = read_json("config/train1a.json")
@@ -93,6 +97,7 @@ def test_mobile_rnn():
 
     print("Finished")
 
+
 def test_single_data():
     config = read_json("config/data.json")["single"]
     duke = SingleLabelDataset(config["duke"])
@@ -106,10 +111,11 @@ def test_single_data():
             seq_show(img.numpy(),
                      dir_seq=label.numpy(), scale=0.5)
 
+
 def test_duke_seq_data():
     config = read_json("config/data.json")["label_seq"]
-    dts = DukeSeqLabelDataset(config["duke_solo"])
-    dataloader = DataLoader(dts)    
+    dts = DukeSeqLabelDataset(config["duke"])
+    dataloader = DataLoader(dts)
 
     for count in range(5):
         sample = dataloader.next_sample()
@@ -117,6 +123,7 @@ def test_duke_seq_data():
         labelseq = sample[1].squeeze(dim=0)
 
         seq_show(imgseq.numpy(), dir_seq=labelseq)
+
 
 def test_seq_unlabel_data():
     config = read_json("config/data.json")["unlabel"]
@@ -132,41 +139,44 @@ def test_seq_unlabel_data():
             sample = dataloader.next_sample()
             seq_show(sample.squeeze().numpy(), scale=0.8)
 
+
 def calculate_duke_scales():
-    config = read_json("config/data.json")["single"]
-    duke = SingleLabelDataset(config["duke"])
+    config = read_json("config/data.json")["unlabel"]
+    duke = UnlabelDataset(config["duke"])
 
     mean, std = duke.calculate_mean_std()
     d = {"mean": mean.tolist(), "std": std.tolist()}
-    write_json(d, "config/duke1.json")
+    write_json(d, "config/duke2.json")
+
 
 def calculate_ucf_scales():
-    config = read_json("config/data.json")["single"]
-    ucf = SingleLabelDataset(config["ucf"])
+    config = read_json("config/data.json")["unlabel"]
+    ucf = UnlabelDataset(config["ucf"])
 
     mean, std = ucf.calculate_mean_std()
     d = {"mean": mean.tolist(), "std": std.tolist()}
     write_json(d, "config/ucf2.json")
 
+
 def calculate_indoor_scales():
-    config = read_json("config/data.json")["single"]
-    indoor = SingleLabelDataset(config["indoor"])
+    config = read_json("config/data.json")["unlabel"]
+    indoor = UnlabelDataset(config["indoor"])
 
     mean, std = indoor.calculate_mean_std()
     d = {"mean": mean.tolist(), "std": std.tolist()}
-    write_json(d, "config/indoor.json")    
+    write_json(d, "config/indoor.json")
 
 if __name__ == '__main__':
-    #test_hde_reg()
-    #test_mobile_reg()
+    # test_hde_reg()
+    # test_mobile_reg()
 
-    #test_hde_rnn()
-    #test_mobile_rnn()
-    
-    #test_single_data()
+    # test_hde_rnn()
+    # test_mobile_rnn()
+
+    # test_single_data()
     test_duke_seq_data()
     #test_seq_unlabel_data()
 
     #calculate_duke_scales()
     #calculate_ucf_scales()
-    #calculate_indor_scales()
+    # calculate_indor_scales()

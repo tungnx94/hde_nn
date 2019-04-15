@@ -2,7 +2,7 @@
     "type": "train",
     "dir": "./log",
     "log": "train.log",
-    "train_step": 30000,
+    "train_step": 40000,
     "save_freq": 2000,
     "show_freq": 100,
     "val_freq": 50,
@@ -19,8 +19,8 @@
         "trained": null
     },
     "dataset": {
-        "mean": [68.70511627197266, 64.54254150390625, 66.18392181396484],
-        "std": [76.49213639737272, 74.09419876057855, 75.21586759690676],
+        "mean": [127.5, 127.5, 127.5],
+        "std": [127.5, 127.5, 127.5],
         "train": {
             "name": "train-duke",
             "type": 0,
@@ -32,7 +32,7 @@
             "name": "val-duke",
             "type": 0,
             "path": "DukeMTMC/val.csv",
-            "aug": true,
+            "aug": false,
             "size": null
         }
     },

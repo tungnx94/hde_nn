@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 
 from torch.utils.data import Dataset
-from utils import get_path, im_scale_norm_pad, im_crop, im_hsv_augmentation
+import utils
 
 
 class DataLoader(torch.utils.data.DataLoader):
@@ -76,7 +76,7 @@ class SingleDataset(GeneralDataset):
     def __init__(self, config, mean=[0, 0, 0], std=[1, 1, 1], img_size=192, maxscale=0.1, auto_shuffle=False):
 
         GeneralDataset.__init__(self, config, auto_shuffle)
-        self.path = get_path(config["path"])
+        self.path = utils.get_path(config["path"])
 
         self.aug = config["aug"]
         self.img_size = img_size
@@ -101,10 +101,10 @@ class SingleDataset(GeneralDataset):
     def augment_image(self, img, flipping):
         # augment image to make "new" data
         if self.aug:
-            img = im_hsv_augmentation(img)
-            img = im_crop(img, maxscale=self.maxscale)
+            img = utils.im_hsv_augmentation(img)
+            img = utils.im_crop(img, maxscale=self.maxscale)
 
-        out_img = im_scale_norm_pad(img, self.mean, self.std, out_size=self.img_size,
+        out_img = utils.im_scale_norm_pad(img, self.mean, self.std, out_size=self.img_size,
                                     # down_reso=True,
                                     flip=flipping)
 
@@ -121,6 +121,12 @@ class SingleDataset(GeneralDataset):
             return FlipDir[direction]
         else:
             return direction
+
+    def calculate_mean_std(self):
+        return utils.calculate_mean_std(self.image_paths())
+
+    def image_paths(self):
+        return []
 
 
 class MixDataset(GeneralDataset):

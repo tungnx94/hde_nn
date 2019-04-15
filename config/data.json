@@ -31,7 +31,7 @@
             "name": "train-duke-unlabel",
             "type": 1,
             "path": "DukeMTMC/train_unlabel.csv",
-            "seq_length": 16,
+            "seq_length": 8,
             "aug": true,
             "size": null
         },
@@ -39,7 +39,7 @@
             "name": "ucf-unlabel",
             "type": 1,
             "path": "UCF/train.csv",
-            "seq_length": 16,
+            "seq_length": 8,
             "aug": true,
             "size": null
         },
@@ -47,7 +47,7 @@
             "name": "drone-unlabel",
             "type": 1,
             "path": "DRONE_seq/train.csv",
-            "seq_length": 16,
+            "seq_length": 8,
             "aug": true,
             "size": null
         }

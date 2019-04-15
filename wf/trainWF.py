@@ -59,8 +59,8 @@ class TrainWF(WorkFlow):
 
     def save_snapshot(self):
         """ write accumulated values and save temporal model """
-        self.save_accumulated_values()
         self.save_model()
+        self.save_accumulated_values()
 
         self.logger.info("Saved snapshot")
 

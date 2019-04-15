@@ -1,10 +1,12 @@
 import os
 import torch
+import cv2
 import random
 import json
 import numpy as np
 
 from math import pi
+from .image import im_scale_pad
 
 #BASE = "/home/tungnguyen/projects/data_icra"
 BASE = "/home/tung/projects/data_icra"
@@ -69,3 +71,32 @@ def angle_metric(outputs, labels):
     corrects = diff < ACC_THRESH
 
     return np.mean(diff), np.mean(corrects)
+
+def calculate_mean_std(img_paths, scale=True):
+    count = len(img_paths) * 192 * 192
+
+    # calculate mean
+    mean = []
+    for img_path in img_paths:
+        img = cv2.imread(img_path)
+        if scale:
+            img = im_scale_pad(img)
+
+        im_mean = np.mean(img, axis=(0, 1))
+        mean.append(im_mean)
+
+    mean = np.mean(np.array(mean), axis=0)
+
+    # calculate std
+    std = []
+    for img_path in img_paths:
+        img = cv2.imread(img_path)
+        if scale:
+            img = im_scale_pad(img)
+
+        sqr_diff = (img - mean) ** 2
+        std.append(np.sum(sqr_diff, axis=(0, 1)))
+
+    std = np.sqrt(np.sum(std, axis=0) / (count-1)) 
+
+    return (mean, std)

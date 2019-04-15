@@ -1,13 +1,10 @@
 # Wrapper for Duke & VIRAT single image labeled datasets
-import sys
-sys.path.insert(0, "..")
 import os
 import cv2
 import numpy as np
 import pandas as pd
 
 from .generalData import SingleDataset
-import utils
 
 class SingleLabelDataset(SingleDataset):
 
@@ -35,27 +32,5 @@ class SingleLabelDataset(SingleDataset):
     
         return (out_img, out_label)
 
-    def calculate_mean_std(self):
-        img_paths = [item[0] for item in self.items]
-        count = len(img_paths) * 192 * 192
-
-        # calculate mean
-        mean = []
-        for img_path in img_paths:
-            img = cv2.imread(img_path)
-            im_mean = np.mean(img, axis=(0, 1))
-            mean.append(im_mean)
-
-        mean = np.mean(np.array(mean), axis=0)
-
-        # calculate std
-        std = []
-        for img_path in img_paths:
-            img = cv2.imread(img_path)
-
-            sqr_diff = (img - mean) ** 2
-            std.append(np.sum(sqr_diff, axis=(0, 1)))
-
-        std = np.sqrt(np.sum(std, axis=0) / (count-1)) 
-
-        return (mean, std)
+    def image_paths(self):
+        return [item[0] for item in self.items]
