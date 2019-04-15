@@ -8,17 +8,16 @@ from utils import create_folder, write_json
 class TestWF(WorkFlow):
 
     def __init__(self, config):
-        t = datetime.now().strftime("%m-%d_%H-%M")
-
-        workingDir = config["model"]["trained"]["path"]
-        modelName = config["model"]["trained"]["weights"].split(".")[0]
+        t = datetime.now().strftime("%m-%d")
+    
         dtsName = config["dataset"]["test"]["name"]
+        countTrain = config["model"]["trained"]["weights"].split(".")[0]
+        modelName = os.path.basename(config["model"]["trained"]["path"]) + "_" + countTrain
 
-        self.modeldir = os.path.join(workingDir, "models") 
+        workingDir = "./log/test_" + dtsName + "_" + t
+        create_folder(workingDir)
 
-        self.testdir = os.path.join(workingDir, "test")
-        create_folder(self.testdir)
-        self.testdir = os.path.join(self.testdir, t + "_" + modelName + "_" + dtsName)
+        self.testdir = os.path.join(workingDir, modelName)
         create_folder(self.testdir)
 
         self.saveFreq = config["save_freq"] # av save frequency
