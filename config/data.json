@@ -62,6 +62,14 @@
             "seq_length": 8,
             "aug": true,
             "size": null
+        },
+        "duke_solo": {
+            "name": "train-dukeseq",
+            "type": 2,
+            "path": "DukeMTMC/train.csv",
+            "seq_length": 1,
+            "aug": true,
+            "size": null
         }
     }
 }

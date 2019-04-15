@@ -35,16 +35,11 @@ class TestWF(WorkFlow):
         WorkFlow.finalize(self)
         self.save_accumulated_values()
 
-        """
-        res = {}
-        for loss in self.config['losses']:
-            res[loss] = self.AV.absolute_avg(loss) 
-        """
         res = {loss:self.AV.absolute_avg(loss) for loss in self.config['losses']}
-
         res_file = os.path.join(self.logdir, "results.json")
         write_json(res, res_file)
 
+        self.logger.info("Results: ", res)
         self.logger.info("Saved final results")
 
     def prepare_dataset(self, dloader):
@@ -65,7 +60,7 @@ class TestWF(WorkFlow):
 
             # log
             if self.iteration % self.showFreq == 0:
-                self.logger.info("#%d %s" % (self.iteration, self.get_log_str()))
+                self.logger.info("#%6d %s" % (self.iteration, self.get_log_str()))
 
             # save temporary values
             if self.iteration % self.saveFreq == 0:

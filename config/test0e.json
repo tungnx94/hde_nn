@@ -1,0 +1,45 @@
+{
+    "type": "test",
+    "test": "supervised",
+    "log": "test.log",
+    "show_freq": 50,
+    "save_freq": 1000,
+    "batch": 64,
+    "model": {
+        "trained": {
+            "path": "./log/04-14_18-52_rnn_duke", 
+            "weights": "14000.pkl",
+            "continue": false
+        }
+    },
+    "dataset": {
+        "mean": [68.70511627197266, 64.54254150390625, 66.18392181396484],
+        "std": [76.49213639737272, 74.09419876057855, 75.21586759690676],
+        "test": {
+            "name": "duke",
+            "path": "DukeMTMC/test.csv",
+            "type": 2,
+            "seq_length": 1,
+            "aug": false,
+            "size": null
+        }
+    },
+    "acvs": {
+        "label": 50,
+        "angle": 50,
+        "accuracy": 50
+        },
+    "plots": [
+        {   "name": "label_loss",
+            "values": ["label"],
+            "average":false  },
+        {   "name": "angle",
+            "values": ["angle"],
+            "average":false  }
+        ],
+    "losses": [
+        "label",
+        "angle",
+        "accuracy"
+        ]
+}

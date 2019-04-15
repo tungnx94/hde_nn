@@ -13,8 +13,7 @@ parser.add_argument("-c", dest="cnf", default="./config/train0a.json",
                     help="train/test config")
 args = parser.parse_args()
 
-# ModelType 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: MobileEncoderReg
-# WFType 0: train, 1: labeled image, 2: unlabeled sequence, 3: labeled seq
+# ModelType 0: Vanilla, 1: MobileRNN, 2: MobileReg
 config = read_json(args.cnf)
 
 def select_WF():
@@ -29,15 +28,14 @@ def select_WF():
         elif net_type == 2:
             return TrainSSWF(config)
     elif WFType == "test":
-        dts_type = config["dataset"]["test"]["type"]
-
-        if dts_type == 0:
+        testType = config["test"]
+        if testType == "supervised":
             return TestLabelWF(config)
-        elif dts_type == 1:
-            return TestUnlabelWF(config)
-        elif dts_type == 2:
+        elif testType == "semi":
             return TestLabelSeqWF(config)
 
+    return None
+    
 def main():
     """ Train and validate new model """
     try:

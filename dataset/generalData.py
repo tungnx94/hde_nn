@@ -70,12 +70,11 @@ class GeneralDataset(Dataset):
     def read_debug(self):
         print("{}: {} samples".format(self, len(self)))
 
-FlipDir = {0:4, 1:3, 2:2, 3:1, 4:0, 5:7, 6:6, 7:5}
 
 class SingleDataset(GeneralDataset):
 
-    def __init__(self, config, mean=[0,0,0], std=[1,1,1], img_size=192, maxscale=0.1, auto_shuffle=False):
-    
+    def __init__(self, config, mean=[0, 0, 0], std=[1, 1, 1], img_size=192, maxscale=0.1, auto_shuffle=False):
+
         GeneralDataset.__init__(self, config, auto_shuffle)
         self.path = get_path(config["path"])
 
@@ -105,9 +104,9 @@ class SingleDataset(GeneralDataset):
             img = im_hsv_augmentation(img)
             img = im_crop(img, maxscale=self.maxscale)
 
-        out_img = im_scale_norm_pad(
-            #img, out_size=self.img_size, mean=self.mean, std=self.std, down_reso=True, flip=flipping)
-            img, self.mean, self.std, out_size=self.img_size, flip=flipping)
+        out_img = im_scale_norm_pad(img, self.mean, self.std, out_size=self.img_size,
+                                    # down_reso=True,
+                                    flip=flipping)
 
         return out_img
 
@@ -122,6 +121,7 @@ class SingleDataset(GeneralDataset):
             return FlipDir[direction]
         else:
             return direction
+
 
 class MixDataset(GeneralDataset):
 

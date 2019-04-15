@@ -108,13 +108,13 @@ def test_single_data():
 
 def test_duke_seq_data():
     config = read_json("config/data.json")["label_seq"]
-    dts = DukeSeqLabelDataset(config["duke"])
+    dts = DukeSeqLabelDataset(config["duke_solo"])
     dataloader = DataLoader(dts)    
 
     for count in range(5):
         sample = dataloader.next_sample()
-        imgseq = sample[0].squeeze()
-        labelseq = sample[1].squeeze()
+        imgseq = sample[0].squeeze(dim=0)
+        labelseq = sample[1].squeeze(dim=0)
 
         seq_show(imgseq.numpy(), dir_seq=labelseq)
 
@@ -164,9 +164,9 @@ if __name__ == '__main__':
     #test_mobile_rnn()
     
     #test_single_data()
-    #test_duke_seq_data()
+    test_duke_seq_data()
     #test_seq_unlabel_data()
 
     #calculate_duke_scales()
-    calculate_ucf_scales()
+    #calculate_ucf_scales()
     #calculate_indor_scales()
