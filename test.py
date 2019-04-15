@@ -97,6 +97,24 @@ def test_mobile_rnn():
 
     print("Finished")
 
+def test_feature_rnn():
+    config = read_json("cnf_temp.json")
+    net = FeatureRNN(config["model"])
+    dataset = SingleLabelDataset(config["dataset"]["train"])
+    loader = DataLoader(dataset, batch_size=4)
+
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    for ind in range(1, 20):
+        sample = loader.next_sample()
+        imgseq, labels = sample
+
+        loss = net.loss_label(imgseq, labels, mean=True)
+        print(loss.item())
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
 
 def test_single_data():
     config = read_json("config/data.json")["single"]
@@ -172,9 +190,10 @@ if __name__ == '__main__':
 
     # test_hde_rnn()
     # test_mobile_rnn()
+    test_feature_rnn()
 
     # test_single_data()
-    test_duke_seq_data()
+    # test_duke_seq_data()
     #test_seq_unlabel_data()
 
     #calculate_duke_scales()
