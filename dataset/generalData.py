@@ -19,7 +19,7 @@ class DataLoader(torch.utils.data.DataLoader):
         self.dataset = dataset
         self.data_iter = iter(self)
 
-        self.max_iteration = len(dataset) // batch
+        self.max_iter_count = len(dataset) // batch_size
 
     def next_sample(self):
         """ get next batch, update data_iter and epoch if needed """
@@ -37,7 +37,7 @@ class DataLoader(torch.utils.data.DataLoader):
         self.data_iter = iter(self)
 
     def max_iteration(self):
-        return self.max_iteration
+        return self.max_iter_count
 
 class GeneralDataset(Dataset):
 
@@ -55,7 +55,7 @@ class GeneralDataset(Dataset):
 
     def resize(self, nsize):
         self.reorder()
-        if isinstance(nsize, float)
+        if isinstance(nsize, float):
             nsize = (int)(nsize * len(self))
 
         if nsize <= len(self.items):

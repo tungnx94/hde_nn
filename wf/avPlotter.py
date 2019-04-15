@@ -75,7 +75,7 @@ class AccumulatedValuePlotter(object):
         self.save_plot(fig, ax, legend, outDir + '/' + self.name + "_avg_final.png")      
 
     def update(self):
-        return
+        pass
 
     def initialize(self):
-        print("AVPlotter initialized")
+        pass

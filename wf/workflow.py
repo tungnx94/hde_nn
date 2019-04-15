@@ -125,8 +125,6 @@ class WorkFlow(object):
     def finalize(self):
         WorkFlow.IS_FINALISING = True
 
-        self.logger.info("FINISHED")
-
         self.endTime = datetime.now()
         self.logger.info("Total time: {}".format(
             self.endTime - self.startTime))

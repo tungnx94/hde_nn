@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '..')
+
 import os
 import torch
 import numpy as np 
@@ -5,7 +8,7 @@ import torch.optim as optim
 
 from datetime import datetime
 from .workflow import WorkFlow
-from utils import create_folder
+import utils
 
 class TrainWF(WorkFlow):
 
@@ -36,7 +39,7 @@ class TrainWF(WorkFlow):
             self.lamb = lamb
 
         for folder in [workingDir, self.traindir, self.modeldir]:
-            create_folder(folder)
+            utils.create_folder(folder)
 
         WorkFlow.__init__(self, config)
 
@@ -56,12 +59,14 @@ class TrainWF(WorkFlow):
             avp.write_image_final(self.logdir)
 
         #Save final results
+        self.logger.info("Saving final results")
+
         losses = self.evaluate_final()
         res = {"train": losses[0], "val": losses[1]}
         res_file = os.path.join(self.logdir, "results.json")
-        write_json(res, res_file)        
+        utils.write_json(res, res_file)        
 
-        self.logger.info("Saved final results")
+        self.logger.info("Done")
 
     def save_snapshot(self):
         """ write accumulated values and save temporal model """
@@ -124,21 +129,21 @@ class TrainWF(WorkFlow):
         n = loader.max_iteration()
 
         for i in range(n):
-            sample = next_sample_func(self)
+            sample = next_sample_func()
             loss = self.val_metrics(sample)
             loss_list.append(loss)
 
-        losses = np.mean(np.array(lost_list), axis=0)
+        losses = np.mean(np.array(loss_list), axis=0)
         return losses
 
     def evaluate_final(self):
         train_loss_name, val_loss_name = utils.split_half(self.config["losses"])
 
-        train_loss_values = self.evaluate_set(self.train_loader, next_train_sample)
-        val_loss_values = self.evaluate_set(self.val_loader, next_val_sample)
+        train_loss_values = self.evaluate_set(self.train_loader, self.next_train_sample)
+        val_loss_values = self.evaluate_set(self.val_loader, self.next_val_sample)
 
-        train_loss = dict(zip(train_loss_name, train_loss))
-        val_loss = dict(zip(val_loss_name, val_loss))
+        train_loss = dict(zip(train_loss_name, train_loss_values))
+        val_loss = dict(zip(val_loss_name, val_loss_values))
 
         return (train_loss, val_loss)
 
