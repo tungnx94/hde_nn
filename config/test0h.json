@@ -18,8 +18,7 @@
         "test": {
             "name": "duke",
             "path": "DukeMTMC/test.csv",
-            "type": 2,
-            "seq_length": 1,
+            "type": 0,
             "aug": false,
             "size": null
         }

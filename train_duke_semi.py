@@ -27,7 +27,7 @@ def select_WF():
         else:
             return TrainSLWF(config)
             
-    elif WFType == "test":
+    elif "test" in WFType:
         testType = config["test"]
         if testType == "supervised":
             return TestLabelWF(config)

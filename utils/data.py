@@ -4,6 +4,7 @@ import cv2
 import random
 import json
 import numpy as np
+import time
 
 from math import pi
 from .image import im_scale_pad
@@ -14,8 +15,15 @@ BASE = "/home/tungnguyen/projects/data_icra"
 ACC_THRESH = pi/8
 
 def create_folder(outdir):
+    time.sleep(1)
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
+
+def list_file(path):
+    return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+
+def list_folder(path):
+    return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
 
 def read_json(file):
     with open(file, "r") as f:

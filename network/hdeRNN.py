@@ -32,6 +32,10 @@ class HDE_RNN(HDEReg):
         return x, hidden
 
     def forward(self, x):
+        squeezed = len(x.shape) == 4
+        if squeezed:
+            x = x.unsqueeze(1)
+
         batch = x.shape[0]
         seq_length = x.shape[1]
         x = x.to(self.device)
@@ -50,4 +54,6 @@ class HDE_RNN(HDEReg):
             z.append(outputs)
 
         z = torch.stack(z)
+        if squeezed:
+            z = z.squeeze(dim=1)
         return z

@@ -4,7 +4,7 @@
     "log": "test.log",
     "show_freq": 100,
     "save_freq": 400,
-    "batch": 16,
+    "batch": 64,
     "model": {
         "trained": {
             "path": "./log/04-16_08-43_rnn_duke", 

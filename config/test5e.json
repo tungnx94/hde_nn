@@ -1,14 +1,14 @@
 {
-    "type": "test",
+    "type": "valtest",
     "test": "supervised",
     "log": "test.log",
     "show_freq": 100,
     "save_freq": 400,
-    "batch": 64,
+    "batch": 32,
     "model": {
         "trained": {
-            "path": "./log/04-16_03-53_rnn_f_m_duke", 
-            "weights": "30000.pkl",
+            "path": "./log/04-16_05-23_rnn_v_duke", 
+            "weights": "28000.pkl",
             "continue": false
         }
     },
@@ -16,8 +16,8 @@
         "mean": [127.5, 127.5, 127.5],
         "std": [127.5, 127.5, 127.5],
         "test": {
-            "name": "duke",
-            "path": "DukeMTMC/test.csv",
+            "name": "DRONE",
+            "path": "DRONE_label/valtest.csv",
             "type": 0,
             "aug": false,
             "size": null
@@ -31,10 +31,7 @@
     "plots": [
         {   "name": "label_loss",
             "values": ["label"],
-            "average":false  },
-        {   "name": "angle",
-            "values": ["angle"],
-            "average":false  }
+            "average": false}
         ],
     "losses": [
         "label",

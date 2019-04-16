@@ -27,6 +27,10 @@ class MobileRNN(HDEReg):
         self.load_to_device()
 
     def forward(self, x):
+        squeezed = len(x.shape) == 4
+        if squeezed:
+            x = x.unsqueeze(1)
+
         batch = x.shape[0]
         seq_length = x.shape[1]
         x = x.to(self.device)
@@ -43,4 +47,7 @@ class MobileRNN(HDEReg):
         # x = [batch x seq_length x rnnHidNum]
 
         x = self.reg(x)
+
+        if squeezed:
+            x = x.squeeze(dim=1)
         return x

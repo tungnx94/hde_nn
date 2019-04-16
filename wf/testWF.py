@@ -14,7 +14,7 @@ class TestWF(WorkFlow):
         countTrain = config["model"]["trained"]["weights"].split(".")[0]
         modelName = os.path.basename(config["model"]["trained"]["path"]) + "_" + countTrain
 
-        workingDir = "./log/test_" + dtsName + "_" + t
+        workingDir = "./log/" + config["type"] + "_" + dtsName + "_" + t
         create_folder(workingDir)
 
         self.testdir = os.path.join(workingDir, modelName)
