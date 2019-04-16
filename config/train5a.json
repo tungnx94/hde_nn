@@ -16,7 +16,7 @@
         "params": {
             "hid_num": 256,
             "rnn_hid_num": 256,
-            "layers": 2,
+            "layers": 1,
             "f_num": 64
         },
         "trained": null

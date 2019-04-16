@@ -10,8 +10,8 @@
     "batch_val": 32,
     "lr": 0.001,
     "model": {
-        "name": "rnn_f_duke",
-        "extractor": "base",
+        "name": "rnn_f_m_duke",
+        "extractor": "mobile",
         "type": 4,
         "params": {
             "hid_num": 256,
