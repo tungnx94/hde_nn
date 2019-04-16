@@ -45,10 +45,9 @@ class FeatureRNN(HDEReg):
         x = x.to(self.device)
 
         x = self.feature(x).view(batch, -1)
+        seq_length = x.shape[1] // self.fNum
 
-        seq_length = x.shape[1] // self.fNum        
         x = x.view(batch, seq_length, -1)
-
         z = []
         for batch_sample in x:
             hidden = torch.zeros(self.rnnHidNum).to(self.device)

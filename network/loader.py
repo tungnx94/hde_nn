@@ -8,6 +8,7 @@ from .mobileRNN import MobileRNN
 from .mobileReg import MobileReg
 from .hdeRNN import HDE_RNN
 from .featureRNN import FeatureRNN
+from .featureGRU import FeatureGRU
 
 class ModelLoader(object):
 
@@ -33,6 +34,8 @@ class ModelLoader(object):
             model = HDE_RNN(config)
         elif mtype == 4:
             model = FeatureRNN(config)
+        elif mtype == 5:
+            model = FeatureGRU(config)
 
         if mtrained is not None:
             model.load_pretrained(mtrained)

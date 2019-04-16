@@ -15,15 +15,15 @@
         "type": 1,
         "params": {
             "hid_num": 256,
-            "rnn_hid_num": 128,
-            "layers": 2,
+            "rnn_hid_num": 256,
+            "layers": 1,
             "cell": "gru"
         },
         "trained": null
     },
     "dataset": {
-        "mean": [68.70511627197266, 64.54254150390625, 66.18392181396484],
-        "std": [76.49213639737272, 74.09419876057855, 75.21586759690676],
+        "mean": [127.5, 127.5, 127.5],
+        "std": [127.5, 127.5, 127.5],
         "train": {
             "name": "train-dukeseq",
             "type": 2,
@@ -37,7 +37,7 @@
             "type": 2,
             "path": "DukeMTMC/val.csv",
             "seq_length": 8,
-            "aug": true,
+            "aug": false,
             "size": null
         }
     },

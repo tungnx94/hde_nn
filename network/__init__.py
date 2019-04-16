@@ -4,5 +4,6 @@ from .mobileReg import MobileReg
 
 from .mobileRNN import MobileRNN
 from .featureRNN import FeatureRNN
+from .featureGRU import FeatureGRU
 
 from .loader import ModelLoader
