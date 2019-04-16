@@ -2,19 +2,19 @@
     "type": "test",
     "test": "supervised",
     "log": "test.log",
-    "show_freq": 50,
-    "save_freq": 200,
+    "show_freq": 100,
+    "save_freq": 400,
     "batch": 64,
     "model": {
         "trained": {
-            "path": "./log/04-14_02-54_vanilla_m_duke", 
-            "weights": "30000.pkl",
+            "path": "./log/04-16_00-44_vanilla_m_duke", 
+            "weights": "40000.pkl",
             "continue": false
         }
     },
     "dataset": {
-        "mean": [68.70511627197266, 64.54254150390625, 66.18392181396484],
-        "std": [76.49213639737272, 74.09419876057855, 75.21586759690676],
+        "mean": [127.5, 127.5, 127.5],
+        "std": [127.5, 127.5, 127.5],
         "test": {
             "name": "duke",
             "path": "DukeMTMC/test.csv",

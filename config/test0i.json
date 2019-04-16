@@ -4,11 +4,11 @@
     "log": "test.log",
     "show_freq": 100,
     "save_freq": 400,
-    "batch": 64,
+    "batch": 16,
     "model": {
         "trained": {
-            "path": "./log/04-14_02-54_vanilla_duke", 
-            "weights": "30000.pkl",
+            "path": "./log/04-16_05-23_rnn_v_duke", 
+            "weights": "28000.pkl",
             "continue": false
         }
     },
@@ -18,7 +18,8 @@
         "test": {
             "name": "duke",
             "path": "DukeMTMC/test.csv",
-            "type": 0,
+            "type": 2,
+            "seq_length": 1,
             "aug": false,
             "size": null
         }
@@ -31,7 +32,10 @@
     "plots": [
         {   "name": "label_loss",
             "values": ["label"],
-            "average": false}
+            "average":false  },
+        {   "name": "angle",
+            "values": ["angle"],
+            "average":false  }
         ],
     "losses": [
         "label",

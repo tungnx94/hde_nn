@@ -7,8 +7,8 @@
     "batch": 64,
     "model": {
         "trained": {
-            "path": "./log/04-14_02-54_vanilla_duke", 
-            "weights": "30000.pkl",
+            "path": "./log/04-16_06-44_rnn_fg_duke", 
+            "weights": "15000.pkl",
             "continue": false
         }
     },
@@ -18,7 +18,8 @@
         "test": {
             "name": "duke",
             "path": "DukeMTMC/test.csv",
-            "type": 0,
+            "type": 2,
+            "seq_length": 1,
             "aug": false,
             "size": null
         }
@@ -31,7 +32,10 @@
     "plots": [
         {   "name": "label_loss",
             "values": ["label"],
-            "average": false}
+            "average":false  },
+        {   "name": "angle",
+            "values": ["angle"],
+            "average":false  }
         ],
     "losses": [
         "label",
