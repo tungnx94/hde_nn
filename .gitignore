@@ -8,6 +8,7 @@ old_logs
 logdata
 models
 resimg
+config
 
 data
 *temp.json
