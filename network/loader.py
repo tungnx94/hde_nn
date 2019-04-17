@@ -28,7 +28,7 @@ class ModelLoader(object):
             model = HDEReg(config)
         elif mtype == 1:
             model = MobileRNN(config)
-        elif mtype == 2:
+        elif mtype in [2, 6]:
             model = MobileReg(config)
         elif mtype == 3:
             model = HDE_RNN(config)

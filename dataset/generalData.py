@@ -12,7 +12,7 @@ import utils
 
 class DataLoader(torch.utils.data.DataLoader):
 
-    def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1, drop_last=True):
+    def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1, drop_last=False):
         super(DataLoader, self).__init__(dataset, batch_size=batch_size,
                                          shuffle=shuffle, num_workers=num_workers, drop_last=drop_last)
         self.epoch = 0

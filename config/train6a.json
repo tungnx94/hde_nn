@@ -1,0 +1,60 @@
+{
+    "type": "train",
+    "dir": "./log",
+    "log": "train.log",
+    "train_step": 1000,
+    "save_freq": 250,
+    "show_freq": 50,
+    "val_freq": 5,
+    "batch": 32,
+    "batch_val": 32,
+    "lr": 0.001,
+    "model": {
+        "name": "vanilla_m_ucf",
+        "extractor": "mobile",
+        "type": 0,
+        "params": {
+            "hid_num": 256
+        },
+        "trained": null
+    },
+    "dataset": {
+        "mean": [127.5, 127.5, 127.5],
+        "std": [127.5, 127.5, 127.5],
+        "train": {
+            "name": "train-ucf",
+            "type": 0,
+            "path": "UCF_label/train.csv",
+            "aug": true,
+            "size": null
+        },
+        "val": {
+            "name": "val-ucf",
+            "type": 0,
+            "path": "UCF_label/val.csv",
+            "aug": false,
+            "size": null
+        }
+    },
+    "acvs": {
+        "train_label": 10,
+        "train_angle": 10,
+        "val_label": 10,
+        "val_angle": 10
+        },
+    "plots": [
+        {   "name": "label_loss",
+            "values": ["train_label", "val_label"],
+            "average":true  },
+        {
+            "name": "angle",
+            "values": ["train_angle", "val_angle"],
+            "average":true }
+        ],
+    "losses": [
+        "train_label",
+        "train_angle",
+        "val_label",
+        "val_angle"
+        ]
+}

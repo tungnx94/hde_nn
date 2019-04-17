@@ -13,7 +13,7 @@ parser.add_argument("-c", dest="cnf", default="./config/train0a.json",
                     help="train/test config")
 args = parser.parse_args()
 
-# ModelType 0: Vanilla, 1: MobileRNN, 2: MobileReg
+# ModelType 0: Vanilla, 1: MobileRNN, 2: MobileReg, 3: HDE_RNN , 4: F_RNN, 5: FG_RNN, 6: MobileReg2
 config = read_json(args.cnf)
 
 def select_WF():
@@ -24,6 +24,8 @@ def select_WF():
         net_type = config["model"]["type"]
         if net_type == 2:
             return TrainSSWF(config)
+        elif net_type == 6:
+            return TrainSSWF2(config)
         else:
             return TrainSLWF(config)
             

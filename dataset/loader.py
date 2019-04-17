@@ -50,12 +50,14 @@ class DatasetLoader(object):
         train = self.try_load("train", config)
         unlabel = self.try_load("unlabel", config)
         val = self.try_load("val", config)
+        val_unlabel = self.try_load("val_unlabel", config)
         test = self.try_load("test", config)
 
         if test is not None:
             return test
-
-        if unlabel is not None:
+        elif val_unlabel is not None:
+            return (train, unlabel, val, val_unlabel)
+        elif unlabel is not None:
             return (train, unlabel, val)
-
-        return (train, val)
+        else:
+            return (train, val)

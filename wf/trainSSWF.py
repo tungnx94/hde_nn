@@ -41,3 +41,19 @@ class TrainSSWF(TrainWF):
         values.append(angle_loss)
 
         return np.array(values)
+
+class TrainSSWF2(TrainSSWF):
+
+    def prepare_dataset(self, dloader):
+        label_dts, unlabel_dts, val_dts, val_unlabel_dts = dloader.load_dataset(self.config["dataset"])
+        self.train_loader = dloader.loader(label_dts, self.batch)
+        self.train_unlabel_loader = dloader.loader(unlabel_dts)
+
+        self.val_loader = dloader.loader(val_dts, self.batch)
+        self.val_unlabel_loader = dloader.loader(val_unlabel_dts)
+    
+    def next_val_sample(self):
+        sample = self.val_loader.next_sample()
+        seq = self.val_unlabel_loader.next_sample().squeeze()  # remove 0-dim (=1)        
+
+        return (sample[0], sample[1], seq)
