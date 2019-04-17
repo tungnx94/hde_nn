@@ -19,6 +19,9 @@ class DatasetLoader(object):
         self.name = "Dataset-Loader"
 
     def loader(self, dataset, batch_size=1, shuffle=True, num_workers=4):
+        # fill up so size of dataset is multiple of batch size
+        dataset.round_up(batch_size) 
+
         return DataLoader(dataset, batch_size, shuffle, num_workers)        
 
     def try_load(self, name, config):

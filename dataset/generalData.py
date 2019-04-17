@@ -12,9 +12,9 @@ import utils
 
 class DataLoader(torch.utils.data.DataLoader):
 
-    def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1, drop_last=False):
+    def __init__(self, dataset, batch_size=1, shuffle=True, num_workers=1):
         super(DataLoader, self).__init__(dataset, batch_size=batch_size,
-                                         shuffle=shuffle, num_workers=num_workers, drop_last=drop_last)
+                                         shuffle=shuffle, num_workers=num_workers, drop_last=True)
         self.epoch = 0
         self.dataset = dataset
         self.data_iter = iter(self)
@@ -62,6 +62,13 @@ class GeneralDataset(Dataset):
             self.items = self.items[:nsize]
 
         self.reorder()
+
+    def round_up(self, batch):
+        if len(self) % batch != 0:
+            missing = batch - (len(self) % batch)
+            self.shuffle()
+            self.items.extend(self.items[:missing])
+            self.shuffle()
 
     def shuffle(self):
         random.shuffle(self.items)

@@ -190,9 +190,9 @@ if __name__ == '__main__':
 
     # test_hde_rnn()
     # test_mobile_rnn()
-    test_feature_rnn()
+    #test_feature_rnn()
 
-    # test_single_data()
+    test_single_data()
     # test_duke_seq_data()
     #test_seq_unlabel_data()
 
