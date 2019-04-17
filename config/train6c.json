@@ -7,7 +7,7 @@
     "show_freq": 100,
     "val_freq": 50,
     "batch": 32,
-    "batch_val": 128,
+    "batch_val": 32,
     "lr": 0.003,
     "model": {
         "name": "rnn_f_m_ucf",
