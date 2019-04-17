@@ -8,9 +8,9 @@ import time
 
 from math import pi
 from .image import im_scale_pad
+from .base import BASE
 
 BASE = "/home/tungnguyen/projects/data_icra"
-#BASE = "/home/tung/projects/data_icra"
 
 ACC_THRESH = pi/8
 
