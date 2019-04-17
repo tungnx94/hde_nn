@@ -11,7 +11,7 @@
     "model": {
         "name": "ssl_m_duke",
         "extractor": "mobile",
-        "type": 2,
+        "type": 6,
         "params": {
             "hid_num": 256,
             "lamb": 0.1,

@@ -2,13 +2,13 @@
     "type": "train",
     "dir": "./log",
     "log": "train.log",
-    "train_step": 1000,
-    "save_freq": 250,
-    "show_freq": 50,
-    "val_freq": 5,
+    "train_step": 10000,
+    "save_freq": 500,
+    "show_freq": 100,
+    "val_freq": 50,
     "batch": 32,
-    "batch_val": 32,
-    "lr": 0.001,
+    "batch_val": 128,
+    "lr": 0.003,
     "model": {
         "name": "rnn_f_m_ucf",
         "extractor": "mobile",
@@ -39,10 +39,10 @@
         }
     },
     "acvs": {
-        "train_label": 10,
-        "train_angle": 10,
-        "val_label": 10,
-        "val_angle": 10
+        "train_label": 100,
+        "train_angle": 100,
+        "val_label": 100,
+        "val_angle": 100
         },
     "plots": [
         {   "name": "label_loss",
