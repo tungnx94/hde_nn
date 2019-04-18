@@ -10,8 +10,6 @@ from math import pi
 from .image import im_scale_pad
 from .base import BASE
 
-BASE = "/home/tungnguyen/projects/data_icra"
-
 ACC_THRESH = pi/8
 
 def create_folder(outdir):

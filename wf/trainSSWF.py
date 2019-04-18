@@ -7,7 +7,7 @@ import utils
 import numpy as np 
 from .trainWF import TrainWF
 
-class TrainSSWF(TrainSSWF):
+class TrainSSWF(TrainWF):
 
     def prepare_dataset(self, dloader):
         label_dts, unlabel_dts, val_dts, val_unlabel_dts = dloader.load_dataset(self.config["dataset"])
@@ -43,7 +43,7 @@ class TrainSSWF(TrainSSWF):
 
         return np.array(values)
 
-class TrainSSWF2(TrainWF):
+class TrainSSWF2(TrainSSWF):
 
     def prepare_dataset(self, dloader):
         label_dts, unlabel_dts, val_dts = dloader.load_dataset(self.config["dataset"])
