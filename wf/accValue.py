@@ -122,7 +122,7 @@ class AccumulatedValue(object):
 
         if limit is not None:
             ind = self.stamp.index(limit)
-            self.stamp = self.stamp[ind+1]
+            self.stamp = self.stamp[:ind+1]
             for av in self.avList:
                 self.acc[av] = self.acc[av][:ind+1]
                 self.avg[av] = self.avg[av][:ind+1]
