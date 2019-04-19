@@ -105,7 +105,7 @@ class TrainWF(WorkFlow):
 
             # output screen
             if iteration % self.showFreq == 0:
-                self.logger.info("#%6d %s" % (iteration, self.get_log_str_avg()))
+                self.logger.info("#%6d %s" % (self.countTrain, self.get_log_str_avg()))
 
             # save temporary model
             if iteration % self.saveFreq == 0:

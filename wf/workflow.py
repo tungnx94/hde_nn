@@ -83,11 +83,16 @@ class WorkFlow(object):
         self.model = loader.load(mconfig)
         self.countTrain = 0
 
-        if (mconfig["trained"] is not None) and mconfig["trained"]["continue"]:
-            self.countTrain = self.model.countTrain
+        tr_config = mconfig["trained"]
+        if tr_config is not None:
+            w_file = os.path.join(tr_config["path"], "models", tr_config["weights"])
+            self.logger.info("Loaded weights from " + str(w_file))
 
-            AV_file = os.join(mconfig["trained"]["path"], "models", mconfig["trained"]["weights"])
-            self.AV.load_csv(AV_file)
+            if tr_config["continue"]:
+                self.countTrain = self.model.countTrain
+                AV_file = os.path.join(tr_config["path"], "train/values.csv")
+                self.AV.load_csv(AV_file, limit=self.countTrain)
+                self.logger.info("Loaded AVs from " + str(AV_file))
 
     def proceed(self):
         self.initialize()

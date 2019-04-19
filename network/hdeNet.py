@@ -37,8 +37,6 @@ class HDENet(torch.nn.Module):
         model_dict.update(preTrainDict)
         self.load_state_dict(model_dict)
 
-        print("Loaded weights from ", file) # TODO: put to logger
-
     def load_pretrained(self, config):
         # config = {"path" : "", "weights": "", "continue": ""}
         w_file = config["weights"]
