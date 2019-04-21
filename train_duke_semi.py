@@ -20,7 +20,7 @@ def select_WF():
     # avoid multiple instance of logger in WorkFlow
     WFType = config["type"]
 
-    if WFType == "train":
+    if "train" in WFType:
         net_type = config["model"]["type"]
         if net_type == 2:
             return TrainSSWF(config)

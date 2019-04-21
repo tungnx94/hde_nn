@@ -40,4 +40,4 @@ class ModelLoader(object):
         if mtrained is not None:
             model.load_pretrained(mtrained)
 
-        return model
+        return model, config

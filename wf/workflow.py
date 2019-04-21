@@ -6,6 +6,7 @@ import sys
 import signal
 import json
 import logging
+import utils
 
 from datetime import datetime
 from utils import create_folder
@@ -46,10 +47,8 @@ class WorkFlow(object):
         # File log
         create_folder(self.logdir)
 
-        # Save config params
-        cnfPath = os.path.join(self.logdir, "config.json")
-        with open(cnfPath, "w") as fp:
-            json.dump(self.config, fp, indent=4)
+        # Save config params    
+        utils.write_json(self.config, self.logdir + "/config.json")
 
         # Init loggers
         # self.logfile defined by sub-WF
@@ -80,7 +79,7 @@ class WorkFlow(object):
     def load_model(self):
         loader = ModelLoader()
         mconfig = self.config["model"]
-        self.model = loader.load(mconfig)
+        self.model, tr_cnf = loader.load(mconfig)
         self.countTrain = 0
 
         tr_config = mconfig["trained"]
@@ -88,6 +87,9 @@ class WorkFlow(object):
             w_file = os.path.join(tr_config["path"], "models", tr_config["weights"])
             self.logger.info("Loaded weights from " + str(w_file))
 
+            # save model config
+            utils.write_json(tr_cnf, self.logdir + "/config_train.json")
+ 
             if tr_config["continue"]:
                 self.countTrain = self.model.countTrain
                 AV_file = os.path.join(tr_config["path"], "train/values.csv")
