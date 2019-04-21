@@ -17,6 +17,10 @@ def create_folder(outdir):
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
+def is_image(path):
+    ext = os.path.splitext(path)[1][1:]
+    return (ext in ['jpg', 'jpeg', 'png', 'bmp'])
+
 def list_file(path):
     return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 

@@ -1,6 +1,6 @@
 from .generalData import DataLoader, MixDataset
 from .singleLabelData import SingleLabelDataset 
-from .sequenceUnlabelData import SequenceUnlabelDataset
+from .sequenceUnlabelData import SequenceUnlabelDataset, ViratUnlabelDataset
 from .dukeSeqLabelData import DukeSeqLabelDataset
 from .unlabelData import UnlabelDataset
 
@@ -41,6 +41,8 @@ class DatasetLoader(object):
             dts = SequenceUnlabelDataset(s_config, mean, std)
         elif t == 2:
             dts = DukeSeqLabelDataset(s_config, mean, std)
+        elif t == 3:
+            dts = ViratUnlabelDataset(s_config, mean, std)
 
         size = s_config["size"]
         if size is not None:

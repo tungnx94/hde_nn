@@ -147,10 +147,12 @@ def test_seq_unlabel_data():
     config = read_json("config/data.json")["unlabel"]
 
     duke = SequenceUnlabelDataset(config["duke"])
-    ucf = SequenceUnlabelDataset(config["ucf"])
+    #ucf = SequenceUnlabelDataset(config["ucf"])
     drone = SequenceUnlabelDataset(config["drone"])
+    dpes = ViratUnlabelDataset(config["3dpes"])
 
-    for dataset in [duke, ucf, drone]:
+    #for dataset in [duke, ucf, drone]:
+    for dataset in [dpes]:
         print(dataset)
         dataloader = DataLoader(dataset, batch_size=1)
         for count in range(3):
@@ -192,9 +194,9 @@ if __name__ == '__main__':
     # test_mobile_rnn()
     #test_feature_rnn()
 
-    test_single_data()
-    # test_duke_seq_data()
-    #test_seq_unlabel_data()
+    #test_single_data()
+    #test_duke_seq_data()
+    test_seq_unlabel_data()
 
     #calculate_duke_scales()
     #calculate_ucf_scales()
