@@ -142,7 +142,7 @@ class TrainWF(WorkFlow):
         for idx, av in enumerate(self.config["losses"]):
             self.AV.push_value(av, losses[idx], self.countTrain)
 
-        if self.save_best and self.best_val_loss < val_losses[0]:
+        if self.save_best and self.best_val_loss > val_losses[0]:
             self.best_val_loss = val_losses[0]
             self.best_model = copy.deepcopy(self.models)
 

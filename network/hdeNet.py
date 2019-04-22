@@ -40,7 +40,9 @@ class HDENet(torch.nn.Module):
     def load_pretrained(self, config):
         # config = {"path" : "", "weights": "", "continue": ""}
         w_file = config["weights"]
-        self.countTrain = int(os.path.splitext(w_file)[0])
+        count = os.path.splitext(w_file)[0]
+        if str.isdigit(count):
+            self.countTrain = int(count)
 
         w_file = os.path.join(config["path"], "models", w_file)
         self.load_from_npz(w_file)
