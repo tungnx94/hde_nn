@@ -9,6 +9,8 @@ import torch.optim as optim
 from datetime import datetime
 from .workflow import WorkFlow
 import utils
+import copy
+import math
 
 class TrainWF(WorkFlow):
 
@@ -38,17 +40,25 @@ class TrainWF(WorkFlow):
         if "lamb" in config:
             self.lamb = lamb
 
+        self.save_best = ("save_best" in config) and (config["save_best"] == True)
+        self.best_val_loss = math.inf
+
         for folder in [workingDir, self.traindir, self.modeldir]:
             utils.create_folder(folder)
 
         WorkFlow.__init__(self, config)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+        self.best_model = copy.deepcopy(self.model)
 
     def save_model(self):
         """ Save :param: model to pickle file (pkl) """
         model_path = os.path.join(self.modeldir, str(self.countTrain) + ".pkl")
         torch.save(self.model.state_dict(), model_path)
+
+    def save_best_model(self):
+        path = self.modeldir + "/best.pkl"
+        torch.save(self.best_model.state_dict(), path)
 
     def finalize(self):
         """ save model and values after training """
@@ -70,8 +80,10 @@ class TrainWF(WorkFlow):
 
     def save_snapshot(self):
         """ write accumulated values and save temporal model """
-        self.save_model()
         self.save_accumulated_values()
+        self.save_model()
+        if self.save_best:
+            self.save_best_model()
 
         self.logger.info("Saved snapshot")
 
@@ -122,6 +134,10 @@ class TrainWF(WorkFlow):
 
         for idx, av in enumerate(self.config["losses"]):
             self.AV.push_value(av, losses[idx], self.countTrain)
+
+        if self.save_best and self.best_val_loss < val_losses[0]:
+            self.best_val_loss = val_losses[0]
+            self.best_model = copy.deepcopy(self.models)
 
     def evaluate_set(self, loader, next_sample_func):
         loader.reset_iteration()

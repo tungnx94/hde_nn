@@ -11,7 +11,7 @@ class TestWF(WorkFlow):
         t = datetime.now().strftime("%m-%d")
     
         dtsName = config["dataset"]["test"]["name"]
-        countTrain = config["model"]["trained"]["weights"].split(".")[0]
+        countTrain = config["model"]["trained"]["weights"].split(".")[0] # could be number or "best"
         modelName = os.path.basename(config["model"]["trained"]["path"]) + "_" + countTrain
 
         workingDir = "./log/" + config["type"] + "_" + dtsName + "_" + t
