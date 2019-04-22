@@ -67,6 +67,7 @@ class WorkFlow(object):
         self.logger.addHandler(fileHandler)
 
         self.logger.info("WorkFlow created.")
+        self.logger.info("Log directory: " + self.logdir) 
 
         self.load_model()
 

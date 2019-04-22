@@ -144,7 +144,7 @@ class TrainWF(WorkFlow):
 
         if self.save_best and self.best_val_loss > val_losses[0]:
             self.best_val_loss = val_losses[0]
-            self.best_model = copy.deepcopy(self.models)
+            self.best_model = copy.deepcopy(self.model)
 
     def evaluate_set(self, loader, next_sample_func):
         loader.reset_iteration()
