@@ -12,6 +12,7 @@ import utils
 import copy
 import math
 
+# TODO: save best result 
 class TrainWF(WorkFlow):
 
     def __init__(self, config):
@@ -60,6 +61,12 @@ class TrainWF(WorkFlow):
         path = self.modeldir + "/best.pkl"
         torch.save(self.best_model.state_dict(), path)
 
+    def save_result(self, res_file):
+        losses = self.evaluate_final()
+        res = {"train": losses[0], "val": losses[1]}
+        path = self.logdir + "/" + res_file
+        utils.write_json(res, path)                
+
     def finalize(self):
         """ save model and values after training """
         WorkFlow.finalize(self)    
@@ -70,11 +77,11 @@ class TrainWF(WorkFlow):
 
         #Save final results
         self.logger.info("Saving final results")
+        self.save_result("results.json")
 
-        losses = self.evaluate_final()
-        res = {"train": losses[0], "val": losses[1]}
-        res_file = os.path.join(self.logdir, "results.json")
-        utils.write_json(res, res_file)        
+        if self.save_best:
+            self.model = self.best_model
+            self.save_result("results_best.json")
 
         self.logger.info("Done")
 
