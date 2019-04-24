@@ -7,11 +7,12 @@ import utils
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("-c", dest="cnf", default="./config/plot/sample.json",
+parser.add_argument("-c", dest="cnf", default="sample.json",
                     help="plot config")
 args = parser.parse_args()
+cnf_path = "config/plot/" + args.cnf
 
-config = utils.read_json(args.cnf)
+config = utils.read_json(cnf_path)
 
 workDir = config["dir"]
 model_dirs = utils.list_folder(workDir)
@@ -68,12 +69,18 @@ def plot_h(metric, chartName):
     ax.set_xlim([0, limit[metric]])
 
     x = config["models"]
-    #x = "" 
     X = [name.upper() for name in x]
     if metric=="accuracy":
         y = [model_loss[model][metric]*100 for model in x]
     else:
         y = [model_loss[model][metric] for model in x]
+
+    if metric=="accuracy":
+        z = sorted(zip(X, y), key=lambda x:x[1])
+    else:
+        z = sorted(zip(X, y), reverse=True, key=lambda x:x[1])
+    X = [dat[0] for dat in z]
+    y = [dat[1] for dat in z]
 
     width = 0.4
     ind = np.arange(len(y))
@@ -85,7 +92,8 @@ def plot_h(metric, chartName):
     ax.set_yticks(ind+width/2)
     ax.set_yticklabels(X, minor=False)
     plt.xlabel(chartName)
-    plt.ylabel('models')      
+    plt.ylabel('models')
+
     #plt.autoscale()
     plt.tight_layout()
 
@@ -94,5 +102,5 @@ def plot_h(metric, chartName):
 
 
 for loss, chartName in metrics.items():
-    plot_v(loss, chartName)
+    #plot_v(loss, chartName)
     plot_h(loss, chartName)
