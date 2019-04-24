@@ -7,7 +7,7 @@ import utils
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("-c", dest="cnf", default="./cnf_plot.json",
+parser.add_argument("-c", dest="cnf", default="./config/plot/sample.json",
                     help="plot config")
 args = parser.parse_args()
 
