@@ -15,21 +15,13 @@ cnf_path = "config/plot/" + args.cnf
 config = utils.read_json(cnf_path)
 
 workDir = config["dir"]
-model_dirs = utils.list_folder(workDir)
-
 model_loss = {}
 
-for model_dir in model_dirs:
-    name = "_".join(model_dir.split("_")[2:-2])
-
-    data = model_dir.split("_")[-2][-2:]
-    if str.isdigit(data):
-        name += data
-
-    res_path = os.path.join(workDir, model_dir, "results.json")
+for model, folder in config["models"].items():
+    res_path = os.path.join(workDir, folder, "results.json")
     res = utils.read_json(res_path)
 
-    model_loss[name] = res
+    model_loss[model] = res    
 
 metrics = config["plots"]
 bar_width = 0.4
