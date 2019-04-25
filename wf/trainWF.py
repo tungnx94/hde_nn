@@ -117,8 +117,11 @@ class TrainWF(WorkFlow):
                 self.check_signal()
                 self.model.eval()
 
-                val_sample = self.next_val_sample()
-                self.evaluate_sample(train_sample, val_sample)
+                if self.save_best:
+                    self.evaluate_sample_set(train_sample)
+                else:
+                    val_sample = self.next_val_sample()
+                    self.evaluate_sample(train_sample, val_sample)
 
                 self.model.train()
 
@@ -138,13 +141,21 @@ class TrainWF(WorkFlow):
         val_losses = self.val_metrics(val_sample)
 
         losses = np.concatenate((train_losses, val_losses))
-
         for idx, av in enumerate(self.config["losses"]):
             self.AV.push_value(av, losses[idx], self.countTrain)
 
-        if self.save_best and self.best_val_loss > val_losses[0]:
+    def evaluate_sample_set(self, train_sample):
+        train_losses = self.val_metrics(train_sample)
+        val_losses = self.evaluate_set(self.val_loader, self.next_val_sample)
+
+        losses = np.concatenate((train_losses, val_losses))
+        for idx, av in enumerate(self.config["losses"]):
+            self.AV.push_value(av, losses[idx], self.countTrain)
+
+        if self.best_val_loss > val_losses[0]:
             self.best_val_loss = val_losses[0]
             self.best_model = copy.deepcopy(self.model)
+
 
     def evaluate_set(self, loader, next_sample_func):
         loader.reset_iteration()
