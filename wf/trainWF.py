@@ -20,7 +20,9 @@ class TrainWF(WorkFlow):
         t = datetime.now().strftime("%m-%d_%H-%M")
         
         self.modelName = config["model"]["name"]
-        workingDir = os.path.join(config["dir"], t + "_" + self.modelName)
+
+        workingDir = os.path.join("./log/train", config["dir"], t + "_" + self.modelName)
+        #workingDir = os.path.join(config["dir"], t + "_" + self.modelName)
 
         self.traindir = os.path.join(workingDir, "train")
         self.modeldir = os.path.join(workingDir, "models")
