@@ -66,6 +66,8 @@ def seq_show(img_seq, dir_seq=None, scale=0.8, mean=[0, 0, 0], std=[1, 1, 1]):
     cv2.imshow('img', imgshow)
     cv2.waitKey(WAIT)
 
+    return imgshow
+
 
 # amigo add for data augmentation before normalization
 def im_hsv_augmentation(image, Hscale=10, Sscale=60, Vscale=60):

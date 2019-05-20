@@ -28,6 +28,7 @@ bar_width = 0.4
 
 limit = {"label": 0.5, "angle": 1.5, "accuracy": 100}
 
+# plot bars vertically
 def plot_v(metric, chartName):
     fig, ax = plt.subplots()
 
@@ -55,7 +56,7 @@ def plot_v(metric, chartName):
     savePath = os.path.join(workDir, chartName)
     fig.savefig(savePath)
 
-
+# plot bars horizoltally
 def plot_h(metric, chartName):
     fig, ax = plt.subplots()
     ax.set_xlim([0, limit[metric]])

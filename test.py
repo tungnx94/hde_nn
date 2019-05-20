@@ -1,5 +1,6 @@
 import torch.optim as optim
 
+import cv2
 from utils import *
 from network import *
 from dataset import *
@@ -119,11 +120,11 @@ def test_feature_rnn():
 def test_single_data():
     config = read_json("config/data.json")["single"]
     duke = SingleLabelDataset(config["duke"])
-    pes = SingleLabelDataset(config["pes"])
+    #pes = SingleLabelDataset(config["pes"])
 
-    for dataset in [duke, pes]:
+    for dataset in [duke]:
         print(dataset)
-        dataloader = DataLoader(dataset, batch_size=16)
+        dataloader = DataLoader(dataset, batch_size=10)
         for count in range(3):
             img, label = dataloader.next_sample()
             seq_show(img.numpy(),
@@ -132,27 +133,31 @@ def test_single_data():
 
 def test_duke_seq_data():
     config = read_json("config/data.json")["label_seq"]
-    dts = DukeSeqLabelDataset(config["duke"])
-    dataloader = DataLoader(dts)
+    dts1 = DukeSeqLabelDataset(config["duke_s1"])
+    dts2 = DukeSeqLabelDataset(config["duke_s2"])
 
-    for count in range(5):
+    for dts in [dts1, dts2]:
+        dataloader = DataLoader(dts)    
         sample = dataloader.next_sample()
         imgseq = sample[0].squeeze(dim=0)
         labelseq = sample[1].squeeze(dim=0)
+        img = seq_show(imgseq.numpy())
 
-        seq_show(imgseq.numpy(), dir_seq=labelseq)
+        cv2.imwrite(dts.__str__() + ".jpg", img)
 
 
 def test_seq_unlabel_data():
     config = read_json("config/data.json")["unlabel"]
 
-    duke = SequenceUnlabelDataset(config["duke"])
+    duke_tr = SequenceUnlabelDataset(config["duke1"])
+    duke_v = SequenceUnlabelDataset(config["duke2"])
+    duke_te = SequenceUnlabelDataset(config["duke3"])
     #ucf = SequenceUnlabelDataset(config["ucf"])
-    drone = SequenceUnlabelDataset(config["drone"])
-    dpes = ViratUnlabelDataset(config["3dpes"])
+    #drone = SequenceUnlabelDataset(config["drone"])
+    #dpes = ViratUnlabelDataset(config["3dpes"])
 
     #for dataset in [duke, ucf, drone]:
-    for dataset in [dpes]:
+    for dataset in [duke_tr, duke_v, duke_te]:
         print(dataset)
         dataloader = DataLoader(dataset, batch_size=1)
         for count in range(3):
@@ -195,8 +200,8 @@ if __name__ == '__main__':
     #test_feature_rnn()
 
     #test_single_data()
-    #test_duke_seq_data()
-    test_seq_unlabel_data()
+    test_duke_seq_data()
+    #test_seq_unlabel_data()
 
     #calculate_duke_scales()
     #calculate_ucf_scales()

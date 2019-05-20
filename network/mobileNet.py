@@ -14,22 +14,25 @@ Conv = namedtuple('Conv', ['kernel', 'stride', 'depth'])
 DepthSepConv = namedtuple('DepthSepConv', ['kernel', 'stride', 'depth'])
 
 # _CONV_DEFS specifies the MobileNet body
-_CONV_DEFS = [                                          # layer, factor 
-    Conv(kernel=[3, 3], stride=2, depth=32),            # 0,        2
+_CONV_DEFS = [                                          # layer, factor, size_out
+    Conv(kernel=[3, 3], stride=2, depth=32),            # 0,        2       96
     DepthSepConv(kernel=[3, 3], stride=1, depth=64),    # 1,
-    DepthSepConv(kernel=[3, 3], stride=2, depth=128),   # 2,        4
+    DepthSepConv(kernel=[3, 3], stride=2, depth=128),   # 2,        4       48
     DepthSepConv(kernel=[3, 3], stride=1, depth=128),   # 3,   
-    DepthSepConv(kernel=[3, 3], stride=2, depth=256),   # 4,        8
+    DepthSepConv(kernel=[3, 3], stride=2, depth=256),   # 4,        8       24
     DepthSepConv(kernel=[3, 3], stride=1, depth=256),   # 5,    
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 6,        16
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 6,        16      12
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 7,    
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 8,        32
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 8,        32      6
     DepthSepConv(kernel=[3, 3], stride=1, depth=512),   # 9,    
-    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 10,       64, output should be 3x3 with input 192x192
-    DepthSepConv(kernel=[3, 3], stride=1, depth=512)    # 11,   
+    DepthSepConv(kernel=[3, 3], stride=2, depth=512),   # 10,       64      3
+    DepthSepConv(kernel=[3, 3], stride=1, depth=512)    # 11,d   
     # DepthSepConv(kernel=[3, 3], stride=2, depth=1024),# 12
     # DepthSepConv(kernel=[3, 3], stride=1, depth=1024) # 13
 ]
+
+# output should be 3x3 with input 192x192
+# all paddings are 1 
 
 
 def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
@@ -67,6 +70,7 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
     """
     def conv_bn(in_channels, out_channels, kernel_size=3, stride=1):
         ### standard convolution
+        # padding = 1
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels,
                       kernel_size, stride, 1, bias=False),
@@ -76,6 +80,8 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
 
     def conv_dw(in_channels, kernel_size=3, stride=1, dilation=1):
         ### depthwise convolution
+        # can change output width/height dimension
+        # padding = 1 fixed
         return nn.Sequential(
             nn.Conv2d(in_channels, in_channels, kernel_size, stride, 1,
                       groups=in_channels, dilation=dilation, bias=False),
@@ -85,6 +91,7 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
 
     def conv_pw(in_channels, out_channels, kernel_size=1, stride=1, dilation=1):
         ### pointwise convolution
+        # kernel=1x1, stride=1, padding=0 fixed 
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels,
                       kernel_size, stride, 0, bias=False),
@@ -111,14 +118,14 @@ def mobilenet_v1_base(final_endpoint='Conv2d_11_pointwise',
         layer_stride = conv_def.stride
         out_channels = depth(conv_def.depth)
 
-        if isinstance(conv_def, Conv):
+        if isinstance(conv_def, Conv): # standard conv
             end_point = end_point_base
             end_points[end_point] = conv_bn(in_channels, out_channels, conv_def.kernel,
                                             stride=conv_def.stride)
             if end_point == final_endpoint:
                 return nn.Sequential(end_points)
 
-        elif isinstance(conv_def, DepthSepConv):
+        elif isinstance(conv_def, DepthSepConv): # depthwise-separable conv
             end_points[end_point_base] = nn.Sequential(OrderedDict([
                 ('depthwise', conv_dw(in_channels, conv_def.kernel,
                                       stride=layer_stride, dilation=layer_rate)),

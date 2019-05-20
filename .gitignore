@@ -1,6 +1,7 @@
 *~
 *.pyc
 *.out
+*.xz
 log
 log_lab
 lab_log
