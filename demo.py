@@ -36,9 +36,6 @@ net = cv2.dnn.readNetFromCaffe(prototxt, model)
 
 def put_arrow(img, dir, center_x=150, center_y=96):
     """ draw an arrow on image at (center_x, center_y) """
-    #img = img.copy()
-
-    print("aha")
     cv2.line(img, (center_y - 30, center_x),
              (center_y + 30, center_x), (0, 255, 0), 2)
 
@@ -69,8 +66,6 @@ def detect(image, confidence_thres=0.8, display_label=True):
 
             
             if CLASSES[idx] == "person":
-                print("hit")
-
                 mX = (endX - startX) // 10
                 mY = (endY - startY) // 10
                 startX = max(startX - mX, 0)
@@ -84,24 +79,19 @@ def detect(image, confidence_thres=0.8, display_label=True):
 
                 inp = torch.tensor(np.array([subimg]))
                 angle = predictor.forward(inp)
-                #print(angle)
 
                 angle = angle.data[0]
                 alpha = np.array(angle)
-                print(alpha)
-                
-                #print(subimg)
-                #print(subimg.shape)
-                #print(angle)
                 
 
                 # display bounding box
-                subimg = utils.img_denormalize(subimg, [127.5, 127.5, 127.5], [127.5, 127.5, 127.5])
-                put_arrow(subimg, alpha)
-                cv2.imshow("Frame", subimg)
+                out_img = utils.img_denormalize(subimg, [127.5, 127.5, 127.5], [127.5, 127.5, 127.5])
+                put_arrow(out_img, alpha)
+                out_img = cv2.resize(out_img, (0, 0), fx=3.0, fy=3.0)
+
+                cv2.imshow("Frame", out_img)
                 key = cv2.waitKey(5)
-                #image[startY:endY, startX:endX] = subimg
-                #image = subimg
+            
                 cv2.rectangle(image, (startX, startY), (endX, endY),
                               COLORS[idx], 2)
             
@@ -115,7 +105,7 @@ ap.add_argument("-v", "--video", required=True,
 ap.add_argument("-c", "--confidence", type=float, default=0.2,
                 help="minimum probability to filter weak detections")
 
-confidence=0.8
+confidence=0.6
 
 args = vars(ap.parse_args())
 
@@ -135,15 +125,7 @@ try:
         frame = fvs.read()
         count += 1
         if count % 5 == 0:
-            # frame = imutils.resize(frame, width=400)
-
-            frame = detect(frame, confidence)
-
-            # show the output frame & update FPS counter
-
-            #cv2.imshow("Frame", frame)
-            #key = cv2.waitKey(5)
-            time.sleep(0.01)
+            frame = detect(frame, confidence_thres=confidence)
             fps.update()
 except:
     print("finished")

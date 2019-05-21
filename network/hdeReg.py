@@ -39,19 +39,12 @@ class HDEReg(HDENet):
             self.load_to_device()
 
     def forward(self, x):
-        print(x.shape)
         batch = x.shape[0]
         x = x.to(self.device)
     
         x = self.feature(x).view(batch, -1)
         x = self.reg(x)
         return x
-
-    def forward_xyz(self, x = None):
-        if x is None:
-            print("do nothing")
-        else:
-            print("do sth")
 
     def loss_label(self, inputs, targets, mean=False):
         inputs = inputs.to(self.device)
