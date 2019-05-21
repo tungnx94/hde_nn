@@ -2,6 +2,8 @@
 *.pyc
 *.out
 *.xz
+*.mkv
+*.mp4
 log
 log_lab
 lab_log

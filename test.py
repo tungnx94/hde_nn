@@ -27,12 +27,12 @@ def test_hde_reg():
 
 
 def test_mobile_reg():
-    config = read_json("config/train2a.json")
+    config = read_json("config/train/duke/2a.json")
     net = MobileReg(config["model"])
 
     dataset = SingleLabelDataset(config["dataset"]["train"])
     dataset.shuffle()
-    loader = DataLoader(dataset, batch_size=4)
+    loader = DataLoader(dataset, batch_size=1)
 
     unlabel_set = SequenceUnlabelDataset(config["dataset"]["unlabel"])
     unlabel_loader = DataLoader(unlabel_set)
@@ -75,7 +75,7 @@ def test_hde_rnn():
 
 
 def test_mobile_rnn():
-    config = read_json("config/train1a.json")
+    config = read_json("config/train/duke/2c.json")
 
     dataset = DukeSeqLabelDataset(config["dataset"]["train"])
     dataset.shuffle()
@@ -193,14 +193,14 @@ def calculate_indoor_scales():
 
 if __name__ == '__main__':
     # test_hde_reg()
-    # test_mobile_reg()
+    test_mobile_reg()
 
     # test_hde_rnn()
     # test_mobile_rnn()
     #test_feature_rnn()
 
     #test_single_data()
-    test_duke_seq_data()
+    #test_duke_seq_data()
     #test_seq_unlabel_data()
 
     #calculate_duke_scales()

@@ -1,0 +1,42 @@
+{
+    "type": "test",
+    "dir": "ind_ft_duke",
+    "test": "supervised",
+    "log": "test.log",
+    "show_freq": 100,
+    "save_freq": 500,
+    "batch": 128,
+    "model": {
+        "trained": {
+            "path": "./log/train/ind_ft_duke/04-26_04-50_ssl24_m_ind", 
+            "weights": "best.pkl",
+            "continue": false
+        }
+    },
+    "dataset": {
+        "mean": [127.5, 127.5, 127.5],
+        "std": [127.5, 127.5, 127.5],
+        "test": {
+            "name": "indoor",
+            "path": "indoor_label/test.csv",
+            "type": 0,
+            "aug": false,
+            "size": null
+        }
+    },
+    "acvs": {
+        "label": 50,
+        "angle": 50,
+        "accuracy": 50
+        },
+    "plots": [
+        {   "name": "label_loss",
+            "values": ["label"],
+            "average": false}
+        ],
+    "losses": [
+        "label",
+        "angle",
+        "accuracy"
+        ]
+}
