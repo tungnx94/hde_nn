@@ -4,6 +4,8 @@
 *.xz
 *.mkv
 *.mp4
+*.mkv
+*.avi
 log
 log_lab
 lab_log

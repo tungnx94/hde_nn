@@ -109,7 +109,7 @@ confidence=0.6
 
 args = vars(ap.parse_args())
 
-video_path = args["video"]
+video_path = os.path.join("videos", args["video"])
 
 print("[INFO] starting video stream...")
 fvs = FileVideoStream(video_path).start()
